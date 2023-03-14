@@ -3,19 +3,23 @@ import pandas as pd
 
 import torch
 from torch import nn
+import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 
 class MyModel(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers):
         super().__init__()
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers)
+        self.lstm = nn.LSTM(input_size=input_size,
+                            hidden_size=hidden_size,
+                            num_layers=num_layers,
+                            batch_first=True)
         self.linear = nn.Linear(hidden_size, 1)
 
     def forward(self, x):
-        out, (h, c) = self.lstm(x)
+        out, _ = self.lstm(x)
         out = self.linear(out)
-        return out
+        return out.squeeze(2)
 
 
 class MyDataset(Dataset):
@@ -50,10 +54,11 @@ class MyDataset(Dataset):
 
 
 if __name__ == '__main__':
-    device = torch.device("cuda:0" if torch.cuda.is_available() else 'cpu')
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else 'cpu')
+    device = 'cpu'
 
-    factor_value = pd.read_pickle("F:\\factor_concat.pkl")
-    stock_return = pd.read_pickle("F:\\Trade_data\\adjopen.pkl").pct_change(5).shift(-6).dropna(how='all', axis=0)
+    factor_value = pd.read_pickle("data/factor_concat.pkl")
+    stock_return = pd.read_pickle("data/adjopen.pkl").pct_change(5).shift(-6).dropna(how='all', axis=0)
 
     train_x = factor_value.loc[(slice(None), slice("2018-01-01", "2018-01-31")), :]
     train_y = stock_return.loc["2018-01-01":"2018-01-31", :]
@@ -63,27 +68,28 @@ if __name__ == '__main__':
     num_layers = 5
 
     dataset = MyDataset(train_x, train_y)
-    bath_size = 1
-    dataloader = DataLoader(dataset, batch_size=bath_size, shuffle=True)
+    batch_size = 1
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     model = MyModel(input_size, hidden_size, num_layers)
     model.to(device)
 
     epochs = 500
-    learning_rate = 0.1
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-    criterion = nn.CrossEntropyLoss()
+    learning_rate = 0.01
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    criterion = nn.BCEWithLogitsLoss()
 
     for epoch in range(1, epochs + 1):
         loss = 0
         for x, y in dataloader:
             optimizer.zero_grad()
             x = x.float().to(device)
-            y = y.float().unsqueeze(2).to(device)
-            loss = criterion(model(x), y)
+            y = y.float().to(device)
+            y_pred = model(x)
+            loss = criterion(y_pred, y)
             loss.backward()
             optimizer.step()
-        print(f"epoch:{epoch}, loss:{loss.item()}")
+            print(f"epoch:{epoch}, loss:{loss.item()}")
 
     model = model.to('cpu')
-    pd.to_pickle(model, "F:\\model.pkl")
+    pd.to_pickle(model, "output/model.pkl")
