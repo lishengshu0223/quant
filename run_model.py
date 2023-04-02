@@ -80,7 +80,7 @@ def model_test():
 # torch.save(optimizer.state_dict(), "log/optimizer_2018.pth")
 
 
-epochs = 30
+epochs = 100
 batch_size = 256
 learning_rate = 1e-3
 
@@ -92,7 +92,7 @@ factor_stack_test = pd.read_pickle(
 )
 quantile_return = pd.read_pickle("./data/processed_data/quantile_return.pkl")
 date_num_dict = pd.read_pickle("./data/processed_data/date_num_dict.pkl")
-code_num_dict = pd.read_pickle("./data/processed_data/date_num_dict.pkl")
+code_num_dict = pd.read_pickle("./data/processed_data/code_num_dict.pkl")
 num_date_dict = pd.read_pickle("./data/processed_data/num_date_dict.pkl")
 num_code_dict = pd.read_pickle("./data/processed_data/num_code_dict.pkl")
 
@@ -117,16 +117,16 @@ del factor_stack_train
 print("test dataset")
 test_dataset = MyFastDataset(
     factor_stack=factor_stack_test,
-    quantile_return=factor_stack_test,
+    quantile_return=quantile_return,
     date_num_dict=date_num_dict,
     code_num_dict=code_num_dict,
     num_date_dict=num_date_dict,
     num_code_dict=num_code_dict,
 )
 del factor_stack_test
-
+del quantile_return
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=False)
 test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 criterion = nn.BCEWithLogitsLoss()
-model_train(3)
+model_train(5)
