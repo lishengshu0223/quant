@@ -70,6 +70,9 @@ class MyFastDataset(Dataset):
         num_date_dict: dict,
         num_code_dict: dict,
     ):
+        common_index = np.intersect1d(factor_stack.index, quantile_return.index)
+        factor_stack = factor_stack.loc[common_index, :]
+        quantile_return = quantile_return.loc[common_index]
         self.sample = factor_stack.T.to_dict(orient="list")
         self.label = quantile_return.to_dict()
         self.keys_list = list(quantile_return.to_dict().keys())
