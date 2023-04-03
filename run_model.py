@@ -100,7 +100,7 @@ print("loading model")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 feature_num = len(factor_stack_train.columns)
 stock_num = len(num_code_dict)
-embedding_dim = 10
+embedding_dim = 1000
 model = Mymodel(feature_num, stock_num, embedding_dim)
 model.to(device)
 

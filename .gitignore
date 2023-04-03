@@ -9,3 +9,4 @@
 .idea/*  
 data/*  
 log/*  
+run_model.py
