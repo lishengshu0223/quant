@@ -30,15 +30,17 @@ class layer_embedding(nn.Module):
         super().__init__()
         self.embedding = nn.Embedding(num_embeddings=stock_num, embedding_dim=embedding_dim)
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(feature_num + embedding_dim, 256),
+            nn.Linear(feature_num + embedding_dim, 1024),
+            nn.ReLU(),
+            nn.BatchNorm1d(1024),
+            nn.Linear(1024, 256),
+            nn.Dropout(0.5),
             nn.ReLU(),
             nn.BatchNorm1d(256),
             nn.Linear(256, 256),
             nn.ReLU(),
             nn.BatchNorm1d(256),
-            nn.Linear(256, 256),
-            nn.ReLU(),
-            nn.BatchNorm1d(256),
+            nn.Dropout(0.5),
             nn.Linear(256, 1)
         )
 

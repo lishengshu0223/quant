@@ -84,18 +84,6 @@ class MyDataset(Dataset):
         return len(self.valid_location_list)
 
 
-if __name__ == "__main__":
-    from torch.utils.data import DataLoader
-
-    factor_concat = pd.read_pickle("./data/factor_concat.pkl")
-    stock_return = pd.read_pickle("./data/stock_return.pkl")
-    dataset = MyDataset(
-        factor_concat, stock_return, pd.Timestamp(2018, 1, 1), pd.Timestamp(2019, 1, 1)
-    )
-    print(len(dataset))
-    dataloader = DataLoader(dataset)
-    for code, x, y in dataloader:
-        print(code)
-        print(x.shape)
-        print(y.shape)
-        break
+class MyFastDataset(Dataset):
+    def __init__(self):
+        pass

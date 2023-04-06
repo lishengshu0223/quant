@@ -80,7 +80,7 @@ def model_test():
 # torch.save(optimizer.state_dict(), "log/optimizer_2018.pth")
 
 
-epochs = 100
+epochs = 30
 batch_size = 256
 learning_rate = 1e-3
 
@@ -88,8 +88,8 @@ print("loading data")
 
 factor_stack_train = pd.read_pickle("./data/processed_data/factor_stack_2015_2018.pkl")
 factor_stack_test = pd.read_pickle(
-    "./data/processed_data/factor_stack_2018_2019_test.pkl"
-)
+    "./data/factor_concat_2019_2020.pkl"
+).stack()
 quantile_return = pd.read_pickle("./data/processed_data/quantile_return.pkl")
 date_num_dict = pd.read_pickle("./data/processed_data/date_num_dict.pkl")
 code_num_dict = pd.read_pickle("./data/processed_data/code_num_dict.pkl")
@@ -100,7 +100,7 @@ print("loading model")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 feature_num = len(factor_stack_train.columns)
 stock_num = len(num_code_dict)
-embedding_dim = 1000
+embedding_dim = 400
 model = Mymodel(feature_num, stock_num, embedding_dim)
 model.to(device)
 
@@ -129,4 +129,4 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 criterion = nn.BCEWithLogitsLoss()
-model_train(5)
+model_train(3)
