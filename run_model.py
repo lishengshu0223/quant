@@ -1,236 +1,180 @@
-# import pandas as pd
-# import numpy as np
-# from tqdm import tqdm
-# from sklearn.metrics import accuracy_score
-# import torch
-# from torch import nn
-# from torch.utils.data import DataLoader
-#
-# from my_model.linear_model import layer_4 as Mymodel
-# from my_dataset.linear_dataset import MyDataset
-# from my_dataset.timeseries_dataset import MyFastDataset
-#
-#
-# def model_train(interval=5):
-#     for epoch in range(1, epochs + 1):
-#         print(epoch)
-#         # pbar = tqdm(train_dataloader)
-#         accuracy_list = []
-#         train_loss = 0
-#         for _, _, x, y in train_dataloader:
-#             optimizer.zero_grad()
-#             x = x.float().to(device)
-#             y = y.float().to(device)
-#             y_pred = model(x)
-#             loss = criterion(y_pred, y)
-#             loss.backward()
-#             optimizer.step()
-#
-#             y_label = (y_pred > 0.5).int()
-#             y = y.int()
-#             accuracy = accuracy_score(y_label.cpu().numpy(), y.cpu().numpy())
-#             accuracy_list.append(accuracy)
-#             train_loss += loss.item()
-#
-#         train_loss /= len(train_dataloader)
-#         accuracy = np.mean(accuracy_list)
-#         print(f"train_loss:{train_loss:.4f}")
-#         print(f"accuracy:{accuracy:.4f}")
-#
-#         if epoch % interval == 0:
-#             model_test()
-#             torch.save(model.state_dict(), f"log/18_eb/model_{epoch}.pth")
-#             torch.save(optimizer.state_dict(), f"log/18_eb/optimizer_{epoch}.pth")
-#
-#
-# def model_test():
-#     with torch.no_grad():
-#         test_loss = 0
-#         accuracy_list = []
-#         # pbar = tqdm(test_dataloader)
-#         for _, _, x, y in test_dataloader:
-#             x = x.float().to(device)
-#             y = y.float().to(device)
-#             y_pred = model(x)
-#             loss = criterion(y_pred, y)
-#             y_label = (y_pred > 0.5).int()
-#             y = y.int()
-#             accuracy = accuracy_score(y_label.cpu().numpy(), y.cpu().numpy())
-#             accuracy_list.append(accuracy)
-#             test_loss += loss.item()
-#             # pbar.set_description("test")
-#         test_loss /= len(test_dataloader)
-#         accuracy = np.mean(accuracy_list)
-#         print(f"test_loss:{test_loss:.4f}")
-#         print(f"accuracy:{accuracy:.4f}")
-#
-#
-# # model, optimizer = train(
-# #     factor_concat,
-# #     stock_return,
-# #     pd.Timestamp(2017, 1, 1),
-# #     pd.Timestamp(2018, 1, 1),
-# # )
-# # modelstate = torch.load("./log/log.pth")
-# # checkpoint = torch.load("./log/optimizer.pth")
-#
-# # torch.save(model.state_dict(), "log/model_2018.pth")
-# # torch.save(optimizer.state_dict(), "log/optimizer_2018.pth")
-#
-#
-# epochs = 90
-# batch_size = 256
-# learning_rate = 1e-3
-#
-# print("loading data")
-#
-# # factor_stack_train = pd.read_pickle("./data/processed_data/factor_stack_2015_2018.pkl")
-# # factor_stack_test = pd.read_pickle(
-# #     "./data/factor_concat_2019_2020.pkl"
-# # ).stack()
-# # quantile_return = pd.read_pickle("./data/processed_data/quantile_return.pkl")
-# # date_num_dict = pd.read_pickle("./data/processed_data/date_num_dict.pkl")
-# # code_num_dict = pd.read_pickle("./data/processed_data/code_num_dict.pkl")
-# # num_date_dict = pd.read_pickle("./data/processed_data/num_date_dict.pkl")
-# # num_code_dict = pd.read_pickle("./data/processed_data/num_code_dict.pkl")
-# #
-# # print("loading model")
-# # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# # feature_num = len(factor_stack_train.columns)
-# # stock_num = len(num_code_dict)
-# # embedding_dim = 400
-# # model = Mymodel(feature_num, stock_num, embedding_dim)
-# # model.to(device)
-# #
-# # print("train dataset")
-# # train_dataset = MyFastDataset(
-# #     factor_stack=factor_stack_train,
-# #     quantile_return=quantile_return,
-# #     date_num_dict=date_num_dict,
-# #     code_num_dict=code_num_dict,
-# #     num_date_dict=num_date_dict,
-# #     num_code_dict=num_code_dict,
-# # )
-# # del factor_stack_train
-# # print("test dataset")
-# # test_dataset = MyFastDataset(
-# #     factor_stack=factor_stack_test,
-# #     quantile_return=quantile_return,
-# #     date_num_dict=date_num_dict,
-# #     code_num_dict=code_num_dict,
-# #     num_date_dict=num_date_dict,
-# #     num_code_dict=num_code_dict,
-# # )
-# # del factor_stack_test
-# # del quantile_return
-# # train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=False)
-# # test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False)
-# # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-# # criterion = nn.BCEWithLogitsLoss()
-# # model_train(3)
-#
-# data_train = pd.read_pickle("./data/processed_data/value_dict.pkl")
-# data_test = pd.read_pickle("./data/processed_data/value_dict_test.pkl")
-# quantile_return = pd.read_pickle("./data/processed_data/quantile_return.pkl")
-# date_num_dict = pd.read_pickle("./data/processed_data/date_num_dict.pkl")
-# code_num_dict = pd.read_pickle("./data/processed_data/code_num_dict.pkl")
-# num_date_dict = pd.read_pickle("./data/processed_data/num_date_dict.pkl")
-# num_code_dict = pd.read_pickle("./data/processed_data/num_code_dict.pkl")
-#
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# feature_num = 975 * 5
-# model = Mymodel(feature_num)
-# model.to(device)
-#
-# print("train dataset")
-# train_dataset = MyFastDataset(
-#     value_dict=data_train,
-#     quantile_return=quantile_return,
-#     date_num_dict=date_num_dict,
-#     code_num_dict=code_num_dict,
-#     num_date_dict=num_date_dict,
-#     num_code_dict=num_code_dict,
-# )
-# test_dataset = MyFastDataset(
-#     value_dict=data_test,
-#     quantile_return=quantile_return,
-#     date_num_dict=date_num_dict,
-#     code_num_dict=code_num_dict,
-#     num_date_dict=num_date_dict,
-#     num_code_dict=num_code_dict,
-# )
-# del data_train
-# del quantile_return
-# train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=False)
-# test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False)
-# optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-# criterion = nn.BCEWithLogitsLoss()
-# model_train(3)
 
-import os
-import pandas as pd
+from pathlib import Path
+import pickle
+import warnings
+
+import lightning.pytorch as pl
+from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor
+from lightning.pytorch.loggers import TensorBoardLogger
+from lightning.pytorch.tuner import Tuner
 import numpy as np
-from sklearn.model_selection import train_test_split
-from pytorch_tabnet.tab_model import TabNetClassifier
+import pandas as pd
+from pandas.core.common import SettingWithCopyWarning
+import torch
+
+from pytorch_forecasting import GroupNormalizer, TemporalFusionTransformer, TimeSeriesDataSet
+from pytorch_forecasting.data.examples import get_stallion_data
+from pytorch_forecasting.metrics import MAE, RMSE, SMAPE, PoissonLoss, QuantileLoss
+from pytorch_forecasting.models.temporal_fusion_transformer.tuning import optimize_hyperparameters
+from pytorch_forecasting.utils import profile
+
+warnings.simplefilter("error", category=SettingWithCopyWarning)
+
+data = get_stallion_data()
+
+data["month"] = data.date.dt.month.astype("str").astype("category")
+data["log_volume"] = np.log(data.volume + 1e-8)
+
+data["time_idx"] = data["date"].dt.year * 12 + data["date"].dt.month
+data["time_idx"] -= data["time_idx"].min()
+data["avg_volume_by_sku"] = data.groupby(["time_idx", "sku"], observed=True).volume.transform("mean")
+data["avg_volume_by_agency"] = data.groupby(["time_idx", "agency"], observed=True).volume.transform("mean")
+# data = data[lambda x: (x.sku == data.iloc[0]["sku"]) & (x.agency == data.iloc[0]["agency"])]
+special_days = [
+    "easter_day",
+    "good_friday",
+    "new_year",
+    "christmas",
+    "labor_day",
+    "independence_day",
+    "revolution_day_memorial",
+    "regional_games",
+    "fifa_u_17_world_cup",
+    "football_gold_cup",
+    "beer_capital",
+    "music_fest",
+]
+data[special_days] = data[special_days].apply(lambda x: x.map({0: "", 1: x.name})).astype("category")
+
+training_cutoff = data["time_idx"].max() - 6
+max_encoder_length = 36
+max_prediction_length = 6
+
+training = TimeSeriesDataSet(
+    data[lambda x: x.time_idx <= training_cutoff],
+    time_idx="time_idx",
+    target="volume",
+    group_ids=["agency", "sku"],
+    min_encoder_length=max_encoder_length // 2,  # allow encoder lengths from 0 to max_prediction_length
+    max_encoder_length=max_encoder_length,
+    min_prediction_length=1,
+    max_prediction_length=max_prediction_length,
+    static_categoricals=["agency", "sku"],
+    static_reals=["avg_population_2017", "avg_yearly_household_income_2017"],
+    time_varying_known_categoricals=["special_days", "month"],
+    variable_groups={"special_days": special_days},  # group of categorical variables can be treated as one variable
+    time_varying_known_reals=["time_idx", "price_regular", "discount_in_percent"],
+    time_varying_unknown_categoricals=[],
+    time_varying_unknown_reals=[
+        "volume",
+        "log_volume",
+        "industry_volume",
+        "soda_volume",
+        "avg_max_temp",
+        "avg_volume_by_agency",
+        "avg_volume_by_sku",
+    ],
+    target_normalizer=GroupNormalizer(
+        groups=["agency", "sku"], transformation="softplus", center=False
+    ),  # use softplus with beta=1.0 and normalize by group
+    add_relative_time_idx=True,
+    add_target_scales=True,
+    add_encoder_length=True,
+)
+
+validation = TimeSeriesDataSet.from_dataset(training, data, predict=True, stop_randomization=True)
+batch_size = 64
+train_dataloader = training.to_dataloader(train=True, batch_size=batch_size, num_workers=0)
+val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=0)
+
+# save datasets
+training.save("t raining.pkl")
+validation.save("validation.pkl")
+
+early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=1e-4, patience=10, verbose=False, mode="min")
+lr_logger = LearningRateMonitor()
+logger = TensorBoardLogger(log_graph=True)
+
+trainer = pl.Trainer(
+    max_epochs=100,
+    accelerator="auto",
+    gradient_clip_val=0.1,
+    limit_train_batches=30,
+    # val_check_interval=20,
+    # limit_val_batches=1,
+    # fast_dev_run=True,
+    logger=logger,
+    # profiler=True,
+    callbacks=[lr_logger, early_stop_callback],
+)
+
+tft = TemporalFusionTransformer.from_dataset(
+    training,
+    learning_rate=0.03,
+    hidden_size=16,
+    attention_head_size=1,
+    dropout=0.1,
+    hidden_continuous_size=8,
+    output_size=7,
+    loss=QuantileLoss(),
+    log_interval=10,
+    log_val_interval=1,
+    reduce_on_plateau_patience=3,
+)
+print(f"Number of parameters in network: {tft.size() / 1e3:.1f}k")
+
+# # find optimal learning rate
+# # remove logging and artificial epoch size
+# tft.hparams.log_interval = -1
+# tft.hparams.log_val_interval = -1
+# trainer.limit_train_batches = 1.0
+# # run learning rate finder
+# res = Tuner(trainer).lr_find(
+#     tft, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader, min_lr=1e-5, max_lr=1e2
+# )
+# print(f"suggested learning rate: {res.suggestion()}")
+# fig = res.plot(show=True, suggest=True)
+# fig.show()
+# tft.hparams.learning_rate = res.suggestion()
+
+# trainer.fit(
+#     tft,
+#     train_dataloaders=train_dataloader,
+#     val_dataloaders=val_dataloader,
+# )
+
+# # make a prediction on entire validation set
+# preds, index = tft.predict(val_dataloader, return_index=True, fast_dev_run=True)
 
 
-selected_factor_dict = pd.read_pickle("./data/selected_factor_dict.pkl")
+# tune
+study = optimize_hyperparameters(
+    train_dataloader,
+    val_dataloader,
+    model_path="optuna_test",
+    n_trials=200,
+    max_epochs=50,
+    gradient_clip_val_range=(0.01, 1.0),
+    hidden_size_range=(8, 128),
+    hidden_continuous_size_range=(8, 128),
+    attention_head_size_range=(1, 4),
+    learning_rate_range=(0.001, 0.1),
+    dropout_range=(0.1, 0.3),
+    trainer_kwargs=dict(limit_train_batches=30),
+    reduce_on_plateau_patience=4,
+    use_learning_rate_finder=False,
+)
+with open("test_study.pkl", "wb") as fout:
+    pickle.dump(study, fout)
 
-max_epochs = 100
-for year in [2018, 2019, 2020, 2021, 2022]:
-    print(year)
-    x_train = pd.read_pickle(f"./data/processed_data/factor_stack_{year - 3}.pkl")
-    x_train = pd.concat(
-        [x_train, pd.read_pickle(f"./data/processed_data/factor_stack_{year - 2}.pkl")]
-    )
-    x_train = pd.concat(
-        [x_train, pd.read_pickle(f"./data/processed_data/factor_stack_{year - 1}.pkl")]
-    )
-    y_train = pd.read_pickle(f"./data/processed_data/quantile_return_{year - 3}.pkl")
-    y_train = pd.concat(
-        [
-            y_train,
-            pd.read_pickle(f"./data/processed_data/quantile_return_{year - 2}.pkl"),
-        ]
-    )
-    y_train = pd.concat(
-        [
-            y_train,
-            pd.read_pickle(f"./data/processed_data/quantile_return_{year - 1}.pkl"),
-        ]
-    )
+# profile speed
+# profile(
+#     trainer.fit,
+#     profile_fname="profile.prof",
+#     model=tft,
+#     period=0.001,
+#     filter="pytorch_forecasting",
+#     train_dataloaders=train_dataloader,
+#     val_dataloaders=val_dataloader,
+# )
 
-    selected_factor = selected_factor_dict[year]
-    x_train = x_train[selected_factor]
-
-    x_train, x_valid, y_train, y_valid = train_test_split(
-        x_train.values, y_train.values
-    )
-    tabnet_params = dict(
-        optimizer_params=dict(lr=1e-2, weight_decay=1e-5),
-    )
-    model = TabNetClassifier(**tabnet_params)
-    model.fit(
-        x_train,
-        y_train,
-        eval_set=[(x_valid, y_valid)],
-        max_epochs=max_epochs,
-        drop_last=False,
-    )
-    model.save_model(f"./log/tabnet/{year}")
-    del (
-        x_train,
-        x_valid,
-        y_train,
-        y_valid,
-    )
-
-    x_test = pd.read_pickle(f"./data/processed_data/factor_stack_{year}.pkl")
-    x_test = x_test[selected_factor]
-
-    score = model.predict_proba(x_test.values)
-    score = pd.DataFrame(score[:, 1], index=pd.MultiIndex.from_tuples(x_test.index))
-    score.index.names = ["dt", "code"]
-    score = score.unstack()
-    score.columns = score.columns.droplevel(0)
-    score.to_pickle(f"F:\Multifactor_Project\score_{year}.pkl")
