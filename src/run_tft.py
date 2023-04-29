@@ -5,23 +5,30 @@ from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer, Qu
 import pandas as pd
 
 # load data
-data = pd.read_pickle('../data/factor_concat.pkl')
-stock_return = pd.read_pickle('../data/stock_return.pkl')
-factor_names = list(data.columns)[2:]
+data = pd.read_pickle('../data/factor_stack_2019_01.pkl')
+target = pd.read_pickle('../data/quantile_return_2019_01.pkl')
+factor_names = list(data.columns)
+data['target'] = target     # target列为需要预测的label
+data.index.names = ['date', 'code']
 data = data.reset_index()
-# define dataset
-start_time = pd.Timestamp("2018-01-01")
-data['time_idx'] = (data['date'] - start_time).dt.days
-max_encoder_length = 36
-max_prediction_length = 5
+unique_date = pd.unique(data['date'])
+date2idx = {d: i for i, d in enumerate(unique_date)}
+data['time_idx'] = data['date'].apply(lambda d: date2idx[d.to_datetime64()])
+
+
 training_cutoff = data["time_idx"].max() - 5
+max_encoder_length = int(training_cutoff - 5)
+max_prediction_length = 5
+# print(f"{max_encoder_length=}, {max_prediction_length=}")
+# print(f"{type(max_encoder_length)=}, {type(max_prediction_length)=}")
 
 training = TimeSeriesDataSet(
-    data[lambda x: x.date < training_cutoff],
+    data[lambda x: x['time_idx'] < training_cutoff],
     time_idx='time_idx',
-    target=...,
+    target='target',
     group_ids=['code'],
     max_encoder_length=max_encoder_length,
+    min_encoder_length=max_encoder_length // 2,
     min_prediction_length=1,
     max_prediction_length=max_prediction_length,
     static_categoricals=['code'],
@@ -33,10 +40,14 @@ training = TimeSeriesDataSet(
     add_relative_time_idx=True,
     add_target_scales=True,
     add_encoder_length=True,
+    allow_missing_timesteps=True,
 )
 
 # create validation and training dataset
-validation = TimeSeriesDataSet.from_dataset(training, data, min_prediction_idx=training.index.time.max() + 1, stop_randomization=True)
+validation = TimeSeriesDataSet.from_dataset(training, data,
+                                            min_prediction_idx=training.index.time.max() + 1,
+                                            stop_randomization=True,
+                                            )
 batch_size = 128
 train_dataloader = training.to_dataloader(train=True, batch_size=batch_size, num_workers=2)
 val_dataloader = validation.to_dataloader(train=False, batch_size=batch_size, num_workers=2)
@@ -63,7 +74,7 @@ tft = TemporalFusionTransformer.from_dataset(
     output_size=7,
     loss=QuantileLoss(),
     log_interval=2,
-    reduce_on_plateau_patience=4
+    reduce_on_plateau_patience=4,
 )
 print(f"Number of parameters in network: {tft.size()/1e3:.1f}k")
 
