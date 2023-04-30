@@ -15,6 +15,7 @@ unique_date = pd.unique(data['date'])
 date2idx = {d: i for i, d in enumerate(unique_date)}
 data['time_idx'] = data['date'].apply(lambda d: date2idx[d.to_datetime64()])
 
+# 过滤序列长度大于20的股票
 gb = data.groupby('code')
 valid_code = []
 for code, labels in gb.groups.items():
