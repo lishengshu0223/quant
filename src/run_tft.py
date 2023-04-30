@@ -15,10 +15,16 @@ unique_date = pd.unique(data['date'])
 date2idx = {d: i for i, d in enumerate(unique_date)}
 data['time_idx'] = data['date'].apply(lambda d: date2idx[d.to_datetime64()])
 
+gb = data.groupby('code')
+valid_code = []
+for code, labels in gb.groups.items():
+    if len(labels) >= 20:
+        valid_code.append(code)
+data = data[data['code'].isin(valid_code)]
 
 training_cutoff = data["time_idx"].max() - 5
-max_encoder_length = int(training_cutoff - 5)
-max_prediction_length = 5
+max_encoder_length = int(training_cutoff - 3)
+max_prediction_length = 3
 # print(f"{max_encoder_length=}, {max_prediction_length=}")
 # print(f"{type(max_encoder_length)=}, {type(max_prediction_length)=}")
 
