@@ -132,3 +132,30 @@ class MyNetwork(nn.Module):
         post_emdedding = self.embedding(x)
         out = self.fc(post_emdedding)
         return out
+
+
+class GruNetwork(nn.Module):
+    def __init__(self,
+                 input_size,
+                 hidden_size=30,
+                 num_layers=1,
+                 bias=True,
+                 batch_first=False,
+                 dropout=False,
+                 bidirectional=False):
+        super(GruNetwork, self).__init__()
+        self.gru = nn.GRU(input_size=input_size,
+                          hidden_size=hidden_size,
+                          num_layers=num_layers,
+                          bias=bias,
+                          batch_first=batch_first,
+                          dropout=dropout,
+                          bidirectional=bidirectional)
+        self.bn = nn.BatchNorm1d(hidden_size)
+        self.linear = nn.Linear(hidden_size, 1)
+
+    def forward(self, x):
+        x = self.gru(x)
+        x = self.bn(x)
+        out = self.linear(x)
+        return out
