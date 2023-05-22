@@ -3,3 +3,4 @@ data/
 log/
 .gitignore
 demo.ipynb
+test.py

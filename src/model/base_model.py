@@ -2,19 +2,10 @@ from typing import Union
 
 import pandas as pd
 import numpy as np
+from torch.utils.data import DataLoader
 
-
-def train_loop(X_train, y_train):
-    """
-    每次训练循环
-    :param X_train:
-    :param y_train:
-    :return: 当前训练结果，例：loss: xxxx, 以及当前模型参数权重
-    """
-    loss = None
-    model = None
-    msg = f"loss: {loss}"
-    return msg, loss, model
+from src.dataset.dataset import SectionalDataset
+from src.model.base_function import train_loop, validation_loop
 
 
 def valid_loop(X_valid, y_valid):
@@ -27,21 +18,33 @@ def valid_loop(X_valid, y_valid):
     msg = "auc=xxx, loss=xxx, accuracy=xxx"
     return msg, auc
 
+
 def predict(X_test):
     return
 
+
 class BasicModel:
-    def __init__(self, batch_size=1024, max_epoch=100, network=None):
+    def __init__(
+        self,
+        batch_size=1024,
+        max_epoch=100,
+        optimizer=None,
+        loss_fn=None,
+        network=None,
+        **network_kwargs,
+    ):
         # 专门针对模型的初始化数值, 例如一些超参数
         self.batch_size = batch_size
         self.max_epoch = max_epoch
-        self.netwok = network  # 需要用到的神经网络
+        self.optimizer = optimizer
+        self.loss_fn = loss_fn
+        self.network = network(**network_kwargs)  # 需要用到的神经网络
 
     def fit(
         self,
         X_train: Union[pd.DataFrame, np.ndarray],
         y_train: Union[pd.DataFrame, np.ndarray],
-        eval_set: list[tuple],
+        eval_set: list[tuple] = None,
     ):
         """
         同sklearn，用于训练出模型参数
@@ -58,23 +61,46 @@ class BasicModel:
         self.X_train = X_train
         self.y_train = y_train
 
-        # 第一组元素提早作为早结束的评判标准，其余组元素仅展示评价指标
-        self.X_valid = eval_set[0][0]
-        self.y_valid = eval_set[0][0]
+        # 第一组元素提早作为早结束的评判标准，其余组元素仅展示评价指标(目前紧展示第一个元素)
+        if eval_set is not None:
+            self.X_valid = eval_set[0][0]
+            self.y_valid = eval_set[0][0]
+            valid_dataset = SectionalDataset(self.X_valid, self.y_valid)
+            valid_dataloader = DataLoader(valid_dataset, self.batch_size)
+            del valid_dataset
+            has_valid = True
+        else:
+            valid_dataloader = None
+            has_valid = False
 
-        max_auc = [0, 0, self.netwok]
-        for i in range(self.max_epoch):
-            train_msg, loss, network = train_loop(self.X_train, self.y_train)
-            valid_msg, auc = valid_loop(self.X_valid, self.y_valid)
-            print(f"epoch {i} {train_msg} {valid_msg}")
-            # 如果评判标准创新高，则获取新高的循环次数和新高值
-            # 如果5轮内未创新高，则提早结束循环
-            if auc > max_auc[1]:
-                max_auc = [i, auc, network]
-            elif i - max_auc[0] >= 5:
-                break
-        self.netwok = max_auc[2]
+        train_dataset = SectionalDataset(self.X_train, self.y_train)
+        train_dataloader = DataLoader(train_dataset, self.batch_size)
+        del train_dataset
 
+        max_auc = 0
+        best_network = self.network
+        count = 0
+        for i in range(1, self.max_epoch+1):
+            self.network, self.loss_fn, self.optimizer, mean_loss = train_loop(
+                self.network, train_dataloader, self.loss_fn, self.optimizer
+            )
+            # 若果有验证集，则计算auc，保存最佳auc和最佳network，若5轮无提升，则循环终止， 返回auc
+            if has_valid:
+                auc = validation_loop(
+                    self.network, valid_dataloader, self.loss_fn, self.optimizer
+                )
+                print((f"epoch {i}, loss: {mean_loss:.4f}| eval_auc: {auc:.4f}"))
+                if auc > max_auc:
+                    best_network = self.network
+                    max_auc = auc
+                    count = 0
+                else:
+                    count = count + 1
+                    if count>=5:
+                        self.network = best_network
+                        break
+            else:
+                print((f"epoch {i}, loss: {mean_loss:.4f}"))
 
     def predict(self, X_test):
         """

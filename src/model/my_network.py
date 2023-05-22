@@ -73,18 +73,19 @@ class CategoryEmbedding(nn.Module):
     def forward(self, x):
         if self.skip_embedding:
             return x
-        cols = []
-        cat_feat_counter = 0
-        for feat_init_idx, is_continuous in enumerate(self.continuous_idx):
-            if is_continuous:
-                cols.append(x[:, feat_init_idx].float().view(-1, 1))
-            else:
-                cols.append(
-                    self.embeddings[cat_feat_counter](x[:, feat_init_idx].long())
-                )
-                cat_feat_counter += 1
-        post_embeddings = torch.cat(cols, dim=1)
-        return post_embeddings
+        else:
+            cols = []
+            cat_feat_counter = 0
+            for feat_init_idx, is_continuous in enumerate(self.continuous_idx):
+                if is_continuous:
+                    cols.append(x[:, feat_init_idx].float().view(-1, 1))
+                else:
+                    cols.append(
+                        self.embeddings[cat_feat_counter](x[:, feat_init_idx].long())
+                    )
+                    cat_feat_counter += 1
+            post_embeddings = torch.cat(cols, dim=1)
+            return post_embeddings
 
 
 class FullyConnect(nn.Module):
@@ -110,8 +111,9 @@ class FullyConnect(nn.Module):
             self.fc_block.append(fc_block)
 
     def forward(self, x):
-        out = self.fc_block(x)
-        return out
+        for nn in self.fc_block:
+            x = nn(x)
+        return x
 
 
 class MyNetwork(nn.Module):
