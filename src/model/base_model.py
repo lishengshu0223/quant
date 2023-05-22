@@ -53,34 +53,27 @@ class BasicModel:
         :param eval_set: 验证集，用于提早结束迭代
         :return:
         """
-        if isinstance(X_train, pd.DataFrame):
-            X_train = X_train.values
-        if isinstance(y_train, pd.DataFrame):
-            y_train = y_train.values
-
-        self.X_train = X_train
-        self.y_train = y_train
-
         # 第一组元素提早作为早结束的评判标准，其余组元素仅展示评价指标(目前紧展示第一个元素)
         if eval_set is not None:
-            self.X_valid = eval_set[0][0]
-            self.y_valid = eval_set[0][0]
-            valid_dataset = SectionalDataset(self.X_valid, self.y_valid)
+            X_valid = eval_set[0][0]
+            y_valid = eval_set[0][1]
+            valid_dataset = SectionalDataset(X_valid, y_valid)
             valid_dataloader = DataLoader(valid_dataset, self.batch_size)
-            del valid_dataset
+            del X_valid, y_valid, valid_dataset
             has_valid = True
         else:
             valid_dataloader = None
             has_valid = False
 
-        train_dataset = SectionalDataset(self.X_train, self.y_train)
+        train_dataset = SectionalDataset(X_train, y_train)
         train_dataloader = DataLoader(train_dataset, self.batch_size)
-        del train_dataset
+        del X_train, y_train, train_dataset
 
-        max_auc = 0
         best_network = self.network
+        best_auc = 0
+        best_epoch = 0
         count = 0
-        for i in range(1, self.max_epoch+1):
+        for i in range(1, self.max_epoch + 1):
             self.network, self.loss_fn, self.optimizer, mean_loss = train_loop(
                 self.network, train_dataloader, self.loss_fn, self.optimizer
             )
@@ -90,14 +83,18 @@ class BasicModel:
                     self.network, valid_dataloader, self.loss_fn, self.optimizer
                 )
                 print((f"epoch {i}, loss: {mean_loss:.4f}| eval_auc: {auc:.4f}"))
-                if auc > max_auc:
+                if auc > best_auc:
                     best_network = self.network
-                    max_auc = auc
+                    best_auc = auc
+                    best_epoch = i
                     count = 0
                 else:
                     count = count + 1
-                    if count>=5:
+                    if count >= 5:
                         self.network = best_network
+                        print(
+                            f"looping has early stopped, best epoch is {best_epoch}, which has auc {best_auc:.4f}"
+                        )
                         break
             else:
                 print((f"epoch {i}, loss: {mean_loss:.4f}"))

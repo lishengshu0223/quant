@@ -10,6 +10,10 @@ quantile = QUANTILE
 
 class SectionalDataset(Dataset):
     def __init__(self, X, y):
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+        if isinstance(y, pd.DataFrame):
+            y = y.values
         self.X = torch.tensor(X).float()
         self.y = torch.tensor(y).float()
 
