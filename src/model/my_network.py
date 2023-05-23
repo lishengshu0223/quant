@@ -89,12 +89,12 @@ class CategoryEmbedding(nn.Module):
 
 
 class FullyConnect(nn.Module):
-    def __init__(self, feature_num: int, p: float = 0.5, shrink: int = 4):
+    def __init__(self, feature_num: int, p: float = 0.5, shrink: int = 4, output_dim:int=2):
         super(FullyConnect, self).__init__()
         self.feature_num = feature_num
         self.fc_block = nn.ModuleList()
         while True:
-            if int(feature_num / shrink) < 1:
+            if int(feature_num / shrink) < output_dim:
                 break
             fc_block = nn.Sequential(
                 nn.Linear(feature_num, int(feature_num / shrink)),
@@ -106,7 +106,7 @@ class FullyConnect(nn.Module):
             feature_num = int(feature_num / shrink)
         if feature_num != 1:
             fc_block = nn.Sequential(
-                nn.Linear(feature_num, 1), nn.ReLU(), nn.BatchNorm1d(1), nn.Dropout(p)
+                nn.Linear(feature_num, output_dim), nn.ReLU(), nn.BatchNorm1d(1), nn.Dropout(p)
             )
             self.fc_block.append(fc_block)
 
