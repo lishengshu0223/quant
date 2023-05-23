@@ -143,7 +143,7 @@ class GruNetwork(nn.Module):
                  num_layers=1,
                  bias=True,
                  batch_first=False,
-                 dropout=False,
+                 dropout=0,
                  bidirectional=False):
         super(GruNetwork, self).__init__()
         self.gru = nn.GRU(input_size=input_size,
@@ -160,4 +160,48 @@ class GruNetwork(nn.Module):
         x = self.gru(x)
         x = self.bn(x)
         out = self.linear(x)
+        return out
+
+
+class GruNetworkWithAttention(nn.Module):
+    def __init__(self,
+                 input_size,
+                 hidden_size=30,
+                 num_layers=1,
+                 bias=True,
+                 batch_first=False,
+                 dropout=0.0,
+                 bidirectional=False):
+        super(GruNetworkWithAttention, self).__init__()
+        self.gru = nn.GRU(input_size=input_size,
+                          hidden_size=hidden_size,
+                          num_layers=num_layers,
+                          bias=bias,
+                          batch_first=batch_first,
+                          dropout=dropout,
+                          bidirectional=bidirectional)
+        self.bn = nn.BatchNorm1d(hidden_size * 2)
+        self.att_net = nn.Sequential()
+        self.att_net.add_module(
+            "att_fc_in",
+            nn.Linear(in_features=hidden_size, out_features=int(hidden_size / 2)),
+        )
+        self.att_net.add_module("att_dropout", torch.nn.Dropout(dropout))
+        self.att_net.add_module("att_act", nn.Tanh())
+        self.att_net.add_module(
+            "att_fc_out",
+            nn.Linear(in_features=int(hidden_size / 2), out_features=1, bias=False),
+        )
+        self.att_net.add_module("att_softmax", nn.Softmax(dim=1))
+        self.linear = nn.Linear(2 * hidden_size, 1)
+
+
+    def forward(self, x):
+        x, _ = self.gru(x)
+        attention_score = self.att_net(x)
+        att = torch.mul(x, attention_score)
+        att = torch.sum(att, dim=1)
+        cat = torch.cat((x[:, -1, :], att), dim=1)
+        cat = self.bn(cat)
+        out = self.linear(cat)
         return out
