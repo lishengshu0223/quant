@@ -89,7 +89,7 @@ class CategoryEmbedding(nn.Module):
 
 
 class FullyConnect(nn.Module):
-    def __init__(self, feature_num: int, p: float = 0.5, shrink: int = 4, output_dim:int=2):
+    def __init__(self, feature_num: int, output_dim: int, p: float = 0.5, shrink: int = 4):
         super(FullyConnect, self).__init__()
         self.feature_num = feature_num
         self.fc_block = nn.ModuleList()
@@ -104,9 +104,9 @@ class FullyConnect(nn.Module):
             )
             self.fc_block.append(fc_block)
             feature_num = int(feature_num / shrink)
-        if feature_num != 1:
+        if feature_num != output_dim:
             fc_block = nn.Sequential(
-                nn.Linear(feature_num, output_dim), nn.ReLU(), nn.BatchNorm1d(1), nn.Dropout(p)
+                nn.Linear(feature_num, output_dim), nn.ReLU(), nn.BatchNorm1d(output_dim), nn.Dropout(p)
             )
             self.fc_block.append(fc_block)
 
@@ -120,6 +120,7 @@ class MyNetwork(nn.Module):
     def __init__(
         self,
         input_dim: int,
+        output_dim: int,
         cat_dims: list[int] = None,
         cat_idxs: list[int] = None,
         cat_emb_dim: Union[int, list[int]] = None,
@@ -128,7 +129,7 @@ class MyNetwork(nn.Module):
     ):
         super(MyNetwork, self).__init__()
         self.embedding = CategoryEmbedding(input_dim, cat_dims, cat_idxs, cat_emb_dim)
-        self.fc = FullyConnect(self.embedding.post_embed_dim, p, shrink)
+        self.fc = FullyConnect(self.embedding.post_embed_dim, output_dim, p, shrink)
 
     def forward(self, x):
         post_emdedding = self.embedding(x)

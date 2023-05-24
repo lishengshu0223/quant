@@ -30,8 +30,8 @@ class MyModel:
     def _trainloop(self, train_dataloader):
         mean_loss = []
         for x, y in train_dataloader:
-            pred = self.network(x).flatten()
-            loss = self.loss_fn(pred, y)
+            pred = self.network(x)
+            loss = self.loss_fn(pred, y.to(torch.long))
 
             loss.backward()
             self.optimizer.step()
@@ -47,14 +47,14 @@ class MyModel:
             for X, y in test_dataloader:
                 pred = self.network(X)
                 true_y = true_y + y.int().tolist()
-                predict = predict + pred.tolist()
+                predict = predict + pred[:,-1].tolist()
         fpr, tpr, thresholds = roc_curve(true_y, predict)
         auc_value = auc(fpr, tpr)
         return auc_value
 
     def save(self, dir, name=None):
         if not os.path.exists(dir):
-            os.mkdir(dir)
+            os.makedirs(dir)
         if name is not None:
             dir = os.path.join(dir, name)
         else:
@@ -62,7 +62,7 @@ class MyModel:
         torch.save(self.network, f"{dir}.pth")
 
     def load(self, dir):
-        self.network.load_state_dict(torch.load(dir))
+        self.network = torch.load(dir)
 
     def fit(
         self,
@@ -103,14 +103,14 @@ class MyModel:
                 auc_value = self._validationloop(valid_dataloader)
                 print((f"epoch {i}, loss: {mean_loss:.4f}| eval_auc: {auc_value:.4f}"))
                 if auc_value > best_auc:
-                    self.save("./model/best_model")
-                    best_auc = auc
+                    self.save("./model", "best_model")
+                    best_auc = auc_value
                     best_epoch = i
                     count = 0
                 else:
                     count = count + 1
                     if count >= 5:
-                        self.network = self.load("./model/best_model.pth")
+                        self.load("./model/best_model.pth")
                         print(
                             f"looping has early stopped, best epoch is {best_epoch}, which has auc {best_auc:.4f}"
                         )
@@ -124,7 +124,7 @@ class MyModel:
         :param X_test: 测试集
         :return:
         """
-        self.X_test = X_test
+
 
     def predict_proba(self, X_test):
         """
@@ -132,5 +132,7 @@ class MyModel:
         :param X_test: 测试集
         :return: 模型不同类的概率
         """
-        y_test = self.network(X_test)
-        return y_test
+        X_test = torch.tensor(X_test).to(torch.float)
+        y_pred = self.network(X_test)
+        y_pred = y_pred.detach().numpy()
+        return y_pred
