@@ -13,11 +13,12 @@ from src.dataset.dataset import SectionalDataset
 class MyModel:
     def __init__(
         self,
-        batch_size=1024,
-        max_epoch=100,
-        optimizer=None,
-        loss_fn=None,
-        network=None,
+        batch_size,
+        max_epoch,
+        early_stop_epoch,
+        optimizer,
+        loss_fn,
+        network,
         **network_kwargs,
     ):
         # 专门针对模型的初始化数值, 例如一些超参数
@@ -25,6 +26,7 @@ class MyModel:
         self.max_epoch = max_epoch
         self.optimizer = optimizer
         self.loss_fn = loss_fn
+        self.early_stop_epoch = early_stop_epoch
         self.network = network(**network_kwargs)  # 需要用到的神经网络
 
     def _trainloop(self, train_dataloader):
@@ -109,7 +111,7 @@ class MyModel:
                     count = 0
                 else:
                     count = count + 1
-                    if count >= 5:
+                    if count >= self.early_stop_epoch:
                         self.load("./model/best_model.pth")
                         print(
                             f"looping has early stopped, best epoch is {best_epoch}, which has auc {best_auc:.4f}"
