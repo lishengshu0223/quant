@@ -24,10 +24,10 @@ class MyModel:
         # 专门针对模型的初始化数值, 例如一些超参数
         self.batch_size = batch_size
         self.max_epoch = max_epoch
-        self.optimizer = optimizer
         self.loss_fn = loss_fn
         self.early_stop_epoch = early_stop_epoch
         self.network = network(**network_kwargs)  # 需要用到的神经网络
+        self.optimizer = optimizer(self.network.parameters())
 
     def _trainloop(self, train_dataloader):
         mean_loss = []
