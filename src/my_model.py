@@ -24,7 +24,7 @@ class MyModel:
         # 专门针对模型的初始化数值, 例如一些超参数
         self.batch_size = batch_size
         self.max_epoch = max_epoch
-        self.loss_fn = loss_fn
+        self.loss_fn = loss_fn()
         self.early_stop_epoch = early_stop_epoch
         self.network = network(**network_kwargs)  # 需要用到的神经网络
         self.optimizer = optimizer(self.network.parameters())
@@ -45,6 +45,7 @@ class MyModel:
     def _validationloop(self, test_dataloader):
         predict = []
         true_y = []
+        self.network.eval()
         with torch.no_grad():
             for X, y in test_dataloader:
                 pred = self.network(X)
@@ -126,6 +127,12 @@ class MyModel:
         :param X_test: 测试集
         :return:
         """
+        y_pred = self.predict_proba(X_test)
+        if isinstance(y_pred, pd.DataFrame):
+            y_pred = y_pred.idxmax(axis=1)
+        else:
+            y_pred = np.argmax(y_pred, axis=1)
+        return y_pred
 
 
     def predict_proba(self, X_test):
@@ -134,7 +141,19 @@ class MyModel:
         :param X_test: 测试集
         :return: 模型不同类的概率
         """
-        X_test = torch.tensor(X_test).to(torch.float)
-        y_pred = self.network(X_test)
-        y_pred = y_pred.detach().numpy()
+        is_df = False
+        self.network.eval(
+
+        )
+        if isinstance(X_test, pd.DataFrame):
+            idx = X_test.index
+            X_test = X_test.values
+            is_df = True
+        with torch.no_grad():
+            X_test = torch.tensor(X_test).to(torch.float)
+            y_pred = self.network(X_test)
+            y_pred = torch.nn.functional.softmax(y_pred, 1)
+            y_pred = y_pred.detach().numpy()
+            if is_df:
+                y_pred = pd.DataFrame(y_pred, index=idx)
         return y_pred
