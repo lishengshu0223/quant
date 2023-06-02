@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import auc, roc_curve
 
-from src.dataset.dataset import SectionalDataset
+from src.my_dataset import SectionalDataset
 
 
 class MyModel:
