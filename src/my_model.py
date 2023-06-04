@@ -27,7 +27,7 @@ class MyModel:
         self.loss_fn = loss_fn()
         self.early_stop_epoch = early_stop_epoch
         self.network = network(**network_kwargs)  # 需要用到的神经网络
-        self.optimizer = optimizer(self.network.parameters())
+        self.optimizer = optimizer(self.network.parameters(), lr=1e-2)
 
     def _trainloop(self, train_dataloader):
         mean_loss = []
@@ -38,7 +38,7 @@ class MyModel:
             loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
-            mean_loss.append(loss.item() / len(x))
+            mean_loss.append(loss.item())
         mean_loss = np.sum(mean_loss) / len(mean_loss)
         return mean_loss
 
@@ -50,7 +50,7 @@ class MyModel:
             for X, y in test_dataloader:
                 pred = self.network(X)
                 true_y = true_y + y.int().tolist()
-                predict = predict + pred[:,-1].tolist()
+                predict = predict + pred[:, -1].tolist()
         fpr, tpr, thresholds = roc_curve(true_y, predict)
         auc_value = auc(fpr, tpr)
         return auc_value
@@ -134,7 +134,6 @@ class MyModel:
             y_pred = np.argmax(y_pred, axis=1)
         return y_pred
 
-
     def predict_proba(self, X_test):
         """
 
@@ -142,9 +141,7 @@ class MyModel:
         :return: 模型不同类的概率
         """
         is_df = False
-        self.network.eval(
-
-        )
+        self.network.eval()
         if isinstance(X_test, pd.DataFrame):
             idx = X_test.index
             X_test = X_test.values
