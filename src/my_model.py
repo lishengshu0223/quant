@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import auc, roc_curve
 
-from src.my_dataset import SectionalDataset
+from src.my_dataset import SectionalDataset, SeriesDataset
 
 
 class MyModel:
@@ -19,6 +19,7 @@ class MyModel:
         optimizer,
         loss_fn,
         network,
+        data_stype="sectional",
         **network_kwargs,
     ):
         # 专门针对模型的初始化数值, 例如一些超参数
@@ -27,6 +28,7 @@ class MyModel:
         self.loss_fn = loss_fn()
         self.early_stop_epoch = early_stop_epoch
         self.network = network(**network_kwargs)  # 需要用到的神经网络
+        self.data_stype = data_stype
         self.optimizer = optimizer(self.network.parameters())
 
     def _trainloop(self, train_dataloader):
@@ -84,7 +86,12 @@ class MyModel:
         if eval_set is not None:
             X_valid = eval_set[0][0]
             y_valid = eval_set[0][1]
-            valid_dataset = SectionalDataset(X_valid, y_valid)
+            if self.data_stype == "sectional":
+                valid_dataset = SectionalDataset(X_valid, y_valid)
+            elif self.data_stype == "series":
+                valid_dataset = SeriesDataset(X_valid, y_valid)
+            else:
+                raise ValueError("Unsupported type")
             valid_dataloader = DataLoader(valid_dataset, self.batch_size)
             del X_valid, y_valid, valid_dataset
             has_valid = True
@@ -92,7 +99,12 @@ class MyModel:
             valid_dataloader = None
             has_valid = False
 
-        train_dataset = SectionalDataset(X_train, y_train)
+        if self.data_stype == "sectional":
+            train_dataset = SectionalDataset(X_train, y_train)
+        elif self.data_stype == "series":
+            train_dataset = SeriesDataset(X_train, y_train)
+        else:
+            raise ValueError("Unsupported type")
         train_dataloader = DataLoader(train_dataset, self.batch_size)
         del X_train, y_train, train_dataset
 
