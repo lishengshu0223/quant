@@ -169,8 +169,9 @@ class GruNetworkWithAttention(nn.Module):
                  input_size,
                  hidden_size=30,
                  num_layers=1,
+                 num_labels=2,
                  bias=True,
-                 batch_first=False,
+                 batch_first=True,
                  dropout=0.0,
                  bidirectional=False):
         super(GruNetworkWithAttention, self).__init__()
@@ -194,7 +195,7 @@ class GruNetworkWithAttention(nn.Module):
             nn.Linear(in_features=int(hidden_size / 2), out_features=1, bias=False),
         )
         self.att_net.add_module("att_softmax", nn.Softmax(dim=1))
-        self.linear = nn.Linear(2 * hidden_size, 1)
+        self.linear = nn.Linear(2 * hidden_size, num_labels)
 
 
     def forward(self, x):
