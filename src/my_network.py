@@ -142,6 +142,7 @@ class GruNetwork(nn.Module):
                  input_size,
                  hidden_size=30,
                  num_layers=1,
+                 num_labels=2,
                  bias=True,
                  batch_first=False,
                  dropout=0,
@@ -155,11 +156,11 @@ class GruNetwork(nn.Module):
                           dropout=dropout,
                           bidirectional=bidirectional)
         self.bn = nn.BatchNorm1d(hidden_size)
-        self.linear = nn.Linear(hidden_size, 1)
+        self.linear = nn.Linear(hidden_size, num_labels)
 
     def forward(self, x):
-        x = self.gru(x)
-        x = self.bn(x)
+        x, _ = self.gru(x)
+        x = self.bn(x[:, -1, :])
         out = self.linear(x)
         return out
 

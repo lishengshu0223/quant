@@ -10,7 +10,7 @@ class SectionalDataset(Dataset):
         if isinstance(y, pd.DataFrame):
             y = y.values
         self.X = torch.tensor(X).float()
-        self.y = torch.tensor(y).float()
+        self.y = torch.tensor(y).long()
 
     def __len__(self):
         return len(self.y)
@@ -20,18 +20,16 @@ class SectionalDataset(Dataset):
 
 
 class SeriesDataset(Dataset):
-    def __init__(self, X, n):
-        # if isinstance(X, pd.DataFrame):
-        #     X = X.values
-        # if isinstance(y, pd.DataFrame):
-        #     y = y.values
-        # self.X = torch.tensor(X).float()
-        # self.y = torch.tensor(y).float()
-        self.X = X.values.tolist()
-        self.n = n
+    def __init__(self, X, y, period):
+        self.X = X.iloc[:, :-1].values.tolist()
+        self.y = y.values.tolist()
+        self.period = period
 
     def __len__(self):
-        return len(self.X) - self.n + 1
+        return int(len(self.y) / 8) - self.period + 1
 
-    def __getitem__(self, idx):
-        return torch.tensor(self.X[idx : idx + self.n]).float()
+    def __getitem__(self, item):
+        x_idx = int(item * 8)
+        X = torch.tensor(self.X[x_idx : x_idx + self.period * 8]).float()
+        y = torch.tensor(self.y[x_idx + self.period * 8 - 1]).long()
+        return X, y
