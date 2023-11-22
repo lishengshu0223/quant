@@ -153,17 +153,13 @@ class MyModel:
         :param X_test: 测试集
         :return: 模型不同类的概率
         """
-        is_df = False
         self.network.eval()
-        if isinstance(X_test, pd.DataFrame):
-            idx = X_test.index
-            X_test = X_test.values
-            is_df = True
         with torch.no_grad():
             X_test = torch.tensor(X_test).to(torch.float)
             y_pred = self.network(X_test)
             y_pred = torch.nn.functional.softmax(y_pred, 1)
             y_pred = y_pred.detach().numpy()
-            if is_df:
+            if isinstance(X_test, pd.DataFrame):
+                idx = X_test.index
                 y_pred = pd.DataFrame(y_pred, index=idx)
         return y_pred

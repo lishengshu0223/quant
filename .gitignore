@@ -4,4 +4,5 @@ log/
 .gitignore
 demo.ipynb
 test.py
+demo.py
 *.pyc
