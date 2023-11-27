@@ -1,53 +1,16 @@
 import os
-from torch.utils.data import Dataset, DataLoader
+import math
+
 import pandas as pd
 import numpy as np
 import torch
+from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD, Adam
-from src.my_network import MyNetwork as Network
+from torch.utils.data import Dataset, DataLoader
 from src.my_dataset import SectionalDataset as MyDataset
-
-
-# data = pd.read_pickle("./data/large_small_cap.pkl")
-# data = data.loc[("000852.XSHG", slice(None)), :]
-# data.index = data.index.droplevel(0)
-# data_idx = data.index
-# daily_price = data.resample('D').first().dropna(how="all")["open"]
-# p = 1
-# daily_rtn = daily_price.pct_change(p).shift(-p-1)
-# daily_rtn[daily_rtn > 0] = 1
-# daily_rtn[daily_rtn < 0] = 0
-# daily_rtn = daily_rtn.reindex(data.index, method='ffill').ffill()
-# # data = pd.concat([data, daily_rtn], axis=1)
-# # data = data.ffill().reindex(data_idx)
-#
-# batch_size = 128
-# test_dataset = MyDataset(data, daily_rtn)
-# test_dataloader = DataLoader(test_dataset, batch_size, shuffle=True)
-#
-# n = 2
-# network = Network(6, n)
-#
-# criterion = CrossEntropyLoss()
-# optimizer = Adam(network.parameters(), 1e-4)
-#
-# epochs = 100
-# for epoch in range(epochs):
-#     mean_loss = 0
-#     for x, y in test_dataloader:
-#         pred = network(x)
-#         loss = criterion(pred, y)
-#         loss.backward()
-#         optimizer.step()
-#         optimizer.zero_grad()
-#         mean_loss += loss.item()
-#     mean_loss = mean_loss / len(test_dataloader)
-#     print(mean_loss)
-#
-import math
-from torch import nn
-
+from src.my_model import MyModel
+from sklearn.model_selection import train_test_split
 
 class FullyConnect(nn.Module):
     def __init__(
@@ -104,26 +67,43 @@ class MyTabTransformer(nn.Module):
         return out
 
 
-path = "E:\\Factor_Download\\concat"
-data = pd.read_pickle(os.path.join(path, "factor", "2012-01-01.pkl"))
-label = pd.read_pickle(os.path.join(path, "label.pkl"))
-label = label.loc[data.index].astype(int)
-batch_size = 128
-test_dataset = MyDataset(data, label)
-test_dataloader = DataLoader(test_dataset, batch_size, shuffle=True)
-network = MyTabTransformer(data.shape[1], 2)
-print(network)
-criterion = CrossEntropyLoss()
-optimizer = Adam(network.parameters(), 1e-4)
-epochs = 100
-for epoch in range(epochs):
-    mean_loss = 0
-    for x, y in test_dataloader:
-        pred = network(x)
-        loss = criterion(pred, y)
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-        mean_loss += loss.item()
-    mean_loss = mean_loss / len(test_dataloader)
-    print(mean_loss)
+if __name__ == '__main__':
+    path = 'F:/Factor/concat'
+    label = pd.read_pickle(os.path.join(path, 'label.pkl'))
+    date_range = pd.date_range('2018-01-01', '2023-08-01', freq='6M').strftime('%Y-%m-01')
+
+    for date in date_range:
+        X_train = []
+        print(date)
+        period_range = pd.date_range(end=date, periods=36, freq='M').strftime('%Y-%m-01')
+        for period in period_range:
+            X_train.append(pd.read_pickle(os.path.join(path, 'factor', f'{period}.pkl')))
+
+        X_train = pd.concat(X_train).fillna(0)
+        y_train = label.loc[X_train.index].fillna(0)
+        X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.33, random_state=0)
+        network = FullyConnect(X_train.shape[1], 2)
+        network_kwargs = {"input_dim": X_train.shape[1], "output_dim": 2, "p": 0.5, "shrink": 16}
+        model = MyModel(
+            batch_size=1024,
+            max_epoch=100,
+            early_stop_epoch=10,
+            loss_fn=CrossEntropyLoss,
+            optimizer=Adam,
+            network=MyTabTransformer,
+            **network_kwargs
+        )
+        # model.fit(X_train.values, y_train.values, eval_set=[(X_test.values, y_test.values)])
+        # model.save('F:/Temp/model', f'{date}')
+        model.load('F:/Temp/model/2018-01-01.pth')
+        torch.cuda.empty_cache()
+        X_test = []
+        for month in range(1, 13):
+            X_test.append(pd.read_pickle(os.path.join(path, 'factor', f'2018-{str(month).zfill(2)}-01.pkl')))
+        X_test = pd.concat(X_test)
+        score = model.predict_proba(X_test.values)[:, 1]
+        score = pd.Series(score, index=X_test)
+        print(score)
+        score.to_pickle('score.pkl')
+        break
+
