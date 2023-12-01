@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import Dataset
 
 
-class SectionalDataset(Dataset):
+class SectionalTrainDataset(Dataset):
     def __init__(self, X, y):
         if isinstance(X, pd.DataFrame):
             X = X.values
@@ -33,3 +33,16 @@ class SeriesDataset(Dataset):
         X = torch.tensor(self.X[x_idx : x_idx + self.period * 8]).float()
         y = torch.tensor(self.y[x_idx + self.period * 8 - 1]).long()
         return X, y
+
+
+class SectionalPredictionDataset(Dataset):
+    def __init__(self, X):
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+        self.X = torch.tensor(X).float()
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx, :]

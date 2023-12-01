@@ -1,3 +1,4 @@
+import math
 from typing import Union
 
 import numpy as np
@@ -116,7 +117,7 @@ class FullyConnect(nn.Module):
         return x
 
 
-class MyNetwork(nn.Module):
+class Embedding_Fc(nn.Module):
     def __init__(
         self,
         input_dim: int,
@@ -127,7 +128,7 @@ class MyNetwork(nn.Module):
         p: float = 0.5,
         shrink: int = 4,
     ):
-        super(MyNetwork, self).__init__()
+        super(Embedding_Fc, self).__init__()
         self.embedding = CategoryEmbedding(input_dim, cat_dims, cat_idxs, cat_emb_dim)
         self.fc = FullyConnect(self.embedding.post_embed_dim, output_dim, p, shrink)
 
@@ -207,4 +208,26 @@ class GruNetworkWithAttention(nn.Module):
         cat = torch.cat((x[:, -1, :], att), dim=1)
         cat = self.bn(cat)
         out = self.linear(cat)
+        return out
+
+
+class MyTabTransformer(nn.Module):
+    def __init__(
+        self, input_dim: int, output_dim: int, p: float = 0.1, shrink: int = 16
+    ):
+        super(MyTabTransformer, self).__init__()
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.d_model = 2 ** (int(math.log(input_dim, 2)) + 1)
+        self.linear = nn.Linear(self.input_dim, self.d_model)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=self.d_model, nhead=8, dropout=p
+        )
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=2)
+        self.fullyconnect = FullyConnect(self.d_model, self.output_dim, p, shrink)
+
+    def forward(self, x):
+        x = self.linear(x)
+        x = self.transformer(x)
+        out = self.fullyconnect(x)
         return out
