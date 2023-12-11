@@ -1,2 +1,6 @@
 demo.py
+test.py
 demo*/
+.idea
+__pycache__*/
+data
