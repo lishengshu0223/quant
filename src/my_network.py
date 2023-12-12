@@ -231,3 +231,6 @@ class MyTabTransformer(nn.Module):
         x = self.transformer(x)
         out = self.fullyconnect(x)
         return out
+
+if __name__ == '__main__':
+    model = CategoryEmbedding(1147, [2, 31, 12], [0, 1, 2], [4, 6, 8])

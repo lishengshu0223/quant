@@ -1,1 +1,1 @@
-from .components import GatedAdditiveTreesBackbone as Gate
+from .components import GateFullyConnect
