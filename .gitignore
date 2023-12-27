@@ -1,6 +1,11 @@
 demo.py
-test.py
+gate_test.py
 demo*/
+test*/
 .idea
 __pycache__*/
 data
+*demo*
+*test*
+*model*
+*score*
