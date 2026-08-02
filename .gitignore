@@ -1,0 +1,52 @@
+# === API密钥/敏感文件（仅根目录的config.py含密钥） ===
+.env
+/config.py
+
+# === Python缓存 ===
+__pycache__/
+*.pyc
+*.pyo
+
+# === IDE/编辑器 ===
+.idea/
+.opencode/
+.trae/
+
+# === 数据文件（全部排除） ===
+*.parquet
+*.pkl
+*.hprof
+*.csv
+*.xlsx
+*.xls
+*.h5
+*.hdf5
+*.feather
+
+# === 图片/媒体（分析产出） ===
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+
+# === 日志 ===
+*.log
+logs/
+
+# === 研究产出目录 ===
+research/holding_increase/increase_events/
+research/holding_increase/backtest_signals/
+research/holding_increase/backtest_results/
+research/holding_increase/analysis_output/
+research/holding_increase/processed_dates.json
+research/equity_incentive/data/
+
+# === LLM挖掘工作区数据 ===
+llm_mining/local_miner/workspace/
+
+# === 参考项目（嵌套git仓库） ===
+llm_mining/reference/
+
+# === 其他 ===
+opencode.json
