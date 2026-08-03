@@ -6,6 +6,8 @@
 2. IC均值与多头累计收益必须同向为正(双负自动取反翻转; 一正一负直接剔除)
 3. 月度IC均值 > 60% 的月份为正
 4. 分年度多头超额收益: 除最新不完整年份外, 每个历史完整年份都必须为正
+5. 分组单调性评级不得为C级(四级: S优秀/A良好/B可入库需优化/C丢弃;
+   任一秩相关为负的年份直接判C, C级一律拒绝不入库不采纳)
 
 收益量纲统一: n日前向收益在时间轴上重叠, 直接按年求和/累加会放大n倍。
 本模块所有收益指标均启用 normalize=True, 即 n日前向收益÷n 转为日度等效收益,
@@ -16,6 +18,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 import factor_analysis as fa
 
@@ -65,6 +68,9 @@ def _compute_metrics(factor_series: pd.DataFrame, data, cfg) -> dict:
     # 分组年化收益(观察单调性)
     group_annual = {int(q): float(group_ret[q].mean() * 252) for q in group_ret.columns}
 
+    # 分组收益单调性两个量化指标(每日秩相关均值 + 越序惩罚)
+    group_monotonicity = calc_group_monotonicity(group_ret, cfg)
+
     return {
         "ic_mean": ic_mean, "ic_std": ic_std, "icir": icir,
         "long_total": long_total, "long_annual": long_annual,
@@ -74,6 +80,200 @@ def _compute_metrics(factor_series: pd.DataFrame, data, cfg) -> dict:
         "yearly_long": yearly_dict, "latest_year": latest_year,
         "bad_hist_years": bad_hist_years,
         "group_annual": group_annual,
+        "group_monotonicity": group_monotonicity,
+    }
+
+
+def calc_long_stability(yearly_long: dict, latest_year) -> dict:
+    """
+    多头收益年度稳定性指标(静态判断)。
+
+    设计动机: 因子迭代"更好"的特征不是IC更高(IC常由空头贡献), 而是多头收益更稳——
+    每个历史完整年份都有正的多头收益, 且收益在年份间分布平均, 不集中于某一两年。
+    因此仅基于历史完整年份(剔除最新不完整年份, 与合格标准c一致)计算:
+    - yearly_ir: 年度多头收益信息比率 = 年均值/年标准差(=1/变异系数), 越高越稳且越高(主比较量)
+    - cv:        变异系数 = 年标准差/年均值, 越低越平均
+    - hhi:       年度收益贡献集中度(Herfindahl指数), 越低越分散(越不集中于个别年份)
+    - min_year:  最差完整年份的多头收益, 越高底部越稳(每年都有正收益的体现)
+    score 取 yearly_ir(完美平均、标准差为0时封顶99), 作为优化模式采纳的主比较量。
+    """
+    hist = {int(y): float(v) for y, v in yearly_long.items()
+            if int(y) != latest_year and v is not None and np.isfinite(v)}
+    vals = np.array(list(hist.values()), dtype=float)
+    n = len(vals)
+    base = {"n_years": int(n), "mean": None, "std": None, "cv": None,
+            "yearly_ir": None, "hhi": None, "min_year": None,
+            "min_year_year": None, "score": None}
+    if n < 2:
+        return base
+    mean_y = float(vals.mean())
+    std_y = float(vals.std(ddof=1))
+    cv = std_y / mean_y if mean_y > 1e-12 else None
+    if std_y > 1e-9:
+        yearly_ir = mean_y / std_y
+    else:
+        yearly_ir = 99.0 if mean_y > 0 else 0.0   # 各年完全平均时封顶
+    total = vals.sum()
+    if total > 1e-12:
+        shares = vals / total
+        hhi = float((shares ** 2).sum())          # 均匀时≈1/n, 集中时→1
+    else:
+        hhi = None
+    min_idx = int(np.argmin(vals))
+    return {
+        "n_years": int(n),
+        "mean": mean_y,
+        "std": float(std_y),
+        "cv": float(cv) if cv is not None else None,
+        "yearly_ir": float(yearly_ir),
+        "hhi": hhi,
+        "min_year": float(vals[min_idx]),
+        "min_year_year": int(list(hist.keys())[min_idx]),
+        "score": float(yearly_ir),
+    }
+
+
+def calc_group_monotonicity(group_ret: pd.DataFrame, cfg) -> dict:
+    """
+    分组收益单调性的两个量化指标(静态判断)。
+
+    背景: 强制要求"每年分组收益随组别严格单调递增"太难实现, 导致因子挖不出来;
+    但完全放宽(只要求每年收益为正)又会得到 R14 那样收益为正、分组却毫无单调性的因子。
+    因此用两个连续指标替代二元判断, 度量单调性的强弱:
+
+    指标A daily_rank_corr: 每天把"分组编号1..n"与"当日各组收益"做Spearman秩相关,
+        得到日度时序, 汇总为总均值与分年度均值。1=完全单调递增, 0=与组别无关, <0=反向。
+        反映"因子值越高→当日未来收益越高"的逐日排序质量, 比只看年度顶组更细腻。
+
+    指标B out_of_order: 越序惩罚 Σ_{i=1}^{n-1} max(0, R_i - R_{i+1}),
+        度量更低组收益高于更高组的程度, 0=完全无越序(单调递增)。
+        分别给出日度序列的总均值/年度均值, 以及年度聚合收益的越序值。
+
+    收益口径与评价一致(日度等效: n日前向收益÷n)。秩相关不受逐日市场均值平移影响,
+    与 excess/raw 无关; 越序惩罚为日度等效收益率量纲, 数值很小(零点几个百分点级)。
+    """
+    n_groups = len(group_ret.columns)
+    if n_groups < 5:
+        return {"n_groups": n_groups, "n_days": 0,
+                "daily_rank_corr": None, "daily_out_of_order": None,
+                "yearly_out_of_order": {}}
+
+    # A. 每日分组编号 与 当日各组收益 的秩相关
+    def _row_rank_corr(row):
+        vals = row.dropna()
+        if len(vals) < 5:
+            return np.nan
+        x = vals.index.to_numpy(dtype=float)
+        y = vals.to_numpy(dtype=float)
+        return float(stats.spearmanr(x, y)[0])
+
+    daily_corr = group_ret.apply(_row_rank_corr, axis=1)
+
+    # B. 每日越序惩罚 Σ max(0, R_i - R_{i+1})  (向量化)
+    diff = np.diff(group_ret.values, axis=1)              # R_{i+1} - R_i
+    daily_oos = pd.Series(np.maximum(0.0, -diff).sum(axis=1),
+                          index=group_ret.index)
+
+    # 年度聚合收益的越序惩罚
+    yearly_oos = {}
+    yearly_group = group_ret.groupby(group_ret.index.year).sum()
+    for year, row in yearly_group.iterrows():
+        vals = row.dropna()
+        if len(vals) < 5:
+            continue
+        yv = vals.to_numpy(dtype=float)
+        yearly_oos[int(year)] = float(np.maximum(0.0, -np.diff(yv)).sum())
+
+    def _yearly_mean(series: pd.Series) -> dict:
+        g = series.groupby(series.index.year).mean().dropna()
+        return {int(y): float(v) for y, v in g.items()}
+
+    corr_mean = float(daily_corr.mean()) if daily_corr.notna().any() else np.nan
+    oos_mean = float(daily_oos.mean()) if len(daily_oos) else np.nan
+    return {
+        "n_groups": n_groups,
+        "n_days": int(len(group_ret)),
+        "daily_rank_corr": {
+            "overall_mean": corr_mean,
+            "yearly": _yearly_mean(daily_corr),
+        },
+        "daily_out_of_order": {
+            "overall_mean": oos_mean,
+            "yearly": _yearly_mean(daily_oos),
+        },
+        "yearly_out_of_order": yearly_oos,
+    }
+
+
+def classify_group_monotonicity(gm: dict, cfg) -> dict:
+    """
+    分组单调性四级评级(S优秀 / A良好 / B可入库需优化 / C丢弃)。
+
+    依据三个指标各自评级, 综合取最低档(短板决定):
+    - 指标A 每日秩相关(drc, 越大越好): S≥mono_rank_s, A≥mono_rank_a, B≥mono_rank_b, 否则C
+    - 指标B-1 越序惩罚日均(doo, 越小越好): S<mono_oos_s, A<mono_oos_a, B<mono_oos_b, 否则C
+    - 指标B-2 年度聚合越序峰值(peak, 越小越好): S<mono_peak_s, A<mono_peak_a, B<mono_peak_b, 否则C
+    任一秩相关为负的年份 -> 直接判C级(丢弃)。
+
+    处置规则: C级一律拒绝(合格标准追加条件, qualified=False, 不入库不采纳);
+    B级可入库但须针对性优化; A级良好可接受; S级优秀应保持。
+    """
+    drc = (gm.get("daily_rank_corr") or {}).get("overall_mean")
+    doo = (gm.get("daily_out_of_order") or {}).get("overall_mean")
+    corr_y = (gm.get("daily_rank_corr") or {}).get("yearly") or {}
+    y_oos = gm.get("yearly_out_of_order") or {}
+    peak = float(max(y_oos.values())) if y_oos else 0.0
+    neg_years = sorted(int(y) for y, v in corr_y.items() if v < 0)
+    # 坏年份: 秩相关为负 或 年度聚合越序>10%(B级上界)
+    bad_years = sorted(set(neg_years + [int(y) for y, v in y_oos.items() if v > 0.10]))
+    order = {"S": 0, "A": 1, "B": 2, "C": 3}
+
+    def _grade_rank(d):
+        if d is None or not np.isfinite(d):
+            return "C"
+        if d >= cfg.mono_rank_s:
+            return "S"
+        if d >= cfg.mono_rank_a:
+            return "A"
+        if d >= cfg.mono_rank_b:
+            return "B"
+        return "C"
+
+    def _grade_oos(d):
+        if d is None or not np.isfinite(d):
+            return "C"
+        if d < cfg.mono_oos_s:
+            return "S"
+        if d < cfg.mono_oos_a:
+            return "A"
+        if d < cfg.mono_oos_b:
+            return "B"
+        return "C"
+
+    def _grade_peak(p):
+        if p < cfg.mono_peak_s:
+            return "S"
+        if p < cfg.mono_peak_a:
+            return "A"
+        if p < cfg.mono_peak_b:
+            return "B"
+        return "C"
+
+    g_rank, g_oos, g_peak = _grade_rank(drc), _grade_oos(doo), _grade_peak(peak)
+    # 综合取最低档(短板决定): order值最大的即最低档
+    grade = max([g_rank, g_oos, g_peak], key=lambda g: order[g])
+    if neg_years and cfg.mono_neg_year_reject:
+        grade = "C"
+    return {
+        "grade": grade,
+        "drc": drc,
+        "doo": doo,
+        "yearly_peak": peak,
+        "grade_rank": g_rank,
+        "grade_oos": g_oos,
+        "grade_peak": g_peak,
+        "neg_years": neg_years,
+        "bad_years": bad_years,
     }
 
 
@@ -104,7 +304,12 @@ def evaluate_factor(factor_wide: pd.DataFrame, data, cfg, name: str = "") -> dic
         monthly_ok = bool(metrics["monthly_pos_ratio"] is not np.nan
                           and metrics["monthly_pos_ratio"] >= cfg.monthly_ic_pos_ratio)
         yearly_ok = bool(len(metrics["bad_hist_years"]) == 0)
-        qualified = bool(direction_ok and monthly_ok and yearly_ok)
+
+        # 分组单调性评级(四级), C级一律拒绝(合格标准追加条件)
+        mono_grade = classify_group_monotonicity(metrics["group_monotonicity"], cfg)
+        monotonicity_ok = bool(mono_grade["grade"] != "C")
+
+        qualified = bool(direction_ok and monthly_ok and yearly_ok and monotonicity_ok)
 
         result = {
             "name": name, "error": None, "flipped": flipped,
@@ -115,7 +320,11 @@ def evaluate_factor(factor_wide: pd.DataFrame, data, cfg, name: str = "") -> dic
             "qualified": qualified,
         }
         result.update(metrics)
+        result["long_stability"] = calc_long_stability(
+            metrics["yearly_long"], metrics["latest_year"])
         result["n_neg_months"] = len(metrics["neg_months"])
+        result["monotonicity_grade"] = mono_grade
+        result["monotonicity_ok"] = monotonicity_ok
         return result
 
     except Exception as e:
@@ -166,14 +375,88 @@ def build_feedback_text(round_factors: list, cfg) -> str:
             bad = ", ".join(f"{y}年({v*100:+.2f}%)" for y, v in sorted(ev["bad_hist_years"].items()))
             lines.append(f"[未达标] 分年度多头超额存在为负的历史完整年份: {bad}。"
                          "说明因子在某些市场风格下失效, 需增强风格适应性或避开该逻辑。")
+        # 多头收益年度稳定性(静态判断: 每年为正且分布平均, 不集中于个别年份)
+        stab = ev.get("long_stability") or {}
+        if stab.get("score") is not None:
+            # 负收益因子: 年均≤0时变异系数无定义、总收益≤0时HHI无定义, 需None安全格式化
+            cv_txt = f"{stab['cv']:.2f}" if stab.get("cv") is not None else "NA(年均≤0)"
+            hhi_txt = f"{stab['hhi']:.3f}" if stab.get("hhi") is not None else "NA(总收益≤0)"
+            lines.append(
+                f"[多头稳定性] 年度信息比率={stab['yearly_ir']:.2f}"
+                f"(年均{stab['mean']*100:+.2f}% / 年标准差{stab['std']*100:.2f}%), "
+                f"变异系数={cv_txt}, 集中度HHI={hhi_txt}, "
+                f"最差年{stab['min_year_year']}({stab['min_year']*100:+.2f}%)。"
+                "该比率越高=每年多头收益越平均稳定(不集中于个别年份), 是判断因子迭代优劣的核心标准, 优先于单纯抬高IC。")
+        # 分组收益单调性(每日秩相关均值 + 越序惩罚, 分年度完整展示)
+        gm = ev.get("group_monotonicity") or {}
+        drc = (gm.get("daily_rank_corr") or {}).get("overall_mean")
+        doo = (gm.get("daily_out_of_order") or {}).get("overall_mean")
+        if drc is not None and np.isfinite(drc):
+            corr_y = (gm.get("daily_rank_corr") or {}).get("yearly") or {}
+            oos_y = (gm.get("daily_out_of_order") or {}).get("yearly") or {}
+            y_oos = gm.get("yearly_out_of_order") or {}
+            years = sorted(set(corr_y) | set(oos_y) | set(y_oos))
+            lines.append(
+                f"[分组单调性] 每日秩相关均值={drc:+.3f}(1=完全单调递增, 0=无关), "
+                f"越序惩罚日均={doo*100:.4f}%(Σmax(0,R_i-R_(i+1)), 0=完全无越序), "
+                f"分组数={gm.get('n_groups')}。分年度值(年: 秩相关 / 越序日均 / 年度聚合越序):")
+            for y in years:
+                c = corr_y.get(y)
+                o = oos_y.get(y)
+                v = y_oos.get(y)
+                c_txt = f"{c:+.3f}" if c is not None else "NA"
+                o_txt = f"{o*100:.3f}%" if o is not None else "NA"
+                v_txt = f"{v*100:.2f}%" if v is not None else "NA"
+                lines.append(f"    {y}: {c_txt} / {o_txt} / {v_txt}")
+            lines.append(
+                "    以上分年度值供针对性挖掘: 找出秩相关偏低(<0.15)或年度聚合越序偏高(>10%)的年份, "
+                "诊断其市场风格共性并针对性修正, 同时保持高分年份不退化; "
+                "理想目标: 秩相关逐年尽量接近1, 越序逐年尽量接近0。")
+        # 单调性四级评级, 按等级给不同处置措辞
+        mg = ev.get("monotonicity_grade") or {}
+        if mg.get("grade"):
+            g = mg["grade"]
+            gtxt = {"S": "优秀·保持", "A": "良好·可接受", "B": "一般·可入库但需优化",
+                    "C": "差·丢弃"}.get(g, g)
+            peak_txt = (f"{mg['yearly_peak']*100:.2f}%" if mg.get("yearly_peak") is not None
+                        else "NA")
+            drc_txt = f"{mg['drc']:+.3f}" if mg.get("drc") is not None else "NA"
+            doo_txt = (f"{mg['doo']*100:.3f}%" if mg.get("doo") is not None else "NA")
+            lines.append(
+                f"[单调性评级] {g}级·{gtxt} (秩相关{drc_txt} / 越序日均{doo_txt} / "
+                f"年度峰值{peak_txt}, 三项取最低档)。")
+            if g == "C":
+                bad_txt = ", ".join(str(y) for y in mg.get("bad_years") or []) or "无"
+                lines.append(
+                    "    ⚠ 该因子因分组单调性C级被【直接判为不合格】: 排序结构近乎无效"
+                    f"(坏年份: {bad_txt}), 按规则一律拒绝——不入库、不采纳, "
+                    "必须更换核心逻辑重新设计, 不得再围绕该结构微调。")
+            elif g == "B":
+                if mg.get("bad_years"):
+                    bad_txt = ", ".join(str(y) for y in mg["bad_years"])
+                    lines.append(
+                        f"    该因子单调性一般: 可入库但须针对性优化——重点改善坏年份({bad_txt})的排序质量, "
+                        "分析其风格共性后做结构性修正, 而非仅调参数。")
+                else:
+                    lines.append(
+                        "    该因子单调性一般: 可入库但须针对性优化——无突出坏年份, "
+                        "但整体排序质量未达良好线(秩相关/越序日均未到A档), "
+                        "需系统性提升各组逐日排序质量, 而非仅调参数。")
+            elif g == "A":
+                lines.append(
+                    "    该因子单调性良好: 在保持核心结构下可小幅提升排序质量(秩相关/越序继续向优秀线靠拢)。")
+            else:
+                lines.append(
+                    "    该因子单调性优秀: 请保持当前结构, 仅允许微调窗口/门控以增强收益, 不得破坏现有排序质量。")
         if ev["qualified"]:
             lines.append("★★ 该因子已通过全部合格标准! 可在此基础上进一步抬高IC或验证稳健性。")
         lines.append("")
 
     lines.append("综合要求: 下一轮因子必须同时满足 (a)IC均值与多头收益同向为正 "
                  f"(b)月度IC为正占比≥{cfg.monthly_ic_pos_ratio*100:.0f}% "
-                 "(c)历史完整年份多头超额全部为正。请基于以上反馈进行有针对性的改进, "
-                 "不要简单重复已失败的公式。")
+                 "(c)历史完整年份多头超额全部为正 "
+                 "(d)分组单调性评级不得为C级(秩相关为负或年度越序超限直接拒绝)。"
+                 "请基于以上反馈进行有针对性的改进, 不要简单重复已失败的公式。")
     return "\n".join(lines)
 
 

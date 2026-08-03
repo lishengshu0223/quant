@@ -34,7 +34,9 @@ COLORS = {
 }
 
 
-def generate_report(best: dict, data, cfg) -> str:
+def generate_report(best: dict, data, cfg, png_path: str | None = None) -> str:
+    if png_path is None:
+        png_path = REPORT_PNG_PATH
     name = best.get("name", "factor")
     expr = best.get("expr", "")
     desc = best.get("描述", "") or best.get("desc", "")
@@ -318,7 +320,7 @@ def generate_report(best: dict, data, cfg) -> str:
         t4[0, j].set_text_props(color="white", fontweight="bold", fontsize=12)
     ax_t4.set_title("关键指标汇总", fontsize=14, fontweight="bold", y=1.12)
 
-    fig.savefig(REPORT_PNG_PATH, dpi=150, bbox_inches="tight", facecolor="white")
+    fig.savefig(png_path, dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
     # 文本摘要
@@ -334,4 +336,4 @@ def generate_report(best: dict, data, cfg) -> str:
                     f"回撤 {summary['多头']['最大回撤']*100:.2f}%")
     console.log(f"    合格判定: {'全部通过' if qualified else '未完全达标'}")
     console.log("    " + "=" * 60)
-    return REPORT_PNG_PATH
+    return png_path

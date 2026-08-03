@@ -1,13 +1,21 @@
 """
-本地化因子挖掘项目 - 主程序
+本地化因子挖掘项目 - 主程序(双模式)
+
+两种模式(对应需求三):
+  --mode new      新因子挖掘: 注入因子库摘要防撞车, 合格因子做库相关性检查,
+                  通过则分配新系列ID(F00x)入库; 挖到入库因子即提前结束。
+  --mode optimize --series F001  现有因子迭代优化: 注入当前因子全况(评价+诊断+整条路径)
+                  与条件判断式优化建议, 每轮把改进因子追加进该系列路径,
+                  若合格且优于当前最佳则更新系列最佳; 跑满轮数持续迭代。
 
 流程(对应需求4.4的阶段衔接展示):
   阶段1 配置初始化 -> 阶段2 数据加载 -> 阶段3 系统提示词
   -> 循环[ 模型输入 -> 模型输出 -> 因子计算 -> 因子评价 -> 反馈构建 ]
-  -> 最终阶段: 合格因子全面评价 + 生成图片报告
+  -> 最终阶段: 合格因子全面评价 + 生成图片报告(按系列隔离)
 
 用法:
-  python -m llm_mining.local_miner.run_mining --max-rounds 12 --max-depth 7
+  python -m llm_mining.local_miner.run_mining --mode new
+  python -m llm_mining.local_miner.run_mining --mode optimize --series F001
   中断后再次运行同样命令即可断点续传; 加 --fresh 强制重新开始。
 """
 
@@ -16,9 +24,11 @@ import sys
 import time
 import traceback
 
-from . import checkpoint, console, factor_eval, prompts
+import pandas as pd
+
+from . import checkpoint, combo, console, diagnostics, factor_eval, factor_library, prompts, review
 from .config import (
-    MiningConfig, ensure_workspace, BEST_FACTOR_PATH, LOG_PATH, REPORT_PNG_PATH,
+    MiningConfig, ensure_workspace, checkpoint_path, mining_log_path, report_png_path,
 )
 from .data_loader import MarketData
 from .expr_engine import ExprError, compute_factor
@@ -26,11 +36,14 @@ from .llm_client import LLMError, call_llm, extract_json
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="本地化LLM因子挖掘")
+    p = argparse.ArgumentParser(description="本地化LLM因子挖掘(双模式)")
+    p.add_argument("--mode", type=str, default="new", choices=["new", "optimize"],
+                   help="new=挖掘新因子; optimize=迭代优化已有因子系列")
+    p.add_argument("--series", type=str, default="", help="optimize模式绑定的因子系列ID(如 F001)")
     p.add_argument("--max-rounds", type=int, default=12, help="最大迭代轮数")
     p.add_argument("--max-depth", type=int, default=7, help="公式语法树最大嵌套深度")
     p.add_argument("--factors-per-round", type=int, default=2, help="每轮输出因子个数")
-    p.add_argument("--direction", type=str, default=None, help="初始挖掘方向")
+    p.add_argument("--direction", type=str, default=None, help="初始挖掘方向(new模式)")
     p.add_argument("--eval-start", type=str, default="2018-01-01", help="因子评价起始日期")
     p.add_argument("--thinking-budget", type=int, default=4096, help="模型思考token预算")
     p.add_argument("--fresh", action="store_true", help="忽略检查点, 重新开始")
@@ -71,15 +84,16 @@ def call_model_with_retry(system_prompt: str, user_prompt: str, cfg, max_parse_r
 
 
 def run_round_factors(factors_meta: list, data, cfg, round_no: int) -> list:
-    """计算并评价一轮中的所有因子, 返回带eval结果的因子列表"""
+    """计算并评价一轮中的所有因子, 返回带eval结果与风格的因子列表"""
     round_factors = []
     for idx, meta in enumerate(factors_meta, 1):
         name = str(meta.get("名称", f"factor_{round_no}_{idx}"))
         desc = str(meta.get("描述", ""))
         expr = str(meta.get("公式", "")).strip()
+        style = str(meta.get("风格", ""))
         console.show_factor_eval_header(round_no, idx, name, expr, desc)
 
-        entry = {"name": name, "desc": desc, "expr": expr, "eval": None}
+        entry = {"name": name, "desc": desc, "expr": expr, "style": style, "eval": None}
         t0 = time.time()
         try:
             factor_wide = compute_factor(expr, data, cfg)
@@ -100,10 +114,30 @@ def run_round_factors(factors_meta: list, data, cfg, round_no: int) -> list:
     return round_factors
 
 
+def recompute_series(expr: str, flipped: bool, data, cfg):
+    """重算因子宽表与长表Series(评价/诊断/相关性检查共用), 按eval方向翻转"""
+    factor_wide = compute_factor(expr, data, cfg)
+    if flipped:
+        factor_wide = -factor_wide
+    f = factor_wide[factor_wide.index >= pd.Timestamp(cfg.eval_start_date)]
+    series = f.stack(future_stack=True).dropna()
+    series.index.names = ["date", "code"]
+    series.name = "factor"
+    return factor_wide, series
+
+
 def main():
     args = parse_args()
+    if args.mode == "optimize" and not args.series:
+        print("错误: optimize 模式必须通过 --series 指定因子系列ID(如 --series F001)")
+        sys.exit(2)
     ensure_workspace()
-    console.init_console(LOG_PATH)
+
+    mode = args.mode
+    series_id = args.series
+    ckpt_path = checkpoint_path(mode, series_id)
+    log_path = mining_log_path(mode, series_id)
+    console.init_console(log_path)
 
     # ---------------- 阶段1: 配置初始化 ----------------
     cfg = MiningConfig(
@@ -116,32 +150,39 @@ def main():
     if args.direction:
         cfg.direction = args.direction
 
-    console.stage("1/6", "配置初始化")
+    # optimize 模式: 预加载目标系列
+    opt_series = None
+    if mode == "optimize":
+        opt_series = factor_library.load_series(series_id)
+        if opt_series is None:
+            console.banner(f"错误: 因子库中找不到系列 {series_id}, 无法优化", "=")
+            sys.exit(1)
+
+    console.stage("1/6", f"配置初始化 · 模式={'新因子挖掘' if mode=='new' else '现有因子优化'+series_id}")
     console.show_kv_table("运行配置(外部可变参数)", {
+        "运行模式": "new(新因子挖掘)" if mode == "new" else f"optimize(优化系列 {series_id})",
         "主模型": cfg.model_primary,
         "备用模型": cfg.model_fallback,
         "深度思考": f"开启, 预算 {cfg.thinking_budget} tokens",
         "最大迭代轮数": cfg.max_rounds,
         "每轮因子个数": cfg.factors_per_round,
         "公式最大嵌套深度": cfg.max_depth,
-        "公式最大长度": cfg.max_symbol_length,
-        "数据加载起始日": cfg.data_start_date,
-        "因子评价起始日": cfg.eval_start_date,
         "IC口径": f"{cfg.ic_period}日 RankIC",
         "分组数": f"{cfg.n_quantiles} 组(最高组为多头)",
         "月度IC为正占比要求": f"≥{cfg.monthly_ic_pos_ratio*100:.0f}%",
+        "库相关性上限": f"|ρ|≤{cfg.max_library_corr}(new模式防撞车)",
         "挖掘方向": cfg.direction,
     })
 
     # ---------------- 断点续传 ----------------
     state = None
-    if not args.fresh:
-        state = checkpoint.load()
     if args.fresh:
-        checkpoint.clear()
+        checkpoint.clear(ckpt_path)
         state = None
+    else:
+        state = checkpoint.load(ckpt_path)
     if state is None:
-        state = checkpoint.new_state(cfg)
+        state = checkpoint.new_state(cfg, mode=mode, series_id=series_id)
         console.log("\n    [断点续传] 未发现检查点, 全新开始。")
     else:
         console.log(f"\n    [断点续传] 恢复检查点: 已完成 {state['round']} 轮, "
@@ -154,8 +195,13 @@ def main():
 
     # ---------------- 阶段3: 系统提示词 ----------------
     console.stage("3/6", "构建系统提示词并输入模型(固定部分略显示, 变量部分全显示)")
-    system_prompt, fixed_parts, variables = prompts.build_system_prompt(cfg)
+    output_format = prompts.OUTPUT_FORMAT_OPTIMIZE if mode == "optimize" \
+        else prompts.OUTPUT_FORMAT_INITIAL
+    system_prompt, fixed_parts, variables = prompts.build_system_prompt(cfg, output_format)
     console.show_prompt_parts("系统提示词", fixed_parts, variables)
+
+    # new模式: 预构建因子库摘要(防撞车)
+    library_text = factor_library.library_summary_text() if mode == "new" else ""
 
     # ---------------- 阶段4/5: 挖掘循环 ----------------
     qualified_factor = None
@@ -172,9 +218,25 @@ def main():
                 parsed = pending["parsed"]
             else:
                 console.stage(f"4/6 · 第{round_no}轮", "模型输入(提示词构建)")
-                if not state["history"]:
-                    user_prompt, user_vars = prompts.build_initial_user_prompt(cfg)
-                    prompt_title = "首轮因子生成提示词"
+                if mode == "optimize":
+                    series_text = factor_library.series_current_text(opt_series)
+                    advice_text = diagnostics.format_diagnostics_advice(
+                        (opt_series.get("best") or {}).get("diagnostics") or {}, cfg)
+                    if state["history"]:
+                        feedback = factor_eval.build_feedback_text(
+                            state["history"][-1]["factors"], cfg)
+                    else:
+                        feedback = factor_eval.build_feedback_text([opt_series["best"]], cfg)
+                    ensemble_warning = factor_library.detect_ensemble_tendency(opt_series)
+                    if ensemble_warning:
+                        console.log("    [!] 检测到近期'同函数不同参数堆叠'倾向, 已向模型注入禁止告诫。")
+                    user_prompt, user_vars = prompts.build_optimize_user_prompt(
+                        cfg, round_no, series_text, advice_text, feedback, ensemble_warning)
+                    prompt_title = f"第{round_no}轮因子优化提示词"
+                elif not state["history"]:
+                    user_prompt, user_vars = prompts.build_new_initial_user_prompt(
+                        cfg, library_text)
+                    prompt_title = "首轮新因子生成提示词(含因子库避让)"
                 else:
                     history_summary = prompts.summarize_history(state["history"])
                     feedback = factor_eval.build_feedback_text(
@@ -188,23 +250,19 @@ def main():
                 parsed, raw, thinking, model = call_model_with_retry(
                     system_prompt, user_prompt, cfg)
 
-                # 模型输出到手后立即存档(断点: 不浪费模型思考结果)
                 state["pending"] = {
-                    "round": round_no,
-                    "parsed": parsed,
-                    "raw": raw,
-                    "model": model,
+                    "round": round_no, "parsed": parsed, "raw": raw, "model": model,
                 }
                 state["stage"] = "model_called"
-                checkpoint.save(state)
+                checkpoint.save(state, ckpt_path)
                 console.log(f"    [断点续传] 模型输出已存档到检查点。")
 
             # ---- 步骤B: 因子计算与评价 ----
             console.stage(f"5/6 · 第{round_no}轮", "因子计算与评价(本地全A股)")
             hypothesis = str(parsed.get("因子假设") or parsed.get("新假设") or "")
-            reflection = str(parsed.get("上轮反思") or "")
+            reflection = str(parsed.get("上轮反思") or parsed.get("优化思路") or "")
             if reflection:
-                console.log(f"    模型上轮反思: {reflection[:200]}{'...' if len(reflection)>200 else ''}")
+                console.log(f"    模型思路: {reflection[:200]}{'...' if len(reflection)>200 else ''}")
             console.log(f"    本轮因子假设: {hypothesis}")
             factors_meta = parsed.get("因子列表") or []
             if not isinstance(factors_meta, list) or not factors_meta:
@@ -215,53 +273,261 @@ def main():
 
             # ---- 步骤C: 反馈构建与状态更新 ----
             console.stage(f"5/6 · 第{round_no}轮", "构建评价反馈(将用于下一轮模型输入)")
-            feedback_text = factor_eval.build_feedback_text(round_factors, cfg)
+
+            # 组合类因子(最后手段)处理: 评价已完成, 但隐藏——不反馈、不写入对话记录
+            hidden_combos = state.setdefault("hidden_combos", [])
+            single_factors, combo_factors = [], []
+            for f in round_factors:
+                ev = f.get("eval") or {}
+                if not ev.get("error") and combo.detect_combo(f.get("expr", "")):
+                    combo_factors.append(f)
+                else:
+                    single_factors.append(f)
+
+            # 1) 单逻辑因子与已隐藏组合比较: 仅记录"被超越"(不立即反馈, 避免过早泄露隐藏机制)
+            for f in single_factors:
+                ev = f.get("eval") or {}
+                for c in hidden_combos:
+                    if not c.get("surpassed") and combo.combo_better(ev, c.get("eval") or {}):
+                        c["surpassed"] = f.get("name")
+
+            # 2) 本轮组合因子: 缓存隐藏 + 枯竭判定 + (再次组合时)引导反馈
+            for f in combo_factors:
+                entry = {"round": round_no, "name": f.get("name"), "expr": f.get("expr"),
+                         "eval": f.get("eval"), "surpassed": None}
+                if not state.get("combo_exhausted"):
+                    unsup = [c for c in hidden_combos if not c.get("surpassed")]
+                    if unsup:
+                        state["combo_exhausted"] = True
+                        console.banner(
+                            f"⚠ 穷途末路判定: 模型再次产出组合类因子({f['name']}), "
+                            f"且两次之间没有单逻辑因子超越此前组合({unsup[0].get('name')})"
+                            f"——该系列的单一经济逻辑已挖掘到尽头。", "!")
+                hidden_combos.append(entry)
+                console.log(f"    [隐藏] 组合类因子 {f['name']} 已评价但隐藏(最后手段, 不反馈): {f['expr']}")
+
+            # 3) 反馈文本: 仅基于单逻辑因子(组合因子从对话记录中抹去)
+            if single_factors:
+                feedback_text = factor_eval.build_feedback_text(single_factors, cfg)
+            else:
+                feedback_text = (
+                    "本轮输出的因子均为组合类(多个已有项相加/平均, 系统已隐藏评估)或存在错误, "
+                    "未产生可评价的单逻辑因子。请重新提出基于单一经济逻辑的结构创新因子, "
+                    "不要将已有项相加/平均; 组合只应在创新确实枯竭时才作为最后手段。")
+            # 组合引导: 仅当模型本轮又产出组合 且 此前组合已被更好的单逻辑因子超越
+            if combo_factors and not state.get("combo_exhausted"):
+                sup = [c for c in hidden_combos if c.get("surpassed")]
+                if sup:
+                    names = "、".join(f"{c['name']}(已被{c['surpassed']}超越)" for c in sup)
+                    feedback_text += (
+                        f"\n【提醒】你本轮再次提出组合类因子(系统已隐藏其评价), 而此前组合 {names} "
+                        "已被表现更好的单逻辑因子超越——请沿单一经济逻辑继续优化, "
+                        "不要走组合捷径(组合是最后手段)。")
             console.log("    反馈文本摘要:")
             for line in feedback_text.splitlines():
-                if line.startswith("[") or line.startswith("━") or line.startswith("综合"):
+                if line.startswith("[") or line.startswith("━") or line.startswith("综合") \
+                        or line.startswith("【提醒"):
                     console.log(f"        {line}")
 
             record = {
                 "round": round_no,
                 "hypothesis": hypothesis,
                 "reflection": reflection,
-                "factors": round_factors,
+                "factors": single_factors,
             }
             state["history"].append(record)
             state["round"] = round_no
             state["pending"] = None
             state["stage"] = "round_done"
 
-            # 记录最佳合格因子
-            for f in round_factors:
-                ev = f.get("eval") or {}
-                if ev.get("qualified"):
-                    if qualified_factor is None or \
-                            (ev.get("ic_mean") or -1) > (qualified_factor["eval"].get("ic_mean") or -1):
-                        qualified_factor = {**f, "round": round_no, "hypothesis": hypothesis}
-                        state["best"] = qualified_factor
-            checkpoint.save(state)
-
-            if qualified_factor is not None:
-                console.banner(f"第{round_no}轮发现合格因子: {qualified_factor['name']}, 提前结束挖掘", "=")
-                break
+            # ---- 步骤D: 按模式处理合格因子(仅针对单逻辑因子) ----
+            if mode == "new":
+                adopted = handle_new_mode_qualified(
+                    single_factors, round_no, hypothesis, data, cfg, state)
+                if adopted is not None:
+                    qualified_factor = adopted
+                    checkpoint.save(state, ckpt_path)
+                    console.banner(
+                        f"第{round_no}轮新因子入库: {adopted['name']} "
+                        f"(系列 {adopted['series_id']}), 提前结束挖掘", "=")
+                    break
+                console.log(f"\n    第{round_no}轮无可入库新因子, 继续下一轮迭代...")
             else:
-                console.log(f"\n    第{round_no}轮无合格因子, 继续下一轮迭代...")
+                improved = handle_optimize_mode_qualified(
+                    single_factors, round_no, hypothesis, opt_series, series_id,
+                    data, cfg, state)
+                if improved is not None:
+                    qualified_factor = improved
+                checkpoint.save(state, ckpt_path)
+                console.log(f"\n    第{round_no}轮优化完成, 继续下一轮迭代...")
 
     except KeyboardInterrupt:
-        checkpoint.save(state)
+        checkpoint.save(state, ckpt_path)
         console.log("\n    [中断] 已保存检查点, 下次运行相同命令即可续传。")
         sys.exit(1)
     except LLMError as e:
-        checkpoint.save(state)
+        checkpoint.save(state, ckpt_path)
         console.log(f"\n    [错误] LLM调用失败: {e}")
         console.log("    已保存检查点, 修复网络/密钥后重新运行即可续传。")
         sys.exit(1)
 
     # ---------------- 阶段6: 最终评价与图片 ----------------
     console.stage("6/6", "最终因子全面评价与图片报告")
-    if qualified_factor is None:
-        # 未挖到完全合格因子: 选方向正确的最佳因子做报告(标注未完全达标)
+    finalize(mode, series_id, opt_series, qualified_factor, state, data, cfg, ckpt_path)
+
+
+def handle_new_mode_qualified(round_factors, round_no, hypothesis, data, cfg, state):
+    """new模式: 对合格因子做库相关性检查, 通过则分配新系列ID入库。返回入库因子或None"""
+    for f in round_factors:
+        ev = f.get("eval") or {}
+        if not ev.get("qualified"):
+            continue
+        style = f.get("style", "")
+        console.log(f"    [库相关性检查] 因子 {f['name']} 合格, 检查是否与库内因子撞车...")
+
+        # 第一道关: LLM语义相关性评审(独立对话窗口, 防"换皮造因子")
+        library = factor_library.load_library()
+        if library:
+            rev = review.review_factor(cfg, f, library)
+            if rev.get("error"):
+                console.log(f"    [警告] {rev['reason']}")
+            elif rev.get("reject"):
+                console.log(f"    [×] 语义评审拒绝: 与 {rev.get('match_series')} 语义"
+                            f"{'重复' if rev.get('similarity') is not None and rev.get('similarity') >= 0.999 else '高度相似'}"
+                            f"(相似度={rev.get('similarity')}), 理由: {rev.get('reason')}。"
+                            "该因子不入库, 继续挖掘。")
+                f["eval"]["review_rejected"] = True
+                f["eval"]["review_reason"] = rev.get("reason")
+                continue
+            console.log(f"    [√] 语义评审通过(相似度={rev.get('similarity')}, "
+                        f"最相似: {rev.get('match_series') or '无'}, {rev.get('reason')})")
+        else:
+            console.log("    因子库为空, 跳过语义评审。")
+
+        # 第二道关: 数值截面相关性检验
+        try:
+            factor_wide, series = recompute_series(f["expr"], ev.get("flipped"), data, cfg)
+            corr_res = factor_library.check_library_correlation(factor_wide, data, cfg,
+                                                                exclude_id="")
+        except Exception as e:
+            console.log(f"    [警告] 相关性检查异常({e}), 跳过该因子入库。")
+            continue
+        if corr_res["n_compared"] > 0:
+            detail = ", ".join(f"{d['series_id']}|ρ|={abs(d['corr']):.2f}"
+                               for d in corr_res["details"] if d.get("corr") is not None)
+            console.log(f"    与库内因子截面相关: {detail} (上限{cfg.max_library_corr})")
+        if corr_res["flag"]:
+            console.log(f"    [×] 撞车拒绝: 与库内因子最大|ρ|={corr_res['max_abs_corr']:.2f} "
+                        f"> {cfg.max_library_corr}, 该因子不入库, 继续挖掘。")
+            f["eval"]["library_rejected"] = True
+            f["eval"]["library_max_corr"] = corr_res["max_abs_corr"]
+            continue
+
+        # 通过 -> 计算诊断并入库
+        console.log(f"    [√] 相关性检查通过, 计算诊断并入库...")
+        diag = diagnostics.compute_diagnostics(series, data, cfg)
+        new_id = factor_library.next_series_id()
+        f_entry = {**f, "round": round_no}
+        series_obj = factor_library.create_series_from_history(
+            new_id, state["history"], f_entry, hypothesis, style, diag)
+        factor_library.save_series(series_obj)
+        console.log(f"    [入库] 新因子系列 {new_id} 已保存: "
+                    f"{factor_library.series_path(new_id, f['name'])}")
+        console.log("    诊断摘要:")
+        for line in factor_library._diagnostics_brief(diag).splitlines():
+            console.log(f"        {line}")
+        return {**f_entry, "hypothesis": hypothesis, "series_id": new_id}
+    return None
+
+
+def stability_better(new_stab: dict, cur_stab: dict, tol: float = 1e-6) -> bool:
+    """
+    判断新因子的多头收益年度稳定性是否优于当前最佳(优化模式采纳标准)。
+    主比较量: 年度多头收益信息比率(score=yearly_ir, 越高=每年收益越平均稳定);
+    平手时以最差完整年份收益(min_year, 越高=底部越稳)决胜。
+    缺失值按最差(-inf)处理。
+    """
+    ns = new_stab.get("score")
+    cs = cur_stab.get("score")
+    ns = ns if ns is not None else float("-inf")
+    cs = cs if cs is not None else float("-inf")
+    if ns > cs + tol:
+        return True
+    if abs(ns - cs) <= tol:
+        nm = new_stab.get("min_year")
+        cm = cur_stab.get("min_year")
+        nm = nm if nm is not None else float("-inf")
+        cm = cm if cm is not None else float("-inf")
+        return nm > cm + tol
+    return False
+
+
+def handle_optimize_mode_qualified(round_factors, round_no, hypothesis, opt_series,
+                                   series_id, data, cfg, state):
+    """optimize模式: 把本轮所有因子追加进系列路径; 合格且多头收益年度稳定性优于
+    当前最佳则更新最佳(采纳标准是稳定性而非IC, 因IC常由空头贡献, 我们只要多头)。
+    返回更新后的最佳因子(若本轮有采纳)或None"""
+    # 本轮风格优先取首个因子的风格
+    round_style = next((f.get("style", "") for f in round_factors if f.get("style")), "")
+    factor_library.append_round(opt_series, round_no, round_factors, hypothesis, round_style)
+
+    cur_best_ev = (opt_series.get("best") or {}).get("eval") or {}
+    cur_stab = cur_best_ev.get("long_stability") or {}
+    adopted = None
+    for f in round_factors:
+        ev = f.get("eval") or {}
+        if not ev.get("qualified"):
+            continue
+        new_stab = ev.get("long_stability") or {}
+        if stability_better(new_stab, cur_stab):
+            cur_ir = cur_stab.get("score")
+            new_ir = new_stab.get("score")
+            console.log(
+                f"    [√] 优化采纳: {f['name']} 合格且多头收益更稳定 "
+                f"(年度信息比率 {cur_ir if cur_ir is not None else float('nan'):.2f}"
+                f" -> {new_ir if new_ir is not None else float('nan'):.2f}, "
+                f"最差年 {new_stab.get('min_year', 0)*100:+.2f}%), 重算诊断并更新系列最佳。")
+            try:
+                _, series = recompute_series(f["expr"], ev.get("flipped"), data, cfg)
+                diag = diagnostics.compute_diagnostics(series, data, cfg)
+            except Exception as e:
+                console.log(f"    [警告] 诊断计算失败({e}), 仍更新最佳但不附诊断。")
+                diag = None
+            f_entry = {**f, "round": round_no}
+            factor_library.update_best(opt_series, f_entry, hypothesis,
+                                       f.get("style", "") or round_style, diag)
+            cur_stab = new_stab
+            adopted = {**f_entry, "hypothesis": hypothesis, "series_id": series_id}
+        else:
+            console.log(
+                f"    [·] {f['name']} 合格但多头收益稳定性未超越当前最佳 "
+                f"(年度信息比率 {new_stab.get('score')} vs {cur_stab.get('score')}), "
+                "记录路径不更新最佳。")
+
+    factor_library.save_series(opt_series)
+    if adopted:
+        state["best"] = adopted
+    return adopted
+
+
+def finalize(mode, series_id, opt_series, qualified_factor, state, data, cfg, ckpt_path):
+    """最终评价与图片报告(按系列隔离路径)"""
+    # 组合枯竭提示
+    if state.get("combo_exhausted"):
+        console.banner(
+            "⚠ 本次运行已判定该系列'组合=穷途末路': 模型多次产出组合类因子, "
+            "且期间没有更好的单逻辑因子超越此前组合。"
+            "建议重新审视该系列的经济逻辑方向, 或开启新因子系列。", "!")
+    # 确定用于报告的因子
+    report_factor = qualified_factor
+    final_series_id = series_id
+    if report_factor is None and mode == "optimize" and opt_series:
+        # optimize 未产生改进: 用系列当前最佳做报告
+        best = opt_series.get("best") or {}
+        report_factor = {**best, "series_id": series_id}
+        final_series_id = series_id
+    if report_factor is None:
+        # new 模式未挖到入库因子: 选方向正确的最佳候选(标注未达标)
         candidates = []
         for rec in state["history"]:
             for f in rec["factors"]:
@@ -271,24 +537,21 @@ def main():
                                        "hypothesis": rec.get("hypothesis", "")})
         if candidates:
             candidates.sort(key=lambda x: x["eval"].get("ic_mean") or -1, reverse=True)
-            qualified_factor = candidates[0]
-            state["best"] = qualified_factor
-            checkpoint.save(state)
-            console.log(f"    未挖到完全合格因子, 选取方向正确的最佳因子 "
-                        f"{qualified_factor['name']} (IC均值="
-                        f"{qualified_factor['eval'].get('ic_mean', 0)*100:+.3f}%) 做全面评价。")
+            report_factor = candidates[0]
+            console.log(f"    未挖到入库因子, 选取方向正确的最佳候选 "
+                        f"{report_factor['name']} 做全面评价(标注未完全达标)。")
         else:
             console.log("    没有任何方向正确的因子, 无法生成报告。请增加轮数或调整方向后重试。")
             sys.exit(1)
 
-    import json
-    with open(BEST_FACTOR_PATH, "w", encoding="utf-8") as f:
-        json.dump(qualified_factor, f, ensure_ascii=False, indent=2)
+    if not final_series_id:
+        final_series_id = report_factor.get("series_id") or "candidate"
+    png_path = report_png_path(final_series_id)
 
     from .report import generate_report
     try:
-        png_path = generate_report(qualified_factor, data, cfg)
-        console.banner(f"挖掘结束! 因子报告图片已生成: {png_path}", "=")
+        png = generate_report(report_factor, data, cfg, png_path=png_path)
+        console.banner(f"挖掘结束! 因子报告图片已生成: {png}", "=")
     except Exception as e:
         console.log(f"    [错误] 报告生成失败: {e}")
         traceback.print_exc()

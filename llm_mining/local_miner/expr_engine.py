@@ -336,6 +336,40 @@ def _walk_validate(node, cfg, vars_used: set):
     raise ExprError("未知AST节点")
 
 
+def _strip_unary(node):
+    """剥掉最外层的一元运算符(+/-/!), 返回核心节点"""
+    while isinstance(node, Unary):
+        node = node.x
+    return node
+
+
+def _is_rank_call(node) -> bool:
+    """节点(允许一元包裹)是否为 RANK 调用"""
+    core = _strip_unary(node)
+    return isinstance(core, Call) and core.name == "RANK"
+
+
+def is_outer_rank(node) -> bool:
+    """
+    判断公式最外层是否被截面 RANK 主导。禁止的情形:
+    - RANK(x)
+    - -RANK(x) / +RANK(x) 等一元包裹
+    - RANK(x) * 常数 / 常数 * RANK(x) / RANK(x) / 常数 / RANK(x) ± 常数
+      (整体仍是 rank 的仿射变换, 同样破坏因子值线性)
+    允许: RANK 仅作为中间步骤, 如 TS_MEAN(RANK(x), n)、RANK(x) * TS_STD(y, n)。
+    """
+    core = _strip_unary(node)
+    if isinstance(core, Call) and core.name == "RANK":
+        return True
+    if isinstance(core, Bin):
+        left, right = core.left, core.right
+        if _is_rank_call(left) and isinstance(_strip_unary(right), Num):
+            return True
+        if _is_rank_call(right) and isinstance(_strip_unary(left), Num) and core.op in ("*", "+"):
+            return True
+    return False
+
+
 def validate(expr: str, cfg):
     """
     运行前完整合法性检查, 通过后返回 AST。任何非法公式都在此被拦截。
@@ -373,6 +407,14 @@ def validate(expr: str, cfg):
     # 7. 基础变量个数检查
     if len(vars_used) > cfg.max_base_features:
         raise ExprError(f"基础变量个数 {len(vars_used)} 超过上限 {cfg.max_base_features}")
+
+    # 8. 最外层 RANK 禁止检查(下游中性化/标准化要求因子值保持线性)
+    if is_outer_rank(ast):
+        raise ExprError(
+            "公式最外层禁止为截面RANK(含 -RANK(...)、RANK(...)*常数 等仿射变体): "
+            "rank非线性变换会使后续中性化/标准化失效。"
+            "RANK只可作为公式中间步骤(如 TS_MEAN(RANK(x), n)、TS_CORR(RANK(x), y, n))。"
+        )
 
     return ast
 

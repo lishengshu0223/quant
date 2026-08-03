@@ -1,11 +1,10 @@
 """
 本地化因子挖掘项目 - LLM 客户端
 
-参考 research/holding_increase/func_tools.py 的阿里 token plan 调用方式:
-- requests 直接请求 OpenAI 兼容端点
-- 主模型 qwen3.8-max-preview(开启深度思考, 预算适度), 失败回退 qwen3.6-flash
-- 递增等待重试
-- 健壮的 JSON 提取
+双提供商支持:
+- 主模型: DeepSeek deepseek-v4-flash(固定, OpenAI兼容端点 https://api.deepseek.com)
+- 备用模型: 阿里百炼 qwen3.6-flash(DashScope兼容端点, 仅DeepSeek完全不可用时兜底)
+- 递增等待重试 + 健壮的 JSON 提取
 """
 
 import json
@@ -15,7 +14,9 @@ import time
 import requests
 
 from . import console
-from .config import DASHSCOPE_API_KEY, DASHSCOPE_BASE_URL
+from .config import (
+    DASHSCOPE_API_KEY, DASHSCOPE_BASE_URL, DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL,
+)
 
 
 class LLMError(Exception):
@@ -25,20 +26,24 @@ class LLMError(Exception):
 def call_llm(messages: list, cfg) -> dict:
     """
     调用大模型, 返回 {"content": 正式回复, "thinking": 思考内容, "model": 实际模型}
+    按模型名前缀自动路由: deepseek-* -> DeepSeek 端点; 其余 -> DashScope 端点。
     """
-    if not DASHSCOPE_API_KEY:
-        raise LLMError("未找到 DASHSCOPE_API_KEY, 请检查 f:\\quant\\.env")
-
-    headers = {
-        "Authorization": f"Bearer {DASHSCOPE_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
     models = [cfg.model_primary, cfg.model_fallback]
     last_error = None
 
     for model in models:
-        is_primary = (model == cfg.model_primary)
+        is_deepseek = str(model).lower().startswith("deepseek")
+        base_url = DEEPSEEK_BASE_URL if is_deepseek else DASHSCOPE_BASE_URL
+        api_key = DEEPSEEK_API_KEY if is_deepseek else DASHSCOPE_API_KEY
+        if not api_key:
+            console.log(f"    [LLM] 模型{model} 缺少API Key({'DEEPSEEK_API_KEY' if is_deepseek else 'DASHSCOPE_API_KEY'}), 跳过。")
+            last_error = "缺少API Key"
+            continue
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+
         payload = {
             "model": model,
             "messages": messages,
@@ -46,15 +51,15 @@ def call_llm(messages: list, cfg) -> dict:
             "top_p": 0.8,
             "max_tokens": cfg.max_tokens,
         }
-        # 主模型开启深度思考; 备用flash模型不传思考参数以保证兼容
-        if is_primary and cfg.enable_thinking:
+        # 深度思考参数仅 DashScope(百炼)支持; DeepSeek 为 OpenAI 兼容端点, 不传该参数
+        if (not is_deepseek) and cfg.enable_thinking:
             payload["enable_thinking"] = True
             payload["thinking_budget"] = cfg.thinking_budget
 
         for attempt in range(cfg.llm_max_retry):
             try:
                 resp = requests.post(
-                    f"{DASHSCOPE_BASE_URL}/chat/completions",
+                    f"{base_url}/chat/completions",
                     headers=headers,
                     json=payload,
                     timeout=cfg.llm_timeout,

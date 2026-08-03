@@ -19,10 +19,31 @@ load_dotenv(os.path.join(QUANT_ROOT, ".env"))
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKSPACE_DIR = os.path.join(PROJECT_DIR, "workspace")
+FACTOR_LIBRARY_DIR = os.path.join(PROJECT_DIR, "factor_library")
+# 旧版单文件路径(仅用于迁移兼容, 新流程使用因子库系列文件)
 CHECKPOINT_PATH = os.path.join(WORKSPACE_DIR, "checkpoint.json")
 BEST_FACTOR_PATH = os.path.join(WORKSPACE_DIR, "best_factor.json")
 LOG_PATH = os.path.join(WORKSPACE_DIR, "mining.log")
 REPORT_PNG_PATH = os.path.join(WORKSPACE_DIR, "factor_report.png")
+
+
+def checkpoint_path(mode: str, series_id: str = "") -> str:
+    """按模式隔离的检查点路径, 保证 new/optimize 两个进程可并行互不覆盖"""
+    if mode == "optimize" and series_id:
+        return os.path.join(WORKSPACE_DIR, f"checkpoint_optimize_{series_id}.json")
+    return os.path.join(WORKSPACE_DIR, "checkpoint_new.json")
+
+
+def mining_log_path(mode: str, series_id: str = "") -> str:
+    """按模式隔离的日志路径"""
+    if mode == "optimize" and series_id:
+        return os.path.join(WORKSPACE_DIR, f"mining_optimize_{series_id}.log")
+    return os.path.join(WORKSPACE_DIR, "mining_new.log")
+
+
+def report_png_path(series_id: str) -> str:
+    """按因子系列隔离的报告图片路径"""
+    return os.path.join(WORKSPACE_DIR, f"factor_report_{series_id}.png")
 
 # LLM 配置（参考 research/holding_increase 的阿里 token plan 用法）
 DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY", "")
@@ -30,6 +51,10 @@ DASHSCOPE_BASE_URL = os.environ.get(
     "DASHSCOPE_BASE_URL",
     "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
 )
+
+# DeepSeek 配置（挖掘主模型, 固定 deepseek-v4-flash）
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 
 DEFAULT_DIRECTION = (
     "A股日频量价行为金融方向：可从短期反转/动量、成交量异动、量价背离、"
@@ -40,8 +65,8 @@ DEFAULT_DIRECTION = (
 @dataclass
 class MiningConfig:
     # ---------- LLM ----------
-    model_primary: str = "qwen3.8-max-preview"   # 千问3.8 preview 主模型
-    model_fallback: str = "qwen3.6-flash"        # 备用模型
+    model_primary: str = "deepseek-v4-flash"   # 主模型: DeepSeek v4-flash(固定)
+    model_fallback: str = "qwen3.6-flash"      # 备用模型(仅DeepSeek完全不可用时兜底)
     enable_thinking: bool = True                 # 开启深度思考
     thinking_budget: int = 4096                  # 思考token预算(适当调深)
     max_tokens: int = 12000                      # 最大输出token(含思考)
@@ -65,6 +90,41 @@ class MiningConfig:
     min_stocks_per_day: int = 50       # 每日最少股票数
     monthly_ic_pos_ratio: float = 0.6  # 月度IC为正的月份占比要求
 
+    # ---------- 分组单调性评级(四级: S优秀/A良好/B可入库需优化/C丢弃) ----------
+    # 锚点(基于R2/R3/R14实测标定): R2/R3(drc≈0.22, 越序日均≈0.28%, 年度峰值4-6%) -> B级;
+    # R14(drc≈0.12, 越序日均≈0.37%, 年度峰值≈16%) -> C级
+    # 指标A 每日秩相关(组别vs当日各组收益, 1=完全单调递增, 0=无关): 各等级下限
+    mono_rank_s: float = 0.28
+    mono_rank_a: float = 0.23
+    mono_rank_b: float = 0.15
+    # 指标B-1 越序惩罚日均 Σmax(0,R_i-R_(i+1)) (越小越好): 各等级上限
+    mono_oos_s: float = 0.0022
+    mono_oos_a: float = 0.0027
+    mono_oos_b: float = 0.0034
+    # 指标B-2 年度聚合越序峰值 (越小越好): 各等级上限
+    mono_peak_s: float = 0.03
+    mono_peak_a: float = 0.05
+    mono_peak_b: float = 0.10
+    # 任一秩相关为负的年份 -> 直接判C级(丢弃)
+    mono_neg_year_reject: bool = True
+
+    # ---------- 因子诊断 ----------
+    # 换手成本: 年化净收益 = 年化收益 - 年化双边换手率(倍) × 系数;
+    # 若超过 turnover_cost_neg_ratio 的年份净收益为负, 判定换手率相对收益过高
+    turnover_cost_coef: float = 0.0003     # 买卖成本系数(万分之三)
+    turnover_cost_neg_ratio: float = 0.6   # 判定换手过高的年份占比阈值
+    # 特殊时期压力测试窗口 (名称, 起始日, 结束日; None表示到数据最新日)
+    stress_periods: list = field(default_factory=lambda: [
+        ("2024年2月小盘股崩盘", "2024-01-15", "2024-02-29"),
+        ("2026年4月科创板抱团", "2026-04-01", None),
+    ])
+
+    # ---------- 因子库(新因子挖掘防撞车) ----------
+    max_library_corr: float = 0.5      # 新因子与库内因子截面相关系数上限(防"换价格字段/窗口"的同类因子漏网)
+    corr_sample_dates: int = 60        # 相关性检查的抽样交易日数
+    # 事后LLM语义评审(独立对话窗口判断新因子与库内因子是否语义重复)
+    review_similar_threshold: float = 0.75  # 语义评审判"相似"时, 相似度评分达到该值即拒绝入库
+
     # ---------- 挖掘循环 ----------
     max_rounds: int = 12               # 最大迭代轮数
     factors_per_round: int = 2         # 每轮要求模型输出的因子个数
@@ -76,3 +136,4 @@ class MiningConfig:
 
 def ensure_workspace():
     os.makedirs(WORKSPACE_DIR, exist_ok=True)
+    os.makedirs(FACTOR_LIBRARY_DIR, exist_ok=True)
