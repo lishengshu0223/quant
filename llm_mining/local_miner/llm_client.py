@@ -78,7 +78,8 @@ def call_llm(messages: list, cfg) -> dict:
                 body = e.response.text[:300] if e.response is not None else ""
                 last_error = f"HTTP {code}: {body}"
                 console.log(f"    [LLM] 模型{model} 第{attempt+1}次调用失败: {last_error}")
-                if code in (400, 404):  # 模型不可用, 直接换模型
+                # 模型不可用/配额耗尽(429 quota): 重试也不会成功, 直接换模型
+                if code in (400, 404) or (code == 429 and "quota" in last_error.lower()):
                     break
             except (requests.exceptions.Timeout, requests.exceptions.SSLError) as e:
                 last_error = f"网络异常: {e}"

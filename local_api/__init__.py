@@ -20,7 +20,7 @@ from .barra import (
 from .future_price import get_future_price
 from .fund_price import get_fund_price
 from .corporate_action import get_dividend, get_ex_cum_factor, get_split_factor
-from .stock_status import is_st_stock, is_suspended
+from .stock_status import is_st_stock, is_suspended, get_tradable_matrix
 from .yield_curve import get_yield_curve
 from .future_info import get_future_info
 
@@ -52,6 +52,7 @@ __all__ = [
     "get_split_factor",
     "is_st_stock",
     "is_suspended",
+    "get_tradable_matrix",
     "get_yield_curve",
     "get_future_info",
 ]

@@ -72,7 +72,7 @@ class MiningConfig:
     max_tokens: int = 12000                      # 最大输出token(含思考)
     temperature: float = 0.8                     # 挖掘任务需要一定创造性
     llm_timeout: int = 600                       # 单次请求超时(秒)
-    llm_max_retry: int = 4                       # 每个模型的重试次数
+    llm_max_retry: int = 6                       # 每个模型的重试次数(DeepSeek长请求偶发空内容, 提高韧性)
 
     # ---------- 公式约束 ----------
     max_depth: int = 7                # 语法树最大嵌套深度(暴露为最外层接口)

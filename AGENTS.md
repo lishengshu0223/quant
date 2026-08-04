@@ -21,3 +21,4 @@
 - 使用中文注释和文档
 - 遵循 Python PEP 8 规范
 - 量化策略代码使用 RQAlphaPlus 框架的约定函数（init, handle_bar 等）
+- 获取行情、指数、因子、交易状态等金融数据时，优先使用 `local_api` 读取本地数据（详见 `.trae/rules/local_api_usage.md`），仅在本地数据缺失时才调用 rqdatac 在线 API

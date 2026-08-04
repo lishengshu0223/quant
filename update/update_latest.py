@@ -33,6 +33,7 @@ def main():
         download_all_barra,
         logger,
     )
+    from update.tradable_status import download_tradable_status
     
     end_date = get_end_date()
     date_str = end_date.strftime("%Y%m%d")
@@ -54,6 +55,8 @@ def main():
     run_with_exception_handling(download_index_weights, download_dates=[date_str], force=True)
     
     run_with_exception_handling(download_all_barra, download_dates=[date_str], force=True)
+    
+    run_with_exception_handling(download_tradable_status, download_dates=[date_str], force=True)
     
     logger.info("=" * 60)
     logger.info("最新交易日数据更新完成")

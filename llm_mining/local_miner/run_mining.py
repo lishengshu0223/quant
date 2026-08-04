@@ -20,6 +20,8 @@
 """
 
 import argparse
+import os
+import re
 import sys
 import time
 import traceback
@@ -28,7 +30,8 @@ import pandas as pd
 
 from . import checkpoint, combo, console, diagnostics, factor_eval, factor_library, prompts, review
 from .config import (
-    MiningConfig, ensure_workspace, checkpoint_path, mining_log_path, report_png_path,
+    MiningConfig, WORKSPACE_DIR, ensure_workspace, checkpoint_path, mining_log_path,
+    report_png_path,
 )
 from .data_loader import MarketData
 from .expr_engine import ExprError, compute_factor
@@ -124,6 +127,22 @@ def recompute_series(expr: str, flipped: bool, data, cfg):
     series.index.names = ["date", "code"]
     series.name = "factor"
     return factor_wide, series
+
+
+def save_adopted_report(factor: dict, data, cfg, series_id: str, round_no: int) -> str | None:
+    """采纳合格因子后即时出图保存(带轮次与因子名, 不覆盖历史), 失败不中断主流程"""
+    from .report import generate_report
+    name = factor.get("name", "factor")
+    safe = re.sub(r"[^0-9A-Za-z_]", "", name)[:40] or "factor"
+    png_path = os.path.join(WORKSPACE_DIR, f"factor_report_{series_id}_R{round_no}_{safe}.png")
+    console.log(f"    [出图] 采纳合格因子 {name}, 正在生成回测图片(完整tear sheet)...")
+    try:
+        png = generate_report(factor, data, cfg, png_path=png_path)
+        console.log(f"    [出图完成] 已保存: {png}")
+        return png
+    except Exception as e:
+        console.log(f"    [出图失败] {type(e).__name__}: {e}, 不中断挖掘。")
+        return None
 
 
 def main():
@@ -238,7 +257,10 @@ def main():
                         cfg, library_text)
                     prompt_title = "首轮新因子生成提示词(含因子库避让)"
                 else:
-                    history_summary = prompts.summarize_history(state["history"])
+                    # 仅注入最近 max_history_rounds 轮历史摘要, 控制请求体积
+                    # (DeepSeek 长请求易触发空内容故障, 短请求稳定)
+                    max_history_rounds = 3
+                    history_summary = prompts.summarize_history(state["history"][-max_history_rounds:])
                     feedback = factor_eval.build_feedback_text(
                         state["history"][-1]["factors"], cfg)
                     user_prompt, user_vars = prompts.build_iteration_user_prompt(
@@ -498,6 +520,8 @@ def handle_optimize_mode_qualified(round_factors, round_no, hypothesis, opt_seri
                                        f.get("style", "") or round_style, diag)
             cur_stab = new_stab
             adopted = {**f_entry, "hypothesis": hypothesis, "series_id": series_id}
+            # 采纳新最佳即出图(带轮次命名, 不覆盖历史图片, 供随时观看)
+            save_adopted_report(adopted, data, cfg, series_id, round_no)
         else:
             console.log(
                 f"    [·] {f['name']} 合格但多头收益稳定性未超越当前最佳 "
@@ -546,7 +570,9 @@ def finalize(mode, series_id, opt_series, qualified_factor, state, data, cfg, ck
 
     if not final_series_id:
         final_series_id = report_factor.get("series_id") or "candidate"
-    png_path = report_png_path(final_series_id)
+    # 最终图片带因子名, 保留历史(同系列多次运行不互相覆盖)
+    safe = re.sub(r"[^0-9A-Za-z_]", "", report_factor.get("name", "factor"))[:40] or "factor"
+    png_path = report_png_path(f"{final_series_id}_{safe}")
 
     from .report import generate_report
     try:
