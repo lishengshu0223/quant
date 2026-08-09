@@ -1,0 +1,39 @@
+{
+ "round": 42,
+ "hypothesis": "前序量价相关与量能趋势因子因方向不稳和单调性差而失败，推测应转向日内收益的时间结构与极端点出现顺序：早盘分钟收益过度反应易在5日内修正，而日内低点出现早于高点（低开高走）反映多头主导并可能延续。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayMorningReversal_5D",
+   "expr": "TS_MEAN(-1 * MEDIAN(SLICE($return, \"09:31\", \"10:30\")), 5)",
+   "style": "短期反转/日内时序",
+   "reason": "方向无效",
+   "detail": "IC=-2.04%, 多头=+0.6%(IC与多头矛盾或为负)",
+   "ic_mean": -0.02039,
+   "long_total": 0.0057,
+   "monthly_pos_ratio": 0.301,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "IntradayHighLowTimeOrder_5D",
+   "expr": "TS_MEAN(TS_ARGMAX($high) - TS_ARGMIN($low), 5)",
+   "style": "日内趋势/价格路径",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.32 GiB for an array with shape (176510880,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

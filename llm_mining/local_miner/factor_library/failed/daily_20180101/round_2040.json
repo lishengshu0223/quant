@@ -1,0 +1,34 @@
+{
+ "round": 2040,
+ "hypothesis": "假设1：截面RANK(CV)×RANK(流动性)将因子值约束在有界空间内，避免极端低CV但无alpha的僵尸股占据多头组，使Q10稳定为最优组；假设2：成交额与收益率负相关(量额脱钩)=机构不追涨、匀速吸筹的隐蔽建仓指纹，结合高流动性可识别信息驱动型控盘，该信号在不同市场风格下均有效，有助于提升年度稳定性。",
+ "reflection": "针对单调性不足问题(Q10被Q7-Q9超越)，核心原因是SQRT(CV)和LOG(流动性)在极端值处区分度不均匀，导致最高分位混入僵尸股。改进方向：(1)将CV和流动性都改为截面RANK，使因子值在[0,1]×[0,1]空间内均匀分布，消除极端值对头部组的污染，提升单调性；(2)引入全新经济维度——量额相关性(成交额与收益率的脱钩程度)，捕捉机构隐蔽建仓模式，与稳定性因子形成互补，增强年度稳定性。",
+ "factors": [
+  {
+   "name": "AmountStability_RankCV_RankLiq",
+   "expr": "-RANK(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.09073,
+   "long_total": 1.17659,
+   "monthly_pos_ratio": 0.9417,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountReturn_Decouple_RankLiq",
+   "expr": "-TS_CORR($amount,$return,20)*RANK($amount)",
+   "style": "流动性/量价结构",
+   "reason": "方向无效",
+   "detail": "IC=+5.14%, 多头=-43.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.05143,
+   "long_total": -0.43672,
+   "monthly_pos_ratio": 0.835,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  }
+ ]
+}

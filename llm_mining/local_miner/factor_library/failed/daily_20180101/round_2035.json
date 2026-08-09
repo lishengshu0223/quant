@@ -1,0 +1,35 @@
+{
+ "round": 2035,
+ "hypothesis": "假设1：成交额稳定+价格处于20日高位=机构在稳定预算下主动推升价格(积极建仓)，而非被动持有，TS_RANK($close,20)作为价格动量确认，在崩盘期自动降权；假设2：成交额稳定+高风险调整收益(20日Sharpe)=机构信息驱动型建仓且已产生正向价格响应，比纯流动性筛选更能识别有alpha的稳定股，在不同风格环境下均有效。",
+ "reflection": "当前因子多头组(Q10)在2020/2024/2026年被Q7-Q9超越，说明极端稳定+极端流动性的股票中包含无alpha的僵尸股。本轮保留核心'低CV=机构锁仓'逻辑，但将第二维度从LOG(流动性)替换为两个全新经济维度：(1)价格分位——要求稳定交易的同时价格处于近期高位，过滤无方向性的被动锁仓；(2)风险调整收益——要求稳定交易的同时具备正向风险调整动量，识别有方向性conviction的机",
+ "factors": [
+  {
+   "name": "AmountStability_PriceRank_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_RANK($close,20)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+4.81%, 多头=-10.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04813,
+   "long_total": -0.10403,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_Sharpe_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN($return,20)/(TS_STD($return,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

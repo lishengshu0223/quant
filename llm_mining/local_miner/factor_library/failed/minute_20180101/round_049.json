@@ -1,0 +1,39 @@
+{
+ "round": 49,
+ "hypothesis": "A股市场的微观结构显示，分钟收益的自相关结构能捕捉短期价格惯性或反转的动态特征；尾盘成交量相对强度则反映机构与知情资金在收盘前的定价行为。因此，分别以日内分钟收益自相关的时序均值、尾盘量比捕捉这两类信息，期望提升未来5日收益的预测单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayReturnAutocorr_10D",
+   "expr": "TS_MEAN(TS_AUTOCORR($return, 1), 10)",
+   "style": "微观结构/趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.079, 年度越序峰值=17.5%, 负年=[2020, 2025]",
+   "ic_mean": 0.0501,
+   "long_total": 0.27427,
+   "monthly_pos_ratio": 0.7476,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "LateVolumeRatio_10D",
+   "expr": "TS_MEAN(MEAN(SLICE($volume, \"14:00\", \"15:00\")) / (MEAN($volume) + 1e-8), 10)",
+   "style": "流动性/尾盘资金",
+   "reason": "方向无效",
+   "detail": "IC=+2.97%, 多头=-38.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02974,
+   "long_total": -0.3837,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025
+   ]
+  }
+ ]
+}

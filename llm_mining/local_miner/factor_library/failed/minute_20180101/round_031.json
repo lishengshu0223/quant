@@ -1,0 +1,33 @@
+{
+ "round": 31,
+ "hypothesis": "日内价格形态与量价配合共同反映短暂资金行为惯性：收盘位置越高、量加权收益越强，未来5日延续概率越高。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "CloseLocationInRange_5D",
+   "expr": "TS_MEAN((LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8), 5)",
+   "style": "短期动量/价格形态",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.092, 年度越序峰值=13.2%, 负年=[2020]",
+   "ic_mean": 0.01435,
+   "long_total": 0.09738,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "VolumeWeightedReturnPremium_5D",
+   "expr": "TS_MEAN((MEAN($return * $amount) / (MEAN($amount) + 1e-8) - MEAN($return)), 5)",
+   "style": "量价背离/资金流",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 503. MiB for an array with shape (131924640,) and data type int32",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

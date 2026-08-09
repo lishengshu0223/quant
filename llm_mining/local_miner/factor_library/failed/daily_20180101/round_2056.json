@@ -1,0 +1,34 @@
+{
+ "round": 2056,
+ "hypothesis": "假设1：成交额集中度(Max/Sum)低意味着交易均匀分布于每一天，是机构按固定预算持续建仓的特征，与CV度量的整体离散度互补但不同——一只股票可以CV适中但某天集中放量(事件驱动)，集中度比率能识别并排除这类股票；假设2：成交额底部比率(Min/Mean)高意味着即使在最冷清的日子也有充足的交易支撑，反映机构持仓的坚定程度，是比CV更直接的'锁仓'证据。",
+ "reflection": "当前因子(SqrtCV×LogLiq)的核心问题是单调性不足(Q10被Q7-Q9超越)和极端风格期脆弱。诊断发现CV作为离散度度量对尾部噪声敏感——极端低CV的股票中混入了交易萎缩的僵尸股。本轮从成交额分布的不同统计维度做结构性创新：(1)用Max/Sum集中度比率替代CV，度量交易是否均匀分布而非整体离散度，自然有界(1/20~1)可压缩极端值改善单调性；(2)用Min/Mean底部比率度量交易",
+ "factors": [
+  {
+   "name": "AmountConcentration_Liquidity_20D",
+   "expr": "-TS_MAX($amount,20)/(TS_SUM($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.05549,
+   "long_total": 1.0557,
+   "monthly_pos_ratio": 0.9806,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountFloor_Liquidity_20D",
+   "expr": "TS_MIN($amount,20)/(TS_MEAN($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.118, 年度越序峰值=19.8%, 负年=[2021, 2023]",
+   "ic_mean": 0.03744,
+   "long_total": 0.09842,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023
+   ]
+  }
+ ]
+}

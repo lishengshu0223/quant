@@ -1,0 +1,33 @@
+{
+ "round": 2094,
+ "hypothesis": "假设1：对CV做短期EMA平滑可过滤单日异常(如大宗交易、指数调仓)对因子极端值的扰动，使Q10选股更稳定，改善顶部单调性；假设2：以TS_MIN/TS_MEDIAN比率作为流动性底线度量是尺度不变的，能区分'相对自身常态的成交支撑强度'而非绝对流动性水平，避免超大盘股垄断多头顶部，在大小盘风格切换时保持多头收益的年度稳定性。",
+ "reflection": "当前因子的单调性问题(Q10被Q8/Q9超越)和压力期脆弱性，根源在于LOG(TS_MIN($amount,20))高度相关于市值——极端高流动性的大盘股垄断Q10，在小盘行情或科技抱团期表现不佳。本轮两个改进方向：(1)对CV部分做5日EMA平滑，减少单日噪声导致的极端因子值波动，使Q10的选股更稳定；(2)将绝对流动性底线LOG(TS_MIN)替换为相对底线TS_MIN/TS_MEDIAN比率",
+ "factors": [
+  {
+   "name": "AmountStability_MedianCV_SmoothMinFloor_20D",
+   "expr": "-EMA(SQRT(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8)),5)*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_LogCV_RelFloor_20D",
+   "expr": "-TS_STD(LOG($amount),20)*TS_MIN($amount,20)/(TS_MEDIAN($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+2.47%, 多头=-4.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02467,
+   "long_total": -0.04144,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  }
+ ]
+}

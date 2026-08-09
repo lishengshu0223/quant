@@ -1,0 +1,40 @@
+{
+ "round": 16,
+ "hypothesis": "上轮反馈显示单调性C的根源是极端分钟值破坏分组排序；本轮以截面RANK作为中间变换、以日内量价共振与日内收益自相关两种微观结构逻辑构造新因子。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "VolumeReturnSyncRank_5D",
+   "expr": "TS_MEAN(RANK(CORR($return,$volume)),5)",
+   "style": "量价共振/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+2.32%, 多头=-21.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02315,
+   "long_total": -0.21364,
+   "monthly_pos_ratio": 0.7476,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2023,
+    2025,
+    2026
+   ]
+  },
+  {
+   "name": "IntradayReturnAutocorrRank_5D",
+   "expr": "TS_MEAN(RANK(TS_AUTOCORR($return,1)),5)",
+   "style": "日内动量/微观结构",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=16.6%, 负年=[2025, 2026]",
+   "ic_mean": 0.05129,
+   "long_total": 0.31819,
+   "monthly_pos_ratio": 0.7379,
+   "grade": "C",
+   "neg_years": [
+    2025,
+    2026
+   ]
+  }
+ ]
+}

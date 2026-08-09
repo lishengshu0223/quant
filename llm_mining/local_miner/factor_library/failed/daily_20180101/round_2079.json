@@ -1,0 +1,35 @@
+{
+ "round": 2079,
+ "hypothesis": "假设1：成交额稳定+价格处于自身20日分布高分位=机构控盘且正在有效推升价格，TS_RANK($close,20)的有界性防止极端值垄断Q10，改善单调性；假设2：成交额稳定+上涨日成交量占比高=机构有方向地均匀建仓(非无方向锁仓)，该比率天然有界(0~1)且经济含义清晰，能剔除'稳定但无买方力量'的股票。",
+ "reflection": "当前因子单调性问题源于Q10中混入'稳定但无方向'的僵尸股(成交额极稳定但价格走弱)。本轮从两个不同经济维度做结构创新：(1)用价格位置替代流动性水平作为质量乘子——稳定+价格处于近期高位=机构正在有效推升，过滤掉稳定但阴跌的股票；(2)用上涨日成交量占比作为方向性质量指标——稳定+量能集中于上涨日=有方向的建仓而非无方向锁仓。两者均不改变核心CV信号，但通过不同维度的质量过滤改善Q10纯度，预期",
+ "factors": [
+  {
+   "name": "AmountStability_PriceStrength_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_RANK($close,20)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+4.81%, 多头=-10.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04813,
+   "long_total": -0.10403,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_UpVolRatio_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($return>0?$volume:0,20)/(TS_SUM($volume,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

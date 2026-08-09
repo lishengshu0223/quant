@@ -1,0 +1,31 @@
+{
+ "round": 2085,
+ "hypothesis": "假设1：成交额在20日均值±30%区间内的天数占比越高，说明交易节奏越均匀(机构算法执行的指纹)，该计数型指标对单日异常放量天然免疫，比CV更能区分'真正的均匀建仓'与'偶尔安静的随机波动'，从而改善Q10的纯度；假设2：成交额的日间自相关性高(今天量高明天也量高)是机构持续建仓的独特信号——散户和事件驱动交易产生的是脉冲式放量(自相关低)，而机构按节奏执行产生的是持续性流量(自相关高)，结合流动",
+ "reflection": "当前最佳因子(IR=3.08)的核心问题是分组单调性不足(2020/2024/2026年Q10被Q7-Q9超越)，说明极端低CV+高流动性的股票中混入了'僵尸股'或无催化剂的超大盘股。本轮从两个全新经济维度做结构创新：(1)用计数型指标(成交额落在均值±30%区间内的天数占比)替代连续型CV，对单日异常放量天然鲁棒，改善尾部单调性；(2)用成交额的自相关性(日间持续性)替代离散度，捕捉机构持续交易",
+ "factors": [
+  {
+   "name": "AmountBandFraction_Liquidity_20D",
+   "expr": "COUNT($amount>TS_MEAN($amount,20)*0.7&&$amount<TS_MEAN($amount,20)*1.3,20)/20*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountAutocorr_Liquidity_20D",
+   "expr": "TS_CORR($amount,DELAY($amount,1),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2018', '2023']",
+   "ic_mean": 0.04338,
+   "long_total": 0.49115,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

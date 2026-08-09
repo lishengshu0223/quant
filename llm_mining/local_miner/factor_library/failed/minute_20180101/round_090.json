@@ -1,0 +1,41 @@
+{
+ "round": 90,
+ "hypothesis": "信息冲击的持续性体现在两个独立维度：一是上涨日成交压力相对下跌日的不对称性，代表资金参与方向；二是日收益率自身的路径依赖（自相关），代表价格发现的惯性。两者均可预测未来5日收益的延续。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "UpDownVolumePressure_20D",
+   "expr": "TS_MEAN(RANK((TS_SUM(($return > 0 ? 1 : 0) * $volume, 20) + 1e-8) / (TS_SUM(($return < 0 ? 1 : 0) * $volume, 20) + 1e-8)), 10)",
+   "style": "量价配合/资金流向",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.052, 年度越序峰值=16.3%, 负年=[2020, 2021, 2023]",
+   "ic_mean": 0.02744,
+   "long_total": 0.13538,
+   "monthly_pos_ratio": 0.7379,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "DailyReturnAutocorrPersistence_20D",
+   "expr": "TS_MEAN(RANK(TS_CORR($return, DELAY($return, 1), 20)), 10)",
+   "style": "动量/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+0.16%, 多头=-26.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00164,
+   "long_total": -0.26397,
+   "monthly_pos_ratio": 0.5631,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2021,
+    2022,
+    2025
+   ]
+  }
+ ]
+}

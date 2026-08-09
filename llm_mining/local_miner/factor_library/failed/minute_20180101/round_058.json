@@ -1,0 +1,33 @@
+{
+ "round": 58,
+ "hypothesis": "A股短期定价存在两类独立的非有效机制：日内收盘位置过低反映恐慌性抛售后的超卖反转；分钟级非流动性反映流动性风险溢价补偿。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ClosePositionReversal_5D",
+   "expr": "TS_MEAN(-1 * (LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8), 5)",
+   "style": "短期反转",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayAmihudLiquidity_5D",
+   "expr": "TS_MEAN(MEAN(ABS($return) / ($amount + 1e-8)), 5)",
+   "style": "流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.120, 年度越序峰值=21.4%, 负年=[2020]",
+   "ic_mean": 0.01463,
+   "long_total": 0.26487,
+   "monthly_pos_ratio": 0.6019,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2031,
+ "hypothesis": "假设1：成交额稳定+近期价格趋势向上=机构在稳定交易中主动加仓(非被动锁仓)，条件门控将无方向性的僵尸稳定股降权至0.3倍，提升头部组的纯度和单调性；假设2：成交额稳定+上涨日成交额占比高=机构在稳定交易中持续净买入(非脉冲式拉升)，成交结构的方向性比绝对流动性水平更能区分真吸筹与假稳定。",
+ "reflection": "当前因子主要问题：(1)单调性不足——2020/2024/2026年Q10被Q7-Q9超越，说明极端低CV+高流动性区域存在'僵尸稳定股'(无方向性alpha)；(2)小盘崩盘和科技抱团期脆弱。改进方向：引入方向性门控，将无趋势的稳定股降权，只保留'稳定+有方向'的机构吸筹信号。因子1用条件门控(近10日累计收益为正时全额计入，否则降权至0.3)，直接过滤下跌中的假稳定；因子2用上涨日成交额占比替",
+ "factors": [
+  {
+   "name": "AmountStability_TrendGate_10D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(TS_SUM($return,10)>0?1:0.3)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_UpAmtShare_10D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($amount*($return>0),10)/(TS_SUM($amount,10)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

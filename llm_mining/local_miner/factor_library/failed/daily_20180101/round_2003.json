@@ -1,0 +1,31 @@
+{
+ "round": 2003,
+ "hypothesis": "假设1：成交额稳定性×截面流动性分位——用RANK替代LOG度量成交额水平，避免极端值干扰，稳定且流动性处于截面高位的股票代表机构重仓锁仓，未来收益更高；假设2：成交额稳定性×价格支撑度——稳定成交额且价格处于近期高位的股票，说明有持续性买盘在高位承接（机构托底），比单纯量大或量小更能区分真正的机构行为，在极端风格切换中更具防御性",
+ "reflection": "当前因子AmountStability_20D的核心问题：(1)单调性不足——2020/2024/2026年Q10被Q7-Q9超越，说明LOG(amount)在极端值处引入噪声，超高成交额股票可能并非真正的机构锁仓；(2)压力期脆弱——小盘崩盘和科技抱团期间因子失效。改进方向：Factor1用截面RANK替代LOG压缩amount维度，RANK有界[0,1]且对极端值鲁棒，应改善尾部单调性；Fac",
+ "factors": [
+  {
+   "name": "AmountStability_RankLiq_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*RANK(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.08476,
+   "long_total": 1.37841,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_PriceSupport_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*$close/(TS_MAX($high,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.05203,
+   "long_total": 0.72876,
+   "monthly_pos_ratio": 0.932,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

@@ -23,12 +23,13 @@ __pycache__/
 *.hdf5
 *.feather
 
-# === 图片/媒体（分析产出） ===
+# === 图片/媒体（分析产出；因子库回测评价图除外, 允许上传） ===
 *.png
 *.jpg
 *.jpeg
 *.gif
 *.mp4
+!llm_mining/local_miner/factor_library/success/**/*.png
 
 # === 日志 ===
 *.log
@@ -47,6 +48,12 @@ llm_mining/local_miner/workspace/
 
 # === 参考项目（嵌套git仓库） ===
 llm_mining/reference/
+
+# === 临时文件目录（agent 产生的 tmp_ 前缀文件统一存放处） ===
+tmp/
+
+# === 分析成果目录（agent 生成的图表/表格/报告，供用户查看，可随时清空） ===
+output/
 
 # === 其他 ===
 opencode.json

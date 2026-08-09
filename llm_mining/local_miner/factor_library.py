@@ -2,8 +2,12 @@
 本地化因子挖掘项目 - 因子库(系列文件)管理
 
 设计原则(对应需求三 2 与"静态 vs 动态"要求):
-- 每个"挖掘系列"共用一个JSON文件(同一因子的迭代优化共享), 不同系列不同文件,
-  文件名形如 factor_library/F001_<name>.json。彻底取代旧的单一 best_factor.json。
+- 因子库分为两大目录(与失败因子库 failed/ 对应):
+    factor_library/success/<series_id>_<name>/  每个成功因子一个独立文件夹, 内含三件套:
+        <id>_<name>.json          结构化因子信息 + 回测摘要(整条迭代路径+诊断+成败经验)
+        <id>_<name>_backtest.h5   完整回测宽表(float32+zlib, 可随时重放任意回测与图表)
+        <id>_<name>_回测评价.png  因子评价图(标注合格)
+    factor_library/failed/        失败因子库(见 failed_library.py: 每轮明细+轮次总结+战役总结)
 - 静态写死在文件中的: 因子公式、简介、风格、整条迭代路径(表达式+结构化回测结果)、
   诊断结果、自动归纳的假设历史与成败经验。
 - 动态交给agent判断的: 具体优化方向、新假设、避让策略(由 prompts 基于本文件内容即时组装)。
@@ -26,13 +30,26 @@ import pandas as pd
 
 from .config import FACTOR_LIBRARY_DIR, ensure_workspace
 
+# 成功因子库目录(与 failed/ 平级): 每个成功因子一个子文件夹, 内含 json+h5+png 三件套
+SUCCESS_DIR = os.path.join(FACTOR_LIBRARY_DIR, "success")
+
 
 # =============================================================================
 # 文件读写
 # =============================================================================
 
+def _safe_name(name: str) -> str:
+    return re.sub(r"[^0-9A-Za-z_]", "", name or "factor")[:40] or "factor"
+
+
+def series_dir(series_id: str, name: str = "") -> str:
+    """返回系列专属文件夹: success/<series_id>_<name>/(文件夹不存在时由 save 创建)"""
+    return os.path.join(SUCCESS_DIR, f"{series_id}_{_safe_name(name)}")
+
+
 def _series_glob(series_id: str) -> list:
-    return sorted(glob.glob(os.path.join(FACTOR_LIBRARY_DIR, f"{series_id}_*.json")))
+    return sorted(glob.glob(os.path.join(SUCCESS_DIR, f"{series_id}_*",
+                                         f"{series_id}_*.json")))
 
 
 def series_path(series_id: str, name: str = "") -> str:
@@ -40,8 +57,8 @@ def series_path(series_id: str, name: str = "") -> str:
     existing = _series_glob(series_id)
     if existing:
         return existing[0]
-    safe = re.sub(r"[^0-9A-Za-z_]", "", name or "factor")[:40] or "factor"
-    return os.path.join(FACTOR_LIBRARY_DIR, f"{series_id}_{safe}.json")
+    safe = _safe_name(name)
+    return os.path.join(series_dir(series_id, safe), f"{series_id}_{safe}.json")
 
 
 def load_series(series_id: str) -> dict | None:
@@ -56,10 +73,10 @@ def load_series(series_id: str) -> dict | None:
 
 
 def load_library() -> list:
-    """加载全部系列文件, 按 series_id 排序"""
+    """加载全部成功因子系列(F日频 + M分钟), 按 series_id 排序"""
     ensure_workspace()
     series_list = []
-    for path in sorted(glob.glob(os.path.join(FACTOR_LIBRARY_DIR, "F*.json"))):
+    for path in sorted(glob.glob(os.path.join(SUCCESS_DIR, "*", "[FM]*.json"))):
         try:
             with open(path, "r", encoding="utf-8") as f:
                 series_list.append(json.load(f))
@@ -74,6 +91,7 @@ def save_series(series: dict):
     ensure_workspace()
     series["updated_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     path = series_path(series["series_id"], series.get("name", ""))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(series, f, ensure_ascii=False, indent=2)
@@ -87,14 +105,22 @@ def save_series(series: dict):
                 pass
 
 
-def next_series_id() -> str:
-    """扫描因子库, 返回下一个可用的系列ID(F001/F002/...)"""
+def next_series_id(prefix: str = "F") -> str:
+    """扫描因子库, 返回下一个可用的系列ID。
+    prefix: F=日频因子(F001/F002/...), M=分钟因子(M001/M002/...)。两个前缀独立计数、互不冲突。
+    库文件同时含 F/M 时, 相关性检查统一对全库计算(见 load_library/check_library_correlation)。"""
     ids = []
-    for path in glob.glob(os.path.join(FACTOR_LIBRARY_DIR, "F*.json")):
-        m = re.match(r"F(\d+)", os.path.basename(path))
+    for path in glob.glob(os.path.join(SUCCESS_DIR, "*", f"{prefix}*.json")):
+        m = re.match(prefix + r"(\d+)", os.path.basename(path))
         if m:
             ids.append(int(m.group(1)))
-    return f"F{max(ids) + 1:03d}" if ids else "F001"
+    return f"{prefix}{max(ids) + 1:03d}" if ids else f"{prefix}001"
+
+
+def count_series(prefix: str) -> int:
+    """统计因子库中指定前缀(如 M/F)的已入库系列数(按系列ID去重, 同ID改名残留不重复计)"""
+    return len({s.get("series_id") for s in load_library()
+                if str(s.get("series_id", "")).startswith(prefix)})
 
 
 # =============================================================================

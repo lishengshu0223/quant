@@ -1,0 +1,31 @@
+{
+ "round": 2109,
+ "hypothesis": "假设1：TS_ZSCORE标准化CV可消除极端低CV股票(如长期停牌复牌后)对Q10的污染，使因子值分布更连续，改善顶部单调性；假设2：DECAYLINEAR对CV做近期加权可捕捉'正在进入稳定建仓期'的股票，比静态20日CV更能反映机构当前的建仓状态，在风格切换期(小盘崩盘/科技抱团)更具适应性。",
+ "reflection": "当前因子在2020/2024/2026年出现Q10被Q8/Q9超越的单调性问题，说明因子极端值端存在噪声。本轮从两个方向改进：(1)用TS_ZSCORE对CV做60日历史标准化，压缩极端CV值的影响，使因子在顶部的区分度更平滑，减少'过度稳定但缺乏上行动力'的股票垄断Q10；(2)用DECAYLINEAR对CV序列做近期加权平滑，使因子更敏感于'当前正在趋于稳定'的股票而非'历史上一直稳定但可能已",
+ "factors": [
+  {
+   "name": "AmountStability_ZscoreCV_Activity5D_20D",
+   "expr": "-TS_ZSCORE(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),60)*LOG(TS_MEAN($amount,5)+1)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.183, 年度越序峰值=13.8%",
+   "ic_mean": 0.02845,
+   "long_total": 0.45517,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_DecayCV_Activity5D_20D",
+   "expr": "-DECAYLINEAR(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),10)*LOG(TS_MEAN($amount,5)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.05428,
+   "long_total": 0.83133,
+   "monthly_pos_ratio": 0.9612,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

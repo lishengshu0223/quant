@@ -1,0 +1,33 @@
+{
+ "round": 2077,
+ "hypothesis": "假设1：IQR/均值比STD/均值更能识别真正的机构均匀建仓——IQR只关注中间50%交易日的离散度，不被单日异常放量干扰，因此Q10中不会混入偶发安静的僵尸股，单调性改善；假设2：CV的下降趋势(DELTA<0)是机构开始算法执行的领先信号，比静态低CV更能捕捉alpha起点，且在市场恐慌期CV普遍上升时因子自动降低暴露，缓解小盘崩盘等极端风格的冲击。",
+ "reflection": "当前因子主要问题：(1)Q10单调性不足——极端低CV选入僵尸股；(2)2024年2月小盘崩盘和2026年4月科创板抱团期间脆弱。本轮从两个方向做结构性创新：因子1用IQR(四分位距)替代STD作为离散度度量，IQR对单日异常放量(如涨跌停、事件驱动)天然免疫，能更纯净地识别'大多数交易日都稳定'的真正机构控盘股，改善Q10的纯度；因子2用CV的时序变化量(DELTA)替代静态水平，捕捉'正在变稳",
+ "factors": [
+  {
+   "name": "AmountIQRStability_Liquidity_20D",
+   "expr": "-(TS_QUANTILE($amount,20,0.75)-TS_QUANTILE($amount,20,0.25))/(TS_MEAN($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.05096,
+   "long_total": 0.50141,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountCVConvergence_Liquidity_10D",
+   "expr": "-DELTA(TS_STD($amount,10)/(TS_MEAN($amount,10)+1e-8),10)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+1.92%, 多头=-27.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01917,
+   "long_total": -0.27301,
+   "monthly_pos_ratio": 0.835,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2048,
+ "hypothesis": "假设1：成交额稳定+高流动性+短期正动量=机构主动建仓而非被动持有，条件门控将僵尸股权重降至0.3倍，使多头组在动量年份(2020)和风格切换年份(2024)仍能保持优势；假设2：成交额稳定+高收益Sharpe=机构高效控盘(单位风险获取高收益)，比单纯高流动性更能区分有alpha的稳定股和无alpha的僵尸股，且Sharpe在不同市场环境下都有区分力。",
+ "reflection": "当前最佳因子(SqrtCV_20D)稳定性最优(信息比率3.08)但单调性在2020/2024/2026年不足，多头组被Q7-Q9超越。诊断原因：极端低CV+高流动性的股票中包含无方向性的'僵尸股'(如指数权重股、ETF关联标的)，在动量驱动或风格切换年份缺乏alpha。本轮改进方向：(1)引入短期动量门控，将无方向性稳定股降权，提升top decile的纯度；(2)用收益Sharpe比率替代LO",
+ "factors": [
+  {
+   "name": "AmountStability_MomentumGate_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(TS_MEAN($return,5)>0?1:0.3)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_ReturnSharpe_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN($return,20)/(TS_STD($return,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

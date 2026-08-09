@@ -1,0 +1,31 @@
+{
+ "round": 35,
+ "hypothesis": "日内价格位置与流动性结构蕴含了短期行为偏差，市场对极端收盘位置及交易成本补偿反应不足，从而可预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayCloseLocationReversal_5D",
+   "expr": "TS_MEAN(RANK((LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8)), 5)",
+   "style": "短期反转 / 日内价格位置",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayAmihudIlliquidity_5D",
+   "expr": "TS_MEAN(RANK(MEAN(ABS($return)) / (SUM($amount) + 1e-8)), 5)",
+   "style": "流动性 / 微观结构",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0783,
+   "long_total": 1.31576,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

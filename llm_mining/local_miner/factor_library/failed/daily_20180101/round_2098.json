@@ -1,0 +1,31 @@
+{
+ "round": 2098,
+ "hypothesis": "假设1：Q25/median比率(有界0~1)是纯'稳定性质量'度量——衡量安静日成交额接近常态水平的程度，与股票绝对规模无关，可避免超大流动性股票垄断Q10；假设2：min/max比率(有界0~1)衡量最差日相对峰值日的成交保持率，高比率意味着无论市场如何波动，该股票的交易活跃度始终维持在高位附近，是机构持续锁仓的强信号，且不受规模效应干扰。",
+ "reflection": "当前因子Q10在2020/2024/2026年被Q8/Q9超越，诊断发现LOG(TS_QUANTILE)或LOG(TS_MIN)作为floor项会产生无界的规模效应——超大流动性股票天然拥有更高的LOG值，垄断Q10但在某些年份缺乏上行动力。本轮核心改进：将floor项从LOG(绝对水平)替换为有界比率(Q25/median或min/max)，彻底消除规模维度对因子极端值的扭曲，使Q10选股纯粹基",
+ "factors": [
+  {
+   "name": "AmountStability_Pow25CV_Q25Ratio_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*TS_QUANTILE($amount,20,0.25)/(TS_MEDIAN($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_Pow25CV_MinMaxRatio_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*TS_MIN($amount,20)/(TS_MAX($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

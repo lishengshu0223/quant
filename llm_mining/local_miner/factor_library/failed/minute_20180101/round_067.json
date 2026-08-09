@@ -1,0 +1,31 @@
+{
+ "round": 67,
+ "hypothesis": "A股存在日内信息冲击的持续性：开盘半小时成交量占比高反映隔夜分歧，未来收益受抑制（取负）；收盘价相对VWAP的偏离反映日内量价合力方向，偏离越高未来强势延续概率越大。通过截面排名与5日平滑改善单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "OpeningVolumeRatioReversal_5D",
+   "expr": "TS_MEAN(RANK(-(SUM(SLICE($volume,\"09:31\",\"10:00\")) / (SUM($volume)+1e-8))), 5)",
+   "style": "流动性/短期",
+   "reason": "方向无效",
+   "detail": "IC=+4.18%, 多头=-6.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04181,
+   "long_total": -0.06381,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "CloseVWAPDislocation_5D",
+   "expr": "TS_MEAN(RANK(LAST($close) / (SUM($amount)/(SUM($volume)+1e-8) + 1e-8) - 1), 5)",
+   "style": "量价趋势/短期",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

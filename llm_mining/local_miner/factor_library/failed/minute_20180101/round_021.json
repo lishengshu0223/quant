@@ -1,0 +1,38 @@
+{
+ "round": 21,
+ "hypothesis": "A股未来5日截面收益受流动性溢价与日内多空力量持续性共同影响：单位成交金额的价格冲击越大、收盘越接近日内高点，未来收益越高；用日内聚合与5日均值提升稳定性，并用截面排序改善分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayAmihud_5D",
+   "expr": "TS_MEAN(RANK(MEAN(ABS($return)/($amount+1e-8))),5)",
+   "style": "流动性/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.123, 年度越序峰值=10.1%, 负年=[2020]",
+   "ic_mean": 0.01588,
+   "long_total": 0.8147,
+   "monthly_pos_ratio": 0.5922,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "IntradayClosePosition_5D",
+   "expr": "TS_MEAN(RANK((LAST($close)-MIN($low))/(MAX($high)-MIN($low)+1e-8)),5)",
+   "style": "趋势/日内动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.078, 年度越序峰值=13.5%, 负年=[2020, 2023, 2024, 2026]",
+   "ic_mean": 0.0101,
+   "long_total": 0.20768,
+   "monthly_pos_ratio": 0.6408,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023,
+    2024,
+    2026
+   ]
+  }
+ ]
+}

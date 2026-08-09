@@ -1,0 +1,31 @@
+{
+ "round": 2057,
+ "hypothesis": "假设1：成交额稳定+价格处于60日相对高位=机构在上升趋势中持续控盘，TS_RANK($close,60)的有界性避免了对绝对价格水平的依赖，在大小盘风格切换中更鲁棒；假设2：成交额与收益的正相关(累积模式)是机构主动建仓的量价指纹，将其作为连续门控(映射到0~1)可平滑地降低派发股票的因子得分，比二值门控更稳定，减少换手。",
+ "reflection": "当前因子单调性问题的根源是极端低CV的多头组中混入了无方向性的僵尸股(成交额稳定但价格无趋势或正在被出货)。本轮从两个全新维度做结构性过滤：(1)用TS_RANK($close,60)作为价格趋势确认，剔除成交额稳定但价格处于60日低位的僵尸股，使多头组聚焦于'稳定+上升趋势'的机构建仓标的；(2)用TS_CORR($amount,$return,20)作为累积/派发门控，当成交额与收益正相关(放",
+ "factors": [
+  {
+   "name": "AmountStability_PriceTrend_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),0.25)*TS_RANK($close,60)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_AccumulationGate_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(TS_CORR($amount,$return,20)+1)/2",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 9 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2095,
+ "hypothesis": "假设1：CV的4次方根变换比平方根更有效地压缩极端值，避免'过度稳定但缺乏上行动力'的股票垄断Q10，让真正处于机构建仓中期的股票(中等偏低CV+高流动性底线)获得更高排名，改善顶部单调性；假设2：15天CV窗口比20天更能及时捕捉流动性恶化的早期信号(如小盘股崩盘前的成交萎缩)，在压力期更快将脆弱股票排除出多头组，提升2024年等压力年份的多头收益稳定性。",
+ "reflection": "当前因子在2020/2024/2026年出现Q10被Q8/Q9超越的单调性问题，诊断原因是极端低CV的股票可能是'过度拥挤'或'僵尸稳定'股，而非真正的机构建仓。改进方向：(1)对CV施加更强的压缩变换(4次方根代替平方根)，降低极端稳定值的权重，使Q10不再被少数超稳定但无动量的股票主导；(2)缩短CV计算窗口至15天，使因子在风格切换期(如2024年2月小盘崩盘)更快响应流动性恶化信号，减少压",
+ "factors": [
+  {
+   "name": "AmountStability_MedianCV_Pow25_MinFloor_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07462,
+   "long_total": 1.25651,
+   "monthly_pos_ratio": 0.9417,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_MedianCV15_MinFloor20_15D",
+   "expr": "-SQRT(TS_STD($amount,15)/(TS_MEDIAN($amount,15)+1e-8))*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06596,
+   "long_total": 1.00947,
+   "monthly_pos_ratio": 0.9417,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

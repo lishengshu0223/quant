@@ -1,0 +1,33 @@
+{
+ "round": 98,
+ "hypothesis": "前期大量分钟因子因全市场三维数据内存溢出而失败，本轮改用日频OHLCV数据构造低内存消耗的因子：分别捕捉日K线区间不重叠所体现的趋势延续性，以及成交量确认的日内实体方向所体现的资金主动做多强度。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "DailyRangeOverlapTrend_5D",
+   "expr": "TS_MEAN(1 - (MIN($high, DELAY($high,1)) - MAX($low, DELAY($low,1))) / (($high - $low) + (DELAY($high,1) - DELAY($low,1)) + 1e-8), 5)",
+   "style": "趋势/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+1.70%, 多头=-9.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01704,
+   "long_total": -0.09623,
+   "monthly_pos_ratio": 0.7184,
+   "grade": "C",
+   "neg_years": [
+    2018
+   ]
+  },
+  {
+   "name": "VolumeWeightedBodyPersistence_10D",
+   "expr": "TS_MEAN(RANK(($close - $open) / ($high - $low + 1e-8)) * RANK($volume), 10)",
+   "style": "量价确认/资金流",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2024']",
+   "ic_mean": 0.06067,
+   "long_total": 0.51592,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

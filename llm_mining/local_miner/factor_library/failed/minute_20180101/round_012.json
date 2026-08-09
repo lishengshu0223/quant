@@ -1,0 +1,37 @@
+{
+ "round": 12,
+ "hypothesis": "上轮量价相关性因子在分组单调性上失效；本轮改采两种经典横截面风险溢价——短期收益反转和日内高频波动率风险溢价，二者经济逻辑清晰且与5日收益呈线性关系。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ShortTermRankReversal_5D",
+   "expr": "-TS_MEAN(RANK($return), 5)",
+   "style": "短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+1.72%, 多头=-10.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01717,
+   "long_total": -0.10842,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2026
+   ]
+  },
+  {
+   "name": "IntradayRealizedVolatility_5D",
+   "expr": "-TS_MEAN(LOG(STD($return) + 1e-8), 5)",
+   "style": "波动率",
+   "reason": "方向无效",
+   "detail": "IC=+6.76%, 多头=-34.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.06763,
+   "long_total": -0.33963,
+   "monthly_pos_ratio": 0.8835,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2026
+   ]
+  }
+ ]
+}

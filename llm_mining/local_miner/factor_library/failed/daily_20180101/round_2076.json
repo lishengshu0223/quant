@@ -1,0 +1,31 @@
+{
+ "round": 2076,
+ "hypothesis": "假设1：成交额落在自身20日均值±1σ区间内的天数占比越高，说明交易节奏越均匀（机构算法执行的指纹），该计数型指标对单日异常放量天然免疫，比CV更能区分'真稳定'与'被极端值拉低的伪稳定'；假设2：TS_RANK($amount,20)的时序标准差小意味着每天成交额在自身分布中的位置高度可预测，这是机构按固定预算执行的更纯粹信号，与CV度量的维度不同（CV度量绝对离散度，rank波动度量相对位置的",
+ "reflection": "当前因子核心问题：(1)单调性不足——Q10被Q7-Q9超越，说明极端低CV股票中存在无alpha的僵尸股；(2)2020/2024年稳定性偏弱。本轮从两个全新结构切入：因子1用'成交额落在自身1σ带内的天数占比'替代CV，这是一个对异常值更鲁棒的稳定性度量（CV受极端日影响大，而带内占比是计数型指标，天然抗尾部）；因子2用'成交额在自身分布中排名的时序波动'来度量稳定性——如果TS_RANK($",
+ "factors": [
+  {
+   "name": "AmountBandRate_Liquidity_20D",
+   "expr": "COUNT(ABS($amount-TS_MEAN($amount,20))<TS_STD($amount,20),20)/20*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountRankStability_Liquidity_20D",
+   "expr": "-TS_STD(TS_RANK($amount,20),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.134, 年度越序峰值=10.5%",
+   "ic_mean": 0.02914,
+   "long_total": 0.28475,
+   "monthly_pos_ratio": 0.767,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "round": 73,
+ "hypothesis": "A股日内价格行为中存在短期过度反应与流动性冲击后的价格回归；收盘在日内高低区间的位置反映多空力量最终结果，成交量集中度反映资金脉冲式交易，两者均可能预测未来5日收益的反转或延续。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayClosePosition_5D",
+   "expr": "TS_MEAN((LAST($close)-MIN($low))/(MAX($high)-MIN($low)+1e-8),5)",
+   "style": "短期反转/日内价格位置",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolumeConcentrationShock_5D",
+   "expr": "-TS_MEAN(MAX($volume)/(MEAN($volume)*COUNT($volume)+1e-8),5)",
+   "style": "流动性冲击/量能集中度",
+   "reason": "方向无效",
+   "detail": "IC=+0.43%, 多头=-14.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00432,
+   "long_total": -0.14117,
+   "monthly_pos_ratio": 0.4951,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2023,
+    2024
+   ]
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "round": 83,
+ "hypothesis": "价格接近120日高点反映信息未充分定价的强势延续，而隔夜跳空与日内走势的同向一致程度反映趋势自我强化；两者分别从长期价格锚定和日内路径确认两个角度捕捉未来5日的收益信息。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighPriceProximity_120D",
+   "expr": "$close / (TS_MAX($high,120) + 1e-8) - 1",
+   "style": "长期动量/趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.040, 年度越序峰值=19.2%, 负年=[2020, 2023]",
+   "ic_mean": 0.01523,
+   "long_total": 0.89118,
+   "monthly_pos_ratio": 0.5534,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023
+   ]
+  },
+  {
+   "name": "OvernightIntradayContinuation_5D",
+   "expr": "TS_MEAN(($open/DELAY($close,1)-1) * ($close/$open-1),5)",
+   "style": "短期趋势确认/隔夜日内联动",
+   "reason": "方向无效",
+   "detail": "IC=+1.45%, 多头=-64.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01455,
+   "long_total": -0.64303,
+   "monthly_pos_ratio": 0.7184,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  }
+ ]
+}

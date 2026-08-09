@@ -1,0 +1,36 @@
+{
+ "round": 72,
+ "hypothesis": "上轮偏度与日内趋势因子单调性差，主要因为未将截面分布标准化；本轮改用日内非流动性与量价相关关系，先通过RANK转化为截面位次再用5日均值平滑，既保留经济逻辑又提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayAmihudPremium_5D",
+   "expr": "TS_MEAN(RANK(SUM(ABS($return))/(SUM($amount)+1e-8)), 5)",
+   "style": "流动性溢价/短期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 SUM",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayVolumeReturnComovement_5D",
+   "expr": "TS_MEAN(RANK(CORR($return, $volume)), 5)",
+   "style": "量价关系/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+2.32%, 多头=-21.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02315,
+   "long_total": -0.21364,
+   "monthly_pos_ratio": 0.7476,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  }
+ ]
+}

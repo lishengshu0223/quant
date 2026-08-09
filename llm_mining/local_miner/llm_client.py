@@ -16,6 +16,7 @@ import requests
 from . import console
 from .config import (
     DASHSCOPE_API_KEY, DASHSCOPE_BASE_URL, DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL,
+    OPENCODE_API_KEY, OPENCODE_BASE_URL,
 )
 
 
@@ -23,20 +24,47 @@ class LLMError(Exception):
     pass
 
 
+def _provider_route(model: str, cfg, is_primary: bool = True) -> tuple:
+    """返回 (provider名, base_url, api_key, 是否OpenAI兼容无思考参数)。
+    cfg.llm_provider=opencode 时仅主模型走 OpenCode 网关(备用模型按名前缀回退到百炼/DeepSeek);
+    其余 provider 显式指定则固定走对应端点; auto=按模型名前缀。"""
+    provider = (cfg.llm_provider or "auto").lower()
+    if provider == "opencode" and is_primary:
+        return ("opencode", OPENCODE_BASE_URL, OPENCODE_API_KEY, True)
+    if provider == "deepseek":
+        return ("deepseek", DEEPSEEK_BASE_URL, DEEPSEEK_API_KEY, True)
+    if provider == "dashscope":
+        return ("dashscope", DASHSCOPE_BASE_URL, DASHSCOPE_API_KEY, False)
+    # auto: 按模型名前缀
+    if str(model).lower().startswith("deepseek"):
+        return ("deepseek", DEEPSEEK_BASE_URL, DEEPSEEK_API_KEY, True)
+    return ("dashscope", DASHSCOPE_BASE_URL, DASHSCOPE_API_KEY, False)
+
+
 def call_llm(messages: list, cfg) -> dict:
     """
     调用大模型, 返回 {"content": 正式回复, "thinking": 思考内容, "model": 实际模型}
-    按模型名前缀自动路由: deepseek-* -> DeepSeek 端点; 其余 -> DashScope 端点。
+
+    通道策略(用户硬性要求):
+    - llm_provider == "opencode": 唯一通道 = Opencode 网关(主模型 deepseek-v4-flash)。
+      任何暂时性故障(网络/限流/超时/空内容/HTTP 4xx5xx)一律在网关通道内无限等待重试,
+      直到调用成功为止; 绝不切换到 DeepSeek 直连或百炼兜底。
+      重试等待时间按 8 秒起步递增, 封顶 300 秒, 避免无意义的高频轮询。
+    - 其余 provider: 按原逻辑多通道依次尝试(主模型直连 -> 备用模型), 每通道内递增等待重试。
     """
-    models = [cfg.model_primary, cfg.model_fallback]
+    opencode_only = (cfg.llm_provider or "auto").lower() == "opencode"
+    if opencode_only:
+        # 只保留 Opencode 网关一个通道, 失败就等, 直到成功
+        models = [(cfg.model_primary, True)]
+    else:
+        models = [(cfg.model_primary, False)]
+        models.append((cfg.model_fallback, False))
     last_error = None
 
-    for model in models:
-        is_deepseek = str(model).lower().startswith("deepseek")
-        base_url = DEEPSEEK_BASE_URL if is_deepseek else DASHSCOPE_BASE_URL
-        api_key = DEEPSEEK_API_KEY if is_deepseek else DASHSCOPE_API_KEY
+    for idx, (model, via_opencode) in enumerate(models):
+        provider, base_url, api_key, no_thinking = _provider_route(model, cfg, is_primary=via_opencode)
         if not api_key:
-            console.log(f"    [LLM] 模型{model} 缺少API Key({'DEEPSEEK_API_KEY' if is_deepseek else 'DASHSCOPE_API_KEY'}), 跳过。")
+            console.log(f"    [LLM] 模型{model}({provider}) 缺少API Key, 跳过。")
             last_error = "缺少API Key"
             continue
         headers = {
@@ -51,12 +79,12 @@ def call_llm(messages: list, cfg) -> dict:
             "top_p": 0.8,
             "max_tokens": cfg.max_tokens,
         }
-        # 深度思考参数仅 DashScope(百炼)支持; DeepSeek 为 OpenAI 兼容端点, 不传该参数
-        if (not is_deepseek) and cfg.enable_thinking:
+        # 深度思考参数仅 DashScope(百炼)支持; DeepSeek/OpenCode 为 OpenAI 兼容端点, 不传该参数
+        if (not no_thinking) and cfg.enable_thinking:
             payload["enable_thinking"] = True
             payload["thinking_budget"] = cfg.thinking_budget
 
-        for attempt in range(cfg.llm_max_retry):
+        for attempt in range(cfg.llm_max_retry if not opencode_only else 10**9):
             try:
                 resp = requests.post(
                     f"{base_url}/chat/completions",
@@ -77,26 +105,32 @@ def call_llm(messages: list, cfg) -> dict:
                 code = e.response.status_code if e.response is not None else -1
                 body = e.response.text[:300] if e.response is not None else ""
                 last_error = f"HTTP {code}: {body}"
-                console.log(f"    [LLM] 模型{model} 第{attempt+1}次调用失败: {last_error}")
-                # 模型不可用/配额耗尽(429 quota): 重试也不会成功, 直接换模型
-                if code in (400, 404) or (code == 429 and "quota" in last_error.lower()):
+                console.log(f"    [LLM] 模型{model}({provider}) 第{attempt+1}次调用失败: {last_error}")
+                # 模型不可用/配额耗尽(429 quota): 重试也不会成功, 直接换通道
+                if not opencode_only and (code in (400, 404) or (code == 429 and "quota" in last_error.lower())):
                     break
             except (requests.exceptions.Timeout, requests.exceptions.SSLError) as e:
                 last_error = f"网络异常: {e}"
-                console.log(f"    [LLM] 模型{model} 第{attempt+1}次调用失败: {last_error}")
+                console.log(f"    [LLM] 模型{model}({provider}) 第{attempt+1}次调用失败: {last_error}")
             except LLMError as e:
                 last_error = str(e)
-                console.log(f"    [LLM] 模型{model} 第{attempt+1}次调用失败: {last_error}")
+                console.log(f"    [LLM] 模型{model}({provider}) 第{attempt+1}次调用失败: {last_error}")
             except Exception as e:
                 last_error = f"未知异常: {e}"
-                console.log(f"    [LLM] 模型{model} 第{attempt+1}次调用失败: {last_error}")
+                console.log(f"    [LLM] 模型{model}({provider}) 第{attempt+1}次调用失败: {last_error}")
 
-            if attempt < cfg.llm_max_retry - 1:
+            if opencode_only:
+                # 用户硬性要求: 链接暂时失误就等待直到成功, 不切通道
+                wait = min(8 * (attempt + 1), 300)
+                console.log(f"    [LLM] {provider} 网关暂时不可用, {wait}秒后重试(等待直到成功)...")
+                time.sleep(wait)
+            elif attempt < cfg.llm_max_retry - 1:
                 wait = 8 * (attempt + 1)
                 console.log(f"    [LLM] {wait}秒后重试...")
                 time.sleep(wait)
 
-        console.log(f"    [LLM] 模型 {model} 全部重试失败, 切换备用模型...")
+        if not opencode_only:
+            console.log(f"    [LLM] 通道 {model}({provider}) 全部重试失败, 切换下一通道...")
 
     raise LLMError(f"所有模型均调用失败。最后错误: {last_error}")
 

@@ -1,0 +1,37 @@
+{
+ "round": 2082,
+ "hypothesis": "假设1：低日内振幅+高流动性=机构正在有效控盘（吸收供需而不让价格大幅波动），这是与成交额稳定性正交的经济维度，在不同风格环境下失效模式不同，可提升年度稳定性；假设2：成交额稳定+当日成交额处于自身近期高分位=机构算法正在积极执行，TS_RANK的有界性天然压缩极端值，使Q7-Q10的区分度更线性，改善单调性。",
+ "reflection": "当前因子单调性问题根源在于Q10被极端低CV但无催化剂的僵尸股污染，以及LOG(流动性)使超大盘股垄断头部。本轮从两个方向做结构性创新：(1)用价格振幅压缩替代成交额CV，捕捉机构对价格的控制力这一全新维度；(2)保留CV核心但将流动性项从LOG(绝对水平)替换为TS_RANK(当前活跃度)，有界性防止极端值垄断Q10，同时要求股票当前处于活跃状态以排除僵尸股，改善单调性和2024年小盘崩盘期的鲁",
+ "factors": [
+  {
+   "name": "RangeCompression_Liquidity_20D",
+   "expr": "-TS_MEAN(($high-$low)/($close+1e-8),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.061, 年度越序峰值=31.7%, 负年=[2020, 2025, 2026]",
+   "ic_mean": 0.07663,
+   "long_total": 0.02879,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025,
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_ActivityRank_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_RANK($amount,20)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.160, 年度越序峰值=11.7%, 负年=[2026]",
+   "ic_mean": 0.0497,
+   "long_total": 0.18224,
+   "monthly_pos_ratio": 0.9029,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

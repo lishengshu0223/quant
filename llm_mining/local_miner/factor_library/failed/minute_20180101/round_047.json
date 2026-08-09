@@ -1,0 +1,31 @@
+{
+ "round": 47,
+ "hypothesis": "日内收益分布形态与收盘价格位置共同反映了买卖双方力量的不对称性，这种不对称在短期内具有延续性，因此可作为未来5日超额收益的预测信号。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayPriceLocation_5D",
+   "expr": "TS_MEAN((LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8), 5)",
+   "style": "日内动量/收盘位置",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayReturnSkewness_5D",
+   "expr": "TS_MEAN(RANK(SKEW($return)), 5)",
+   "style": "日内收益分布/偏度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.167, 年度越序峰值=10.2%",
+   "ic_mean": 0.0492,
+   "long_total": 0.27072,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

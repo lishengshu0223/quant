@@ -1,0 +1,31 @@
+{
+ "round": 64,
+ "hypothesis": "A股短期存在日内趋势反转和量价配合转移两种独立定价异象：日内单边下跌后反弹概率大，且尾盘较开盘更呈量价齐升特征的个股未来5日收益更优。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayTrendReversal_5D",
+   "expr": "TS_MEAN(-(REGRESSION_SLOPE($close, $minute) / (MEAN($close) + 1e-8)), 5)",
+   "style": "短期反转/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+3.14%, 多头=-6.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03143,
+   "long_total": -0.06719,
+   "monthly_pos_ratio": 0.7864,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "OpenCloseVolumePriceShift_5D",
+   "expr": "TS_MEAN(CORR(SLICE($return, \"14:30\", \"15:00\"), SLICE($volume, \"14:30\", \"15:00\")) - CORR(SLICE($return, \"09:31\", \"10:00\"), SLICE($volume, \"09:31\", \"10:00\")), 5)",
+   "style": "量价背离/微观结构",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2023', '2024']",
+   "ic_mean": 0.02271,
+   "long_total": 0.39876,
+   "monthly_pos_ratio": 0.7864,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

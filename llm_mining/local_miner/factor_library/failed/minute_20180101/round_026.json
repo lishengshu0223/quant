@@ -1,0 +1,35 @@
+{
+ "round": 26,
+ "hypothesis": "上轮失败源于排序结构失效，本轮转向低波动异象与非流动性溢价两个经济学证据稳健的方向，用日内分钟数据计算原始连续量，并对数变换+5日平滑以增强分组单调性与稳定性",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "DownsideVolatility_5D",
+   "expr": "TS_MEAN(LOG(STD(MASK($return, \"<\", 0)) + 1e-8), 5)",
+   "style": "波动率-短期",
+   "reason": "方向无效",
+   "detail": "IC=+7.00%, 多头=-16.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.07003,
+   "long_total": -0.16486,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025,
+    2026
+   ]
+  },
+  {
+   "name": "IntradayAmihud_5D",
+   "expr": "TS_MEAN(LOG(SUM(ABS($return)) / (SUM($amount) + 1e-8) + 1e-8), 5)",
+   "style": "流动性-短期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 SUM",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

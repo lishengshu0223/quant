@@ -1,0 +1,33 @@
+{
+ "round": 1002,
+ "hypothesis": "因子1：单位日内振幅对应的成交量越高，说明大资金在窄幅震荡中有序吸筹，日内价格被有效控制，未来上涨概率更大。因子2：当成交量处于自身历史高分位而价格波动处于自身历史低分位时，量价背离信号最强，预示机构正在隐蔽建仓。",
+ "reflection": "当前因子VolumePriceImpact_10D已通过合格标准但存在两个问题：(1)2023-2024年分组单调性严重恶化，最高组被中间组超越，说明因子右尾极端值（可能是低流动性微盘股）干扰了排序；(2)2024年2月小盘股崩盘期间回撤明显。本轮改进方向：因子1将分母从收盘价收益率替换为日内振幅(high-low)/close，捕捉'大量成交但日内波动窄'的控盘吸筹信号，与原因子的收盘-收盘维度",
+ "factors": [
+  {
+   "name": "VolumeRangeImpact_10D",
+   "expr": "TS_MEAN($volume, 10) / (TS_MEAN(($high - $low) / ($close + 1e-8), 10) + 1e-8)",
+   "style": "量价背离/流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.214, 年度越序峰值=10.8%",
+   "ic_mean": 0.03707,
+   "long_total": 0.6643,
+   "monthly_pos_ratio": 0.8058,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumeReturnRankRatio_20D",
+   "expr": "TS_RANK($volume, 20) / (TS_RANK(ABS($return), 20) + 1e-8)",
+   "style": "量价背离/流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.110, 年度越序峰值=9.8%, 负年=[2026]",
+   "ic_mean": 0.02432,
+   "long_total": 0.20263,
+   "monthly_pos_ratio": 0.8058,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

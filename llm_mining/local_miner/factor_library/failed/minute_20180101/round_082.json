@@ -1,0 +1,31 @@
+{
+ "round": 82,
+ "hypothesis": "A股日内分钟数据中，开盘与尾盘的振幅不对称性反映信息释放的时间结构，而日内上涨分钟占比的短期变化反映市场参与广度的动量，两者均蕴含对未来5日收益的预测信息。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayRangeAsymmetry_5D",
+   "expr": "TS_MEAN((MAX(SLICE($high,\"09:31\",\"10:00\"))-MIN(SLICE($low,\"09:31\",\"10:00\")))/(MAX(SLICE($high,\"14:30\",\"15:00\"))-MIN(SLICE($low,\"14:30\",\"15:00\"))+1e-8),5)",
+   "style": "波动率/日内结构",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayBreadthMomentum_5D",
+   "expr": "TS_MEAN(COUNT(MASK($return,\">\",0))/(COUNT($return)+1e-8),5)-TS_MEAN(COUNT(MASK($return,\">\",0))/(COUNT($return)+1e-8),20)",
+   "style": "市场宽度/动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

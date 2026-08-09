@@ -1,0 +1,31 @@
+{
+ "round": 86,
+ "hypothesis": "上轮公式失败多为分钟级截面/复杂聚合触发全市场三维数组内存溢出，因此本轮改用纯分钟聚合与日频时序的轻量结构：一只用分钟涨跌强度对比刻画买方微观主动性与抛压不对称，一只用价格对日内时间回归的残差偏度刻画上涨/下跌脉冲的不对称性，避免RANK和TS_ARGMAX等易放大内存的算子。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "UpDownMinuteIntensityRatio_5D",
+   "expr": "TS_MEAN(MEAN(MASK($return, \">\", 0)) / (ABS(MEAN(MASK($return, \"<\", 0))) + 1e-8), 5)",
+   "style": "量价背离/微观动量/短期",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayTrendResidualSkewness_5D",
+   "expr": "TS_MEAN(SKEW($close - (REGRESSION_INTERCEPT($close, $minute) + REGRESSION_SLOPE($close, $minute) * $minute)), 5)",
+   "style": "趋势/量价行为/短期",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

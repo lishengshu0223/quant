@@ -1,0 +1,31 @@
+{
+ "round": 2104,
+ "hypothesis": "假设1：SQRT变换保留中间层区分度优于POW25，有助于维持年度稳定性；假设2：叠加10日动量因子(TS_MEAN($return,10)+1)可区分'机构正在建仓推升价格'与'无人问津的低波动'，前者应获得更高因子值；假设3：价格相对20日均线的位置($close/TS_MEAN($close,20))是趋势确认信号，稳定成交+价格在均线上方=机构有序推升，稳定成交+价格在均线下方=流动性枯竭",
+ "reflection": "当前最佳因子(SQRT版)年度信息比率3.48优于Pow25版(~2.93-2.97)，说明SQRT变换在稳定性上更优。但单调性问题(Q10被Q8/Q9超越)表明极端低CV股票中混入了'稳定但无上行催化'的僵尸股。本轮策略：保留SQRT CV核心结构(维持稳定性优势)，将底部支撑从TS_MIN替换为TS_MEAN($amount,10)(近期活跃度)，并叠加动量/价格位置作为质量过滤项，将'稳定+",
+ "factors": [
+  {
+   "name": "AmountStability_SqrtCV_Activity10D_Momentum10D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,10)+1)*(TS_MEAN($return,10)+1)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_SqrtCV_Activity10D_PricePos",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,10)+1)*($close/(TS_MEAN($close,20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

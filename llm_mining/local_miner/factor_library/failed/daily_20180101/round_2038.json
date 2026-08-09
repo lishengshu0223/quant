@@ -1,0 +1,31 @@
+{
+ "round": 2038,
+ "hypothesis": "假设1：成交额稳定+振幅压缩(5日振幅/20日振幅<1)+流动性排名=机构锁仓接近完成，动态压缩信号比静态低CV更能识别alpha起点，且有界乘数改善头部分组单调性；假设2：成交额稳定+收盘位置持续偏高(买压)+流动性排名=机构主动吸筹，收盘位置过滤无方向性僵尸股，提升多头组在各年份的稳定性。",
+ "reflection": "当前因子单调性问题源于极端低CV+高流动性区域混入僵尸股(无方向性稳定)。本轮从两个全新经济维度做结构创新：(1)引入振幅压缩维度——近期振幅相对历史收窄，捕捉机构锁仓完成期的动态信号，过滤无方向性僵尸股；(2)引入收盘位置维度——日内持续收高代表买压主导，区分主动建仓与被动持有。两者均为有界乘数(0~1区间)，能压缩极端因子值、改善头部单调性，同时不依赖参数堆叠。用RANK($amount)替代",
+ "factors": [
+  {
+   "name": "AmountStability_AmplitudeCompression",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN($high-$low,5)/TS_MEAN($high-$low,20)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 9 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_CloseLocation",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN(($close-$low)/($high-$low+1e-8),20)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -27,6 +27,13 @@ from . import console
 
 def _compute_metrics(factor_series: pd.DataFrame, data, cfg) -> dict:
     """对因子(长表Series)计算全部评价指标"""
+    # 交易资格遮盖: 剔除 ST/停牌/上市未满一年/涨跌停 股票(因子值置 NaN, 不参与IC与分组收益),
+    # 避免因子收益因不可交易股票而虚高
+    if getattr(data, "tradable", None) is not None and not data.tradable.empty:
+        tradable_long = data.tradable.stack(future_stack=True)
+        mask = tradable_long.reindex(factor_series.index).fillna(False).astype(bool)
+        factor_series = factor_series[mask]
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         clean = fa.get_clean_factor_and_forward_returns(
@@ -222,10 +229,17 @@ def classify_group_monotonicity(gm: dict, cfg) -> dict:
     doo = (gm.get("daily_out_of_order") or {}).get("overall_mean")
     corr_y = (gm.get("daily_rank_corr") or {}).get("yearly") or {}
     y_oos = gm.get("yearly_out_of_order") or {}
-    peak = float(max(y_oos.values())) if y_oos else 0.0
-    neg_years = sorted(int(y) for y, v in corr_y.items() if v < 0)
-    # 坏年份: 秩相关为负 或 年度聚合越序>10%(B级上界)
-    bad_years = sorted(set(neg_years + [int(y) for y, v in y_oos.items() if v > 0.10]))
+    # 最新不完整年份豁免: 与合格标准(c)及长期稳定性一致, 未满一年的最新年份
+    # 不参与负年拒绝/坏年份/年度越序峰值判定(其样本不完整, 统计量不可与完整年份直接比较)
+    all_years = sorted(set(corr_y) | set(y_oos))
+    latest_year = all_years[-1] if all_years else None
+    hist_years = [y for y in all_years if y != latest_year]
+    peak = float(max([y_oos[y] for y in hist_years if y in y_oos])) if hist_years else 0.0
+    neg_years = sorted(int(y) for y, v in corr_y.items() if v < 0 and y != latest_year)
+    # 坏年份: 秩相关为负 或 年度聚合越序>10%(B级上界), 均仅统计历史完整年份
+    bad_years = sorted(set(neg_years +
+                            [int(y) for y, v in y_oos.items()
+                             if v > 0.10 and y != latest_year]))
     order = {"S": 0, "A": 1, "B": 2, "C": 3}
 
     def _grade_rank(d):
@@ -448,6 +462,16 @@ def build_feedback_text(round_factors: list, cfg) -> str:
             else:
                 lines.append(
                     "    该因子单调性优秀: 请保持当前结构, 仅允许微调窗口/门控以增强收益, 不得破坏现有排序质量。")
+        # 语义评审拒绝 / 相关性撞车 —— 换皮因子的具体被拒原因必须回传给模型, 否则模型永远不知道自己为何被拦
+        if ev.get("review_rejected"):
+            lines.append(
+                f"[语义评审拒绝] 该因子因与库内已有因子语义重复被拒入库: "
+                f"{str(ev.get('review_reason') or '')[:200]}")
+        if ev.get("library_rejected"):
+            lines.append(
+                f"[相关性撞车] 该因子与库内因子截面相关性 max|ρ|="
+                f"{float(ev.get('library_max_corr') or 0):.2f} 超上限({cfg.max_library_corr}), "
+                f"被拒入库——仅换字段/换窗口/换包装构造的'新'因子无法通过此关, 必须换经济逻辑。")
         if ev["qualified"]:
             lines.append("★★ 该因子已通过全部合格标准! 可在此基础上进一步抬高IC或验证稳健性。")
         lines.append("")
@@ -476,3 +500,86 @@ def to_serializable(obj):
     if isinstance(obj, (np.bool_,)):
         return bool(obj)
     return obj
+
+
+# ====================== Barra 行业/市值中性化 ======================
+
+# Barra v1 暴露数据中的风格/元数据列, 其余中文列即为申万一级行业哑变量
+BARRA_NON_INDUSTRY_COLS = {
+    "beta", "book_to_price", "earnings_yield", "growth", "leverage",
+    "liquidity", "momentum", "non_linear_size", "residual_volatility",
+    "size", "specific_return", "specific_risk",
+}
+
+
+def load_barra_exposure(start_date=None, model: str = "v1"):
+    """
+    通过 local_api 读取 Barra 因子暴露(全市场)。
+
+    Args:
+        start_date: 只保留该日期起的暴露(可选, str 或 Timestamp)
+        model: Barra 模型版本(本地数据目录 barra/{model}/exposure)
+
+    Returns:
+        (exp, ind_cols): exp 为 (date, code) MultiIndex 的暴露 DataFrame(含 size 列);
+        ind_cols 为行业哑变量列名列表(申万一级中文名)。
+    """
+    import local_api as la
+    exp = la.get_factor_exposure([], start_date=start_date, end_date=None, model=model)
+    if exp is None or exp.empty:
+        raise RuntimeError(f"Barra 暴露数据为空, 请检查本地数据目录 barra/{model}/exposure")
+    if start_date is not None:
+        exp = exp.loc[exp.index.get_level_values(0) >= pd.Timestamp(start_date)]
+    ind_cols = [c for c in exp.columns if c not in BARRA_NON_INDUSTRY_COLS]
+    return exp, ind_cols
+
+
+def neutralize_factor(factor_wide: pd.DataFrame, exp: pd.DataFrame,
+                      ind_cols: list) -> pd.DataFrame:
+    """
+    每日截面中性化: factor ~ 行业哑变量 + size, 返回残差宽表(日期×股票)。
+
+    FWL 等价向量化实现: 先在 日期×行业 内对 factor 与 size 各自 demean
+    (等价于对行业哑变量回归取残差), 再无截距回归
+    beta = Σ(f_dm·s_dm)/Σ(s_dm²), resid = f_dm - beta·s_dm。
+
+    Args:
+        factor_wide: 因子宽表(日期×股票)
+        exp: Barra 暴露(需含 size 列与行业哑变量列, MultiIndex=(date, code))
+        ind_cols: 行业哑变量列名列表
+    """
+    f_long = factor_wide.stack(future_stack=True).dropna()
+    f_long.index.names = ["date", "code"]
+    f_long = f_long.rename("factor")
+
+    ind_cols = list(ind_cols)
+    need = exp[["size"] + ind_cols]
+    merged = f_long.to_frame().join(need, how="inner").sort_index()
+    merged = merged.dropna(subset=["size"])
+
+    ind_vals = merged[ind_cols].to_numpy(dtype="float32")
+    has_ind = ind_vals.sum(axis=1) > 0.5        # 行业哑变量全为0(缺失行业)的样本剔除
+    merged = merged[has_ind]
+    ind_vals = ind_vals[has_ind]
+    merged["ind"] = ind_vals.argmax(axis=1)
+
+    # 第一步: 行业内 demean (等价于回归行业哑变量取残差)
+    grp = merged.groupby([merged.index.get_level_values(0), "ind"], observed=True)
+    f_dm = merged["factor"] - grp["factor"].transform("mean")
+    s_dm = merged["size"] - grp["size"].transform("mean")
+
+    # 第二步: 每日无截距回归 f_dm ~ s_dm, 取残差
+    dates = merged.index.get_level_values(0)
+    num = (f_dm * s_dm).groupby(dates).sum()
+    den = (s_dm * s_dm).groupby(dates).sum()
+    beta = num / den.replace(0.0, np.nan)
+    resid = f_dm - beta.loc[dates].to_numpy() * s_dm
+    resid.name = "factor"
+    return resid.unstack("code").astype("float64")
+
+
+def neutralize_barra(factor_wide: pd.DataFrame, start_date=None,
+                     model: str = "v1") -> pd.DataFrame:
+    """一站式 Barra 行业/市值中性化: 加载暴露并每日截面回归, 返回残差宽表(日期×股票)"""
+    exp, ind_cols = load_barra_exposure(start_date=start_date, model=model)
+    return neutralize_factor(factor_wide, exp, ind_cols)

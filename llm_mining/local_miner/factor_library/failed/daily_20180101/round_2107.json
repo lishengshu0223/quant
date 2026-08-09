@@ -1,0 +1,33 @@
+{
+ "round": 2107,
+ "hypothesis": "假设1：TS_RANK(TS_MIN,60)将活跃度项约束在(0,1)区间，消除了极端低流动性股票因LOG(TS_MIN)绝对值过大而垄断Q10的问题，使Q10真正代表'稳定且有足够流动性支撑'的股票，改善顶部单调性；假设2：EMA($amount,10)的指数衰减特性使因子对近期流动性变化更敏感——当机构正在加速建仓时EMA快速上升，当流动性衰退时EMA快速下降，比等权TS_MEAN更能区分'正",
+ "reflection": "当前因子的核心问题是Q10被Q7-Q9超越(2020/2024/2026年)，说明因子极端值端存在'过度稳定但缺乏上行动力'的股票污染。改进方向：(1)用TS_RANK对活跃度项做有界化，防止极端低流动性股票垄断Q10，改善顶部单调性；(2)用EMA替代TS_MEAN作为活跃度度量，EMA的指数衰减权重更好地捕捉'当前正在被机构建仓'的状态，区分'历史活跃但当前衰退'与'当前正在加速建仓'的股票，",
+ "factors": [
+  {
+   "name": "AmountStability_Pow25CV_RankMinFloor_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*TS_RANK(TS_MIN($amount,20),60)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.102, 年度越序峰值=17.1%, 负年=[2026]",
+   "ic_mean": 0.04415,
+   "long_total": 0.21289,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_Pow25CV_EMAActivity10D_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(EMA($amount,10)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07737,
+   "long_total": 1.21649,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

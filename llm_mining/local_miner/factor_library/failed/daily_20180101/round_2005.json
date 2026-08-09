@@ -1,0 +1,34 @@
+{
+ "round": 2005,
+ "hypothesis": "假设1：成交额稳定+日内持续收高=机构盘中持续买入（非尾盘拉升），筹码锁定且有主动买盘支撑，未来收益更高且更稳定；假设2：成交额稳定+收益方向一致性高（大部分绝对涨幅来自上涨日）=平稳积累型上涨，非脉冲式炒作，后续延续性更强",
+ "reflection": "当前因子核心问题是分组单调性不足（2020/2024/2026年Q10被Q7-Q9超越）和压力期脆弱。诊断原因：LOG(TS_MEAN($amount,20))作为交互项过度偏向大成交额股票，导致极端因子值包含部分大盘股在特定风格下跑输中盘稳定股。本轮改进方向：保留成交额稳定性核心逻辑，但替换交互项为不同经济维度的指标——(1)日内收盘位置强度（微观结构维度，衡量盘中买压持续性）；(2)收益方向一",
+ "factors": [
+  {
+   "name": "AmountStability_ClosePosition_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_MEAN(($close-$low)/($high-$low+1e-8),20)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.05195,
+   "long_total": 0.66779,
+   "monthly_pos_ratio": 0.932,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_GainRatio_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_SUM($return*($return>0),20)/(TS_SUM(ABS($return),20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.173, 年度越序峰值=11.7%, 负年=[2021, 2026]",
+   "ic_mean": 0.05899,
+   "long_total": 0.48706,
+   "monthly_pos_ratio": 0.9126,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2026
+   ]
+  }
+ ]
+}

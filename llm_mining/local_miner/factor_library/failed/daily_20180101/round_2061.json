@@ -1,0 +1,31 @@
+{
+ "round": 2061,
+ "hypothesis": "假设1：成交额稳定+高胜率=机构在稳定预算下持续推升（主动建仓），胜率作为方向性质量指标可将无方向僵尸股从多头组中剔除，改善Q10的纯度和单调性；假设2：成交额稳定+价格处于近期区间高位=机构控盘下的有序上行，价格位置在崩盘期自动下降，天然具备风格切换的防御性。",
+ "reflection": "当前因子核心问题是单调性不足：极端低CV+高流动性的Q10组在2020/2024/2026年被Q7-Q9超越，说明最极端稳定的股票中包含大量无方向性的'僵尸股'。本轮改进方向：在保留amount stability核心的基础上，引入方向性质量维度（胜率/价格位置），将'稳定且有方向'的股票推至因子顶端，'稳定但无方向'的股票自然下沉至Q7-Q9，从而改善头部单调性。同时，方向性维度在压力期（小盘崩",
+ "factors": [
+  {
+   "name": "AmountStability_WinRate_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*COUNT($return>0,20)/20",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_PricePosition_10D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*($close-TS_MIN($low,10))/(TS_MAX($high,10)-TS_MIN($low,10)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

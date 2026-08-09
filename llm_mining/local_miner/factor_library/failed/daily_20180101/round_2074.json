@@ -1,0 +1,39 @@
+{
+ "round": 2074,
+ "hypothesis": "假设1：成交额峰值/均值比低(无异常放量日)+日内买入压力持续为正(收盘>开盘)=机构按节奏均匀建仓且对价格有向上推动力，比单纯的'稳定+大流动性'更能识别真正的机构锁仓；假设2：成交额CV低+收益方向净为正(SIGN均值>0)=机构在稳定预算下持续净买入，SIGN函数对极端收益免疫，比原始收益更稳健地度量方向性。",
+ "reflection": "当前因子单调性B级，核心问题是极端低CV+高流动性的Q10组混入无方向性的'僵尸股'，导致2020/2024/2026年被Q7-Q9超越。本轮改进方向：保留稳定性核心信号，但将第二维度从'流动性规模'(LOG均值)替换为'方向性质量'指标——即机构是否在稳定预算下有方向地推升价格。这样可以从多头组中剔除无方向的僵尸股，改善高分区单调性，同时方向性质量在不同市场风格下(牛市/熊市/震荡)都有区分力，",
+ "factors": [
+  {
+   "name": "AmountRegularity_IntradayPressure_20D",
+   "expr": "-SQRT(TS_MAX($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN(($close-$open)/($open+1e-8),10)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+4.93%, 多头=-4.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04933,
+   "long_total": -0.04514,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_DirectionalSign_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN(SIGN($return),10)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.025, 年度越序峰值=21.4%, 负年=[2018, 2020, 2021, 2026]",
+   "ic_mean": 0.01646,
+   "long_total": 0.02676,
+   "monthly_pos_ratio": 0.6699,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2021,
+    2026
+   ]
+  }
+ ]
+}

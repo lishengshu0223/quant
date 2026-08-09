@@ -1,0 +1,39 @@
+{
+ "round": 8,
+ "hypothesis": "基于上轮反思，纯收益分布统计（如偏度）排序性差；转而采用日内量能时间倾斜与价格位于日均线上方的时长占比，从资金参与的时间维度与多空力量的时间分布捕捉动量信号，预期可改善分组单调性并预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "VolumeIntradaySlope_5D",
+   "expr": "TS_MEAN(RANK(REGRESSION_SLOPE($volume, $minute) / (MEAN($volume) + 1e-8)), 5)",
+   "style": "量价趋势/日内动量",
+   "reason": "方向无效",
+   "detail": "IC=+3.68%, 多头=-16.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03676,
+   "long_total": -0.16255,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2026
+   ]
+  },
+  {
+   "name": "PriceAboveAvgDuration_5D",
+   "expr": "TS_MEAN(RANK(COUNT(MASK($close, \">\", MEAN($close))) / (COUNT($close) + 1e-8)), 5)",
+   "style": "日内动量/多空力量",
+   "reason": "方向无效",
+   "detail": "IC=+1.16%, 多头=-7.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01163,
+   "long_total": -0.07168,
+   "monthly_pos_ratio": 0.6796,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2025
+   ]
+  }
+ ]
+}

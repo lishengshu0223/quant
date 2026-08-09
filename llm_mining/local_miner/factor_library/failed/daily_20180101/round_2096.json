@@ -1,0 +1,31 @@
+{
+ "round": 2096,
+ "hypothesis": "假设1：对LOG(TS_MIN)施加SQRT压缩可减弱超大流动性股票对Q10的垄断，使因子在极端值端的区分度更平滑，改善顶部单调性；假设2：以TS_MIN与TS_MEDIAN的几何均值作为'有效底线'，比纯TS_MIN更能代表机构的常态支撑水平——纯TS_MIN易受节假日/停牌前等单日异常低估，几何均值在保留底线信息的同时更鲁棒，有助于在风格切换年(2020/2024/2026)维持选股质量。",
+ "reflection": "当前Pow25变体IC和多头收益均优秀，但单调性仅B级，2020/2024/2026年Q10被Q8/Q9超越，说明因子极端值端存在收益递减——最极端的'稳定+高底线'股票反而不是最优。诊断根源：LOG(TS_MIN)对超大流动性股票的底线值放大过度，导致Q10被少数巨量稳定股垄断，而这些股票在风格切换年(2020成长牛市、2024小盘崩盘、2026科创抱团)缺乏弹性。改进方向：(1)对floor项",
+ "factors": [
+  {
+   "name": "AmountStability_Pow25CV_SqrtMinFloor_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*SQRT(LOG(TS_MIN($amount,20)+1))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0652,
+   "long_total": 1.09093,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_Pow25CV_GeoMeanFloor_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(SQRT(TS_MIN($amount,20)*TS_MEDIAN($amount,20))+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07594,
+   "long_total": 1.2412,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

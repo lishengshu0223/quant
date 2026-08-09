@@ -1,0 +1,34 @@
+{
+ "round": 2018,
+ "hypothesis": "因子1：成交额稳定(SQRT压缩CV)+充足流动性+近20日上涨天数占比高=机构在稳定交易中持续净买入，三重确认排除无方向性的僵尸股，提升多头组纯度和单调性。因子2：成交额10分位/90分位比值高(真正的分布稳定性，对单日异常值免疫)+充足流动性=筹码高度锁定且无投机性脉冲，比CV更鲁棒地识别机构锁仓。",
+ "reflection": "当前因子单调性为B级，主要问题是2020/2024/2026年多头组被Q7-Q9超越，说明极端低CV+高流动性的股票中存在'僵尸股'（量稳但无方向性买盘）。改进方向：(1)引入上涨天数占比作为方向性确认，过滤无方向性的稳定量股票，提升顶部分组单调性；(2)用分位数比值替代CV作为稳定性度量，对单日脉冲更鲁棒，减少极端值对排序的干扰，从而改善单调性和压力期表现。",
+ "factors": [
+  {
+   "name": "AmountStability_SqrtCV_UpDayGate_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*COUNT($return>0,20)/20",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 9 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_QuantileRatio_20D",
+   "expr": "TS_QUANTILE($amount,20,0.1)/(TS_QUANTILE($amount,20,0.9)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.155, 年度越序峰值=21.6%, 负年=[2021, 2023]",
+   "ic_mean": 0.04223,
+   "long_total": 0.27911,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023
+   ]
+  }
+ ]
+}

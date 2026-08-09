@@ -70,6 +70,7 @@ INVALID_CHAR_RE = re.compile(r"[^A-Za-z0-9_$+\-*/><=&|?:.,() \t\r\n]")
 TOKEN_RE = re.compile(
     r"""
       (?P<NUM>\d+\.\d*(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?|\d+(?:[eE][+-]?\d+)?)
+     |(?P<STR>"[^"\r\n]*"|'[^'\r\n]*')
      |(?P<VAR>\$[A-Za-z_][A-Za-z0-9_]*)
      |(?P<IDENT>[A-Za-z_][A-Za-z0-9_]*)
      |(?P<OP>>=|<=|==|!=|&&|\|\||[+\-*/><&|?:(),])
@@ -89,6 +90,11 @@ class ExprError(Exception):
 # =============================================================================
 
 class Num:
+    __slots__ = ("value",)
+    def __init__(self, value): self.value = value
+
+class Str:
+    """字符串常量(分钟模式专用: SLICE的时间段 / MASK的比较符等)"""
     __slots__ = ("value",)
     def __init__(self, value): self.value = value
 
@@ -251,6 +257,8 @@ class Parser:
         kind, value = self.next()
         if kind == "NUM":
             return Num(float(value))
+        if kind == "STR":
+            return Str(value[1:-1])
         if kind == "VAR":
             return Var(value.lower())
         if kind == "IDENT":
@@ -280,7 +288,7 @@ class Parser:
 # =============================================================================
 
 def ast_depth(node) -> int:
-    if isinstance(node, (Num, Var)):
+    if isinstance(node, (Num, Str, Var)):
         return 1
     if isinstance(node, Unary):
         return 1 + ast_depth(node.x)
@@ -298,6 +306,8 @@ def ast_depth(node) -> int:
 def _walk_validate(node, cfg, vars_used: set):
     if isinstance(node, Num):
         return
+    if isinstance(node, Str):
+        raise ExprError("字符串常量仅在分钟模式下允许(SLICE的时间段/MASK的比较符), 日频公式不得使用")
     if isinstance(node, Var):
         if node.name not in ALLOWED_VARS:
             raise ExprError(f"使用了未声明的变量: {node.name}, 可用变量: {sorted(ALLOWED_VARS)}")
@@ -482,6 +492,8 @@ class Evaluator:
     def eval(self, node):
         if isinstance(node, Num):
             return node.value
+        if isinstance(node, Str):
+            raise ExprError("字符串常量不能直接参与日频求值")
         if isinstance(node, Var):
             return self.data.var(node.name)
         if isinstance(node, Unary):
@@ -532,129 +544,142 @@ class Evaluator:
         raise ExprError(f"未知运算符: {op}")
 
     def _where(self, cond, true, false):
-        if not isinstance(cond, pd.DataFrame):
-            raise ExprError("条件表达式的结果必须是序列, 不能是标量")
-        c = cond.fillna(False).astype(bool).values
-        t = true.values if isinstance(true, pd.DataFrame) else true
-        f = false.values if isinstance(false, pd.DataFrame) else false
-        return _wrap(np.where(c, t, f), cond)
+        return where_any(cond, true, false)
 
     # ---- 函数 ----
     def _eval_call(self, name, args):
-        def arg(i, default=None):
-            if i < len(args):
-                return args[i]
-            if default is not None:
-                return default
-            raise ExprError(f"函数 {name} 缺少第{i+1}个参数")
+        return eval_call_daily(name, args)
 
-        def win(i):
-            if i < len(args):
-                return int(args[i])
-            return WINDOW_DEFAULTS.get(name, 5)
 
-        # 时序函数
-        if name == "DELAY":
-            return arg(0).shift(win(1))
-        if name == "DELTA":
-            return arg(0).diff(win(1))
-        if name in ("TS_MEAN", "TS_SUM", "TS_STD", "TS_MAX", "TS_MIN", "TS_MEDIAN"):
-            x, n = arg(0), win(1)
-            r = x.rolling(n, min_periods=1)
-            return {"TS_MEAN": r.mean, "TS_SUM": r.sum, "TS_STD": r.std,
-                    "TS_MAX": r.max, "TS_MIN": r.min, "TS_MEDIAN": r.median}[name]()
-        if name == "TS_RANK":
-            return arg(0).rolling(win(1), min_periods=1).rank(pct=True)
-        if name in ("TS_ARGMAX", "HIGHDAY"):
-            return arg(0).rolling(win(1), min_periods=1).apply(_argmax_last, raw=True)
-        if name in ("TS_ARGMIN", "LOWDAY"):
-            return arg(0).rolling(win(1), min_periods=1).apply(_argmin_last, raw=True)
-        if name in ("TS_CORR", "TS_COV"):
-            x, y, n = arg(0), arg(1), win(2)
-            minp = max(2, n // 2)
-            xm = x.rolling(n, min_periods=minp).mean()
-            ym = y.rolling(n, min_periods=minp).mean()
-            cov = (x * y).rolling(n, min_periods=minp).mean() - xm * ym
-            if name == "TS_COV":
-                return cov
-            xs = x.rolling(n, min_periods=minp).std()
-            ys = y.rolling(n, min_periods=minp).std()
-            return _safe_div(cov, xs * ys)
-        if name == "TS_ZSCORE":
-            x, n = arg(0), win(1)
-            xm = x.rolling(n, min_periods=1).mean()
-            xs = x.rolling(n, min_periods=1).std()
-            return _safe_div(x - xm, xs)
-        if name == "TS_QUANTILE":
-            x, n = arg(0), win(1)
-            q = arg(2, 0.5)
-            return x.rolling(n, min_periods=1).quantile(float(q))
-        if name == "EMA":
-            return arg(0).ewm(span=int(arg(1)), min_periods=1, adjust=False).mean()
-        if name == "DECAYLINEAR":
-            x, n = arg(0), win(1)
-            weights = np.arange(1, n + 1, dtype=float)
-            def _decay(w):
-                valid = ~np.isnan(w)
-                if not valid.any():
-                    return np.nan
-                # 初始窗口长度可能小于 n, 取权重尾部对齐(最新值权重最大)
-                wts = weights[n - len(w):]
-                return float(np.dot(np.where(valid, w, 0.0), wts) / wts[valid].sum())
-            return x.rolling(n, min_periods=1).apply(_decay, raw=True)
-        if name == "COUNT":
-            cond, n = arg(0), win(1)
-            return _to_bool(cond).astype(float).rolling(n, min_periods=1).sum()
-        if name == "PROD":
-            return arg(0).rolling(win(1), min_periods=1).apply(_prod_last, raw=True)
+def where_any(cond, true, false):
+    """WHERE 条件求值(模块级, 供日频/分钟求值共用)"""
+    if not isinstance(cond, pd.DataFrame):
+        raise ExprError("条件表达式的结果必须是序列, 不能是标量")
+    c = cond.fillna(False).astype(bool).values
+    t = true.values if isinstance(true, pd.DataFrame) else true
+    f = false.values if isinstance(false, pd.DataFrame) else false
+    return _wrap(np.where(c, t, f), cond)
 
-        # 截面函数
-        if name == "RANK":
-            return arg(0).rank(axis=1, pct=True)
-        if name == "ZSCORE":
-            x = arg(0)
-            mu = x.mean(axis=1)
-            sd = x.std(axis=1).replace(0, np.nan)
-            return x.sub(mu, axis=0).div(sd, axis=0)
-        if name == "SCALE":
-            x = arg(0)
-            s = x.abs().sum(axis=1).replace(0, np.nan)
-            return x.div(s, axis=0)
-        if name == "MEAN":
-            x = arg(0)
-            return _broadcast_row(x.mean(axis=1), x)
-        if name in ("MAX", "MIN"):
-            if len(args) == 1:
-                x = args[0]
-                row = x.max(axis=1) if name == "MAX" else x.min(axis=1)
-                return _broadcast_row(row, x)
-            with np.errstate(invalid="ignore"):
-                return np.maximum(args[0], args[1]) if name == "MAX" else np.minimum(args[0], args[1])
 
-        # 元素级数学函数
-        if name == "ABS":
-            return arg(0).abs() if isinstance(arg(0), pd.DataFrame) else abs(arg(0))
-        if name == "SIGN":
-            return np.sign(arg(0))
-        if name == "EXP":
-            x = arg(0)
-            return np.exp(x.clip(-700, 700) if isinstance(x, pd.DataFrame) else np.clip(x, -700, 700))
-        if name == "SQRT":
-            x = arg(0)
-            return np.sqrt(x.clip(lower=0) if isinstance(x, pd.DataFrame) else max(x, 0))
-        if name == "LOG":
-            x = arg(0)
-            xp = (x + 1)
-            return np.log(xp.clip(lower=1e-8) if isinstance(xp, pd.DataFrame) else max(xp, 1e-8))
-        if name == "INV":
-            return _safe_div(1.0, arg(0))
-        if name == "POW":
-            with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
-                return np.power(arg(0), float(arg(1)))
-        if name == "WHERE":
-            return self._where(args[0], args[1], args[2])
+def eval_call_daily(name, args):
+    """
+    日频函数求值(模块级, 供日频求值器与分钟引擎的日频子表达式共用)。
+    args: 已求值的参数(宽表DataFrame或标量)。
+    """
+    def arg(i, default=None):
+        if i < len(args):
+            return args[i]
+        if default is not None:
+            return default
+        raise ExprError(f"函数 {name} 缺少第{i+1}个参数")
 
-        raise ExprError(f"函数 {name} 未实现")
+    def win(i):
+        if i < len(args):
+            return int(args[i])
+        return WINDOW_DEFAULTS.get(name, 5)
+
+    # 时序函数
+    if name == "DELAY":
+        return arg(0).shift(win(1))
+    if name == "DELTA":
+        return arg(0).diff(win(1))
+    if name in ("TS_MEAN", "TS_SUM", "TS_STD", "TS_MAX", "TS_MIN", "TS_MEDIAN"):
+        x, n = arg(0), win(1)
+        r = x.rolling(n, min_periods=1)
+        return {"TS_MEAN": r.mean, "TS_SUM": r.sum, "TS_STD": r.std,
+                "TS_MAX": r.max, "TS_MIN": r.min, "TS_MEDIAN": r.median}[name]()
+    if name == "TS_RANK":
+        return arg(0).rolling(win(1), min_periods=1).rank(pct=True)
+    if name in ("TS_ARGMAX", "HIGHDAY"):
+        return arg(0).rolling(win(1), min_periods=1).apply(_argmax_last, raw=True)
+    if name in ("TS_ARGMIN", "LOWDAY"):
+        return arg(0).rolling(win(1), min_periods=1).apply(_argmin_last, raw=True)
+    if name in ("TS_CORR", "TS_COV"):
+        x, y, n = arg(0), arg(1), win(2)
+        minp = max(2, n // 2)
+        xm = x.rolling(n, min_periods=minp).mean()
+        ym = y.rolling(n, min_periods=minp).mean()
+        cov = (x * y).rolling(n, min_periods=minp).mean() - xm * ym
+        if name == "TS_COV":
+            return cov
+        xs = x.rolling(n, min_periods=minp).std()
+        ys = y.rolling(n, min_periods=minp).std()
+        return _safe_div(cov, xs * ys)
+    if name == "TS_ZSCORE":
+        x, n = arg(0), win(1)
+        xm = x.rolling(n, min_periods=1).mean()
+        xs = x.rolling(n, min_periods=1).std()
+        return _safe_div(x - xm, xs)
+    if name == "TS_QUANTILE":
+        x, n = arg(0), win(1)
+        q = arg(2, 0.5)
+        return x.rolling(n, min_periods=1).quantile(float(q))
+    if name == "EMA":
+        return arg(0).ewm(span=int(arg(1)), min_periods=1, adjust=False).mean()
+    if name == "DECAYLINEAR":
+        x, n = arg(0), win(1)
+        weights = np.arange(1, n + 1, dtype=float)
+        def _decay(w):
+            valid = ~np.isnan(w)
+            if not valid.any():
+                return np.nan
+            # 初始窗口长度可能小于 n, 取权重尾部对齐(最新值权重最大)
+            wts = weights[n - len(w):]
+            return float(np.dot(np.where(valid, w, 0.0), wts) / wts[valid].sum())
+        return x.rolling(n, min_periods=1).apply(_decay, raw=True)
+    if name == "COUNT":
+        cond, n = arg(0), win(1)
+        return _to_bool(cond).astype(float).rolling(n, min_periods=1).sum()
+    if name == "PROD":
+        return arg(0).rolling(win(1), min_periods=1).apply(_prod_last, raw=True)
+
+    # 截面函数
+    if name == "RANK":
+        return arg(0).rank(axis=1, pct=True)
+    if name == "ZSCORE":
+        x = arg(0)
+        mu = x.mean(axis=1)
+        sd = x.std(axis=1).replace(0, np.nan)
+        return x.sub(mu, axis=0).div(sd, axis=0)
+    if name == "SCALE":
+        x = arg(0)
+        s = x.abs().sum(axis=1).replace(0, np.nan)
+        return x.div(s, axis=0)
+    if name == "MEAN":
+        x = arg(0)
+        return _broadcast_row(x.mean(axis=1), x)
+    if name in ("MAX", "MIN"):
+        if len(args) == 1:
+            x = args[0]
+            row = x.max(axis=1) if name == "MAX" else x.min(axis=1)
+            return _broadcast_row(row, x)
+        with np.errstate(invalid="ignore"):
+            return np.maximum(args[0], args[1]) if name == "MAX" else np.minimum(args[0], args[1])
+
+    # 元素级数学函数
+    if name == "ABS":
+        return arg(0).abs() if isinstance(arg(0), pd.DataFrame) else abs(arg(0))
+    if name == "SIGN":
+        return np.sign(arg(0))
+    if name == "EXP":
+        x = arg(0)
+        return np.exp(x.clip(-700, 700) if isinstance(x, pd.DataFrame) else np.clip(x, -700, 700))
+    if name == "SQRT":
+        x = arg(0)
+        return np.sqrt(x.clip(lower=0) if isinstance(x, pd.DataFrame) else max(x, 0))
+    if name == "LOG":
+        x = arg(0)
+        xp = (x + 1)
+        return np.log(xp.clip(lower=1e-8) if isinstance(xp, pd.DataFrame) else max(xp, 1e-8))
+    if name == "INV":
+        return _safe_div(1.0, arg(0))
+    if name == "POW":
+        with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
+            return np.power(arg(0), float(arg(1)))
+    if name == "WHERE":
+        return where_any(args[0], args[1], args[2])
+
+    raise ExprError(f"函数 {name} 未实现")
 
 
 def _to_bool(x):
@@ -671,7 +696,11 @@ def compute_factor(expr: str, data, cfg) -> pd.DataFrame:
     """
     校验并计算因子, 返回宽表 DataFrame(行=日期, 列=股票代码)。
     非法公式抛出 ExprError(在运行前被拦截)。
+    cfg.data_frequency == "minute" 时走分钟引擎(分钟算子聚合出日频特征)。
     """
+    if getattr(cfg, "data_frequency", "daily") == "minute":
+        from .minute_engine import compute_factor_minute
+        return compute_factor_minute(expr, data, cfg)
     ast = validate(expr, cfg)
     result = Evaluator(data).eval(ast)
     if not isinstance(result, pd.DataFrame):

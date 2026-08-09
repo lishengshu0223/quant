@@ -1,0 +1,36 @@
+{
+ "round": 2054,
+ "hypothesis": "假设1：成交额稳定+短期正动量=机构主动建仓(积极控盘)，负动量时因子值归零可有效剔除正在被机构减仓但成交额仍稳定的'出货期'股票，改善多头组在动量年份(2020)和震荡年份(2024)的表现；假设2：成交额稳定+短期成交额相对长期放大=机构正在加速建仓(从观望转向行动)，比静态高流动性更能捕捉alpha的起点，且该加速信号在大小盘风格切换中更鲁棒(因为度量的是自身变化而非绝对水平)。",
+ "reflection": "当前因子主要问题：(1)单调性不足——2020/2024/2026年多头组被Q7-Q9超越，说明top decile混入了'稳定但无方向'的僵尸股；(2)2020年是最差年(+7.78%)，该年动量风格主导，纯稳定性因子选出的防御型股票跑输。本轮从两个方向做结构性创新：(a)引入条件门控结构，仅在短期动量为正时激活流动性信号，将'稳定但下跌'的股票因子值归零，直接改善多头组纯度和单调性；(b)将流",
+ "factors": [
+  {
+   "name": "AmountStability_MomentumGate_v2",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*(TS_MEAN($return,10)>0?LOG(TS_MEAN($amount,20)):0)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+5.27%, 多头=-0.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.05265,
+   "long_total": -0.00733,
+   "monthly_pos_ratio": 0.8835,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_VolAccel_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*(TS_MEAN($amount,5)/(TS_MEAN($amount,20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.140, 年度越序峰值=14.0%, 负年=[2021, 2026]",
+   "ic_mean": 0.04806,
+   "long_total": 0.09611,
+   "monthly_pos_ratio": 0.9029,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2026
+   ]
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2070,
+ "hypothesis": "假设1：机构的真正锁仓不仅表现为成交额稳定(CV低), 还表现为价格与成交量的正向协同(量价齐升或缩量上涨)。单纯的CV低可能对应僵尸股, 叠加正相关可筛选出有Alpha的控盘股。假设2：使用ZSCORE对CV进行标准化, 可以消除不同股票间因绝对规模导致的波动率差异, 使因子在不同风格下更具鲁棒性。",
+ "reflection": "当前因子核心逻辑为'低CV(稳定性)×高流动性=机构锁仓', 但存在两个主要问题: 1) 单调性不足, 高分组在部分年份被中分组超越, 说明纯CV信号在极端稳定(僵尸股)时失效; 2) 年度稳定性有提升空间。本轮改进策略: 1) 引入'量价协同度'(Amount-Price Correlation)作为乘子, 替代单纯的LOG(流动性)。只有当'成交稳定'且'量价同步上涨'时才赋予高值, 剔除无方",
+ "factors": [
+  {
+   "name": "AmountStability_CorrGate_20D",
+   "expr": "-SQRT(TS_ZSCORE(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60))*((TS_CORR($amount,$close,20)+1)/2)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "factor",
+   "expr": "",
+   "style": "",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 公式为空",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

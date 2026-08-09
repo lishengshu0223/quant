@@ -1,0 +1,33 @@
+{
+ "round": 55,
+ "hypothesis": "上轮因子因截面排序非线性导致单调性C级；改用量价时序差和低波动风险补偿，增强截面线性区分度。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "VolumeLeadPrice_5D",
+   "expr": "TS_MEAN(RANK(TS_ARGMAX($close)-TS_ARGMAX($volume)),5)",
+   "style": "量价配合/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.091, 年度越序峰值=8.6%",
+   "ic_mean": 0.03576,
+   "long_total": 0.25082,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LowIntradayVolatility_5D",
+   "expr": "TS_MEAN(RANK(-1*STD($return)),5)",
+   "style": "波动率/低风险异象",
+   "reason": "方向无效",
+   "detail": "IC=+6.23%, 多头=-28.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0623,
+   "long_total": -0.28751,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  }
+ ]
+}

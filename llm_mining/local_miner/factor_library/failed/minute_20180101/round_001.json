@@ -1,0 +1,42 @@
+{
+ "round": 1,
+ "hypothesis": "日内分钟收益率在正负条件切割和时段切割上的不对称性，反映了多空力量的相对强弱与资金日内行为模式，可预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayReturnAsymmetry_5D",
+   "expr": "TS_MEAN(MEAN(MASK($return, \">\", 0)) - MEAN(MASK($return, \"<=\", 0)), 5)",
+   "style": "短期动量/微观结构不对称",
+   "reason": "方向无效",
+   "detail": "IC=+5.34%, 多头=-34.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.05344,
+   "long_total": -0.34187,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2024,
+    2026
+   ]
+  },
+  {
+   "name": "IntradayMomentumGap_5D",
+   "expr": "TS_MEAN(MEAN(SLICE($return, \"14:00\", \"15:00\")) - MEAN(SLICE($return, \"09:31\", \"10:00\")), 5)",
+   "style": "短期动量/时段效应",
+   "reason": "方向无效",
+   "detail": "IC=+0.45%, 多头=-96.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00453,
+   "long_total": -0.96271,
+   "monthly_pos_ratio": 0.4757,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

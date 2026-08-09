@@ -1,0 +1,33 @@
+{
+ "round": 40,
+ "hypothesis": "A股市场存在低风险异象与彩票型股票高估现象：日内分钟收益波动率越低、偏度越负的股票，在未来5日能获得更高的风险调整后收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LowIntradayVolatility_5D",
+   "expr": "TS_MEAN(-1 * STD($return), 5)",
+   "style": "波动率/长期风险溢价",
+   "reason": "方向无效",
+   "detail": "IC=+6.76%, 多头=-33.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.06763,
+   "long_total": -0.33931,
+   "monthly_pos_ratio": 0.8835,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "NegativeIntradaySkewness_5D",
+   "expr": "TS_MEAN(-1 * SKEW($return), 5)",
+   "style": "偏度/彩票偏好",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.174, 年度越序峰值=10.1%",
+   "ic_mean": 0.05234,
+   "long_total": 0.14016,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

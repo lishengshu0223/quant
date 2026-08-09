@@ -1,0 +1,34 @@
+{
+ "round": 2001,
+ "hypothesis": "因子1：成交额稳定且Amihud流动性冲击大的股票，说明持仓者以长期机构为主(不频繁交易导致量稳定，少量交易即引起大价格冲击)，这类股票被市场低估；因子2：成交额极差比低(日间波动小)且价格高于均线的股票，处于机构稳步吸筹阶段，量稳价升是健康的上涨结构。",
+ "reflection": "当前因子单调性为B级(秩相关0.279)，2021年秩相关仅0.110，且在小盘股崩盘和科创板抱团期有回撤。核心问题在于LOG(TS_MEAN($amount,20))交互项引入了强烈的市值/流动性偏好，在风格切换年份失效。本轮改进方向：(1)将交互项从'绝对成交额水平'替换为'Amihud流动性冲击'，捕捉稳定筹码+高价格冲击的机构锁仓特征，去除市值偏好；(2)将稳定性度量从CV(标准差/均值)",
+ "factors": [
+  {
+   "name": "StableAmountIlliquidity_20D",
+   "expr": "-TS_STD($amount, 20) / (TS_MEAN($amount, 20) + 1e-8) * TS_MEAN(ABS($return) / ($amount + 1e-8), 20)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.137, 年度越序峰值=28.5%, 负年=[2019, 2020]",
+   "ic_mean": 0.02065,
+   "long_total": 0.11862,
+   "monthly_pos_ratio": 0.6505,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020
+   ]
+  },
+  {
+   "name": "AmountRangeStability_Drift_20D",
+   "expr": "-(TS_MAX($amount, 20) - TS_MIN($amount, 20)) / (TS_MEAN($amount, 20) + 1e-8) * $close / (TS_MEAN($close, 20) + 1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.05035,
+   "long_total": 0.71547,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

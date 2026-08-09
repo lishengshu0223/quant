@@ -1,0 +1,31 @@
+{
+ "round": 70,
+ "hypothesis": "A股日内收盘位置反映多空合力最终结果，分钟成交额加权的收益方向反映主力资金流向，两者均存在短期动量延续效应，因此以5日均值构造日频因子。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "CloseLocationMomentum5D",
+   "expr": "TS_MEAN( (LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8), 5 )",
+   "style": "短期动量/趋势",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolumeWeightedFundFlow5D",
+   "expr": "TS_MEAN( SUM(SLICE($return,\"09:32\",\"15:00\") * SLICE($amount,\"09:32\",\"15:00\")) / (SUM(SLICE($amount,\"09:32\",\"15:00\")) + 1e-8), 5 )",
+   "style": "量价背离/资金流",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.32 GiB for an array with shape (176510880,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

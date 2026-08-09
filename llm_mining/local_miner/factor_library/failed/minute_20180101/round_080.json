@@ -1,0 +1,31 @@
+{
+ "round": 80,
+ "hypothesis": "A股日内单分钟极端收益的不对称性与开盘尾盘收益的共振方向共同反映买卖力量的真实倾斜，对未来5日收益有预测能力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayExtremeAsymmetry_5D",
+   "expr": "TS_MEAN(MAX($return)+MIN($return),5)",
+   "style": "短期动量/量价陷阱",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradaySessionReturnGap_5D",
+   "expr": "TS_MEAN(MEAN(SLICE($return,\"09:31\",\"10:00\"))+MEAN(SLICE($return,\"14:00\",\"15:00\")),5)",
+   "style": "短期趋势/动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,37 @@
+{
+ "round": 2060,
+ "hypothesis": "假设1：1/(1+CV)变换将因子值严格限制在(0,1)区间内，极端低CV股票的因子值被压缩至接近1但不会无限放大，避免僵尸股在Q10堆积，改善尾部单调性；假设2：短期成交额波动率/长期波动率<1表示成交额正在收敛（机构控盘加强），该动态信号在风格切换期（小盘崩盘、板块抱团）仍能正确识别机构行为，因为度量的是相对变化而非绝对水平。",
+ "reflection": "当前因子单调性问题源于极端低CV的僵尸股污染Q10（2020/2024/2026年Q7-Q9超越Q10）。改进方向：(1)用1/(1+CV)替代SQRT(CV)作为有界变换，对极端尾部压缩更强，使Q10与Q9的区分度更线性；(2)引入CV收敛速度（短期波动/长期波动比值）作为全新经济维度，捕捉'正在变稳定'的动态过程而非静态水平，在不同风格环境下更具鲁棒性（因为度量的是变化率而非绝对水平，天然规避",
+ "factors": [
+  {
+   "name": "AmountStability_BoundedCV_20D",
+   "expr": "-LOG(TS_MEAN($amount,20))/(1+TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+1.29%, 多头=-29.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01289,
+   "long_total": -0.29247,
+   "monthly_pos_ratio": 0.6019,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2023
+   ]
+  },
+  {
+   "name": "AmountCVConvergence_Liquidity_20D",
+   "expr": "-TS_STD($amount,5)/(TS_STD($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.134, 年度越序峰值=11.6%, 负年=[2026]",
+   "ic_mean": 0.02951,
+   "long_total": 0.23385,
+   "monthly_pos_ratio": 0.8058,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

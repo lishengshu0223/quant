@@ -1,0 +1,31 @@
+{
+ "round": 2100,
+ "hypothesis": "假设1：SQRT变换比POW25保留更多中间层区分度，使Q8-Q10之间的排序更精细，减少顶部组被超越的概率；10日均额活动底线比TS_MIN更稳定地反映机构持续参与水平。假设2：成交额日间绝对变化量(MAD of Delta)度量的是执行节奏的平滑性而非离散度，低值代表算法单均匀拆单(机构建仓指纹)，高值代表事件驱动或散户脉冲交易，结合高成交底线可识别真正处于均匀吸筹阶段的股票。",
+ "reflection": "当前最佳因子Pow25CV_RecentActivity的年度信息比率(2.88)低于SQRT版本(3.48)，说明POW25的极端压缩虽抬高IC但损害了年度稳定性。本轮两个方向：(1)将SQRT变换与10日均额活动底线组合，利用SQRT适度压缩保留排序稳定性，同时用近期活动水平替代TS_MIN以改善2020/2024年单调性；(2)用日均绝对变化量(Mean Absolute Delta)替代C",
+ "factors": [
+  {
+   "name": "AmountStability_SqrtCV_RecentActivity_20D",
+   "expr": "-(SQRT(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,10)+1))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06638,
+   "long_total": 1.0608,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountSmoothness_MAD_MinFloor_20D",
+   "expr": "-(POW(TS_MEAN(ABS(DELTA($amount,1)),20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MIN($amount,20)+1))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

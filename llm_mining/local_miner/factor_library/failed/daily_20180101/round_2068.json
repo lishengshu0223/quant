@@ -1,0 +1,33 @@
+{
+ "round": 2068,
+ "hypothesis": "假设1：成交额序列的高自相关性(今日成交额可被昨日预测)是机构算法交易(TWAP/VWAP)的指纹，比低CV更能识别'有组织的稳定'而非'无人问津的冷清'，从而改善多头组纯度；假设2：日内振幅(high-low)/close的时序稳定性(低标准差)意味着有力量在控制价格区间，这是机构控盘的直接证据，与成交额稳定性度量的是不同维度的'控制力'，两者在不同风格环境下互补。",
+ "reflection": "当前因子主要问题是单调性不足(Q10被Q7-Q9超越)和特定压力期脆弱。诊断发现：(1)CV度量的是成交额的离散程度，但无法区分'有规律的稳定'和'无方向的僵死'；(2)仅从成交额维度衡量稳定性，忽略了价格行为本身的信息。本轮从两个全新经济维度切入：因子1引入成交额序列自相关(衡量交易节奏的规律性，捕捉机构TWAP执行模式)，这是与CV完全不同的统计维度；因子2从价格振幅的稳定性出发(日内振幅的标",
+ "factors": [
+  {
+   "name": "AmountRegularity_Liquidity_20D",
+   "expr": "-TS_CORR($amount,DELAY($amount,1),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2018', '2023']",
+   "ic_mean": 0.04338,
+   "long_total": 0.49115,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "RangeStability_RankLiq_20D",
+   "expr": "-TS_STD(($high-$low)/($close+1e-8),20)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.215, 年度越序峰值=6.1%, 负年=[2026]",
+   "ic_mean": 0.10048,
+   "long_total": 1.19914,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

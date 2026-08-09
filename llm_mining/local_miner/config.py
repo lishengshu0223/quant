@@ -27,17 +27,22 @@ LOG_PATH = os.path.join(WORKSPACE_DIR, "mining.log")
 REPORT_PNG_PATH = os.path.join(WORKSPACE_DIR, "factor_report.png")
 
 
-def checkpoint_path(mode: str, series_id: str = "") -> str:
-    """按模式隔离的检查点路径, 保证 new/optimize 两个进程可并行互不覆盖"""
+def checkpoint_path(mode: str, series_id: str = "", freq: str = "daily") -> str:
+    """按模式隔离的检查点路径, 保证 new/optimize 两个进程可并行互不覆盖;
+    数据频率也参与隔离: 分钟挖掘与日频挖掘共用 mode=new 但检查点不同, 互不覆盖"""
     if mode == "optimize" and series_id:
         return os.path.join(WORKSPACE_DIR, f"checkpoint_optimize_{series_id}.json")
+    if freq == "minute":
+        return os.path.join(WORKSPACE_DIR, "checkpoint_new_minute.json")
     return os.path.join(WORKSPACE_DIR, "checkpoint_new.json")
 
 
-def mining_log_path(mode: str, series_id: str = "") -> str:
+def mining_log_path(mode: str, series_id: str = "", freq: str = "daily") -> str:
     """按模式隔离的日志路径"""
     if mode == "optimize" and series_id:
         return os.path.join(WORKSPACE_DIR, f"mining_optimize_{series_id}.log")
+    if freq == "minute":
+        return os.path.join(WORKSPACE_DIR, "mining_new_minute.log")
     return os.path.join(WORKSPACE_DIR, "mining_new.log")
 
 
@@ -56,6 +61,10 @@ DASHSCOPE_BASE_URL = os.environ.get(
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 
+# OpenCode Go 套餐网关(OpenAI兼容), 内含 deepseek-v4-flash 等模型
+OPENCODE_API_KEY = os.environ.get("OPENCODE_API_KEY", "")
+OPENCODE_BASE_URL = os.environ.get("OPENCODE_BASE_URL", "https://opencode.ai/zen/go/v1")
+
 DEFAULT_DIRECTION = (
     "A股日频量价行为金融方向：可从短期反转/动量、成交量异动、量价背离、"
     "日内振幅与高低位位置、波动率压缩等经典逻辑中提出可检验的因子假设。"
@@ -65,20 +74,46 @@ DEFAULT_DIRECTION = (
 @dataclass
 class MiningConfig:
     # ---------- LLM ----------
-    model_primary: str = "deepseek-v4-flash"   # 主模型: DeepSeek v4-flash(固定)
-    model_fallback: str = "qwen3.6-flash"      # 备用模型(仅DeepSeek完全不可用时兜底)
+    model_primary: str = "qwen3.8-max-preview"  # 主模型: 阿里云百炼 qwen3.8-max-preview
+    model_fallback: str = "qwen3.6-flash"      # 备用模型(仅主模型完全不可用时兜底)
+    llm_provider: str = "auto"                  # LLM 路由: auto=按模型名前缀(deepseek*/qwen*);
+                                                # opencode=主模型走 OpenCode Go 网关(含 deepseek-v4-flash);
+                                                # deepseek/dashscope=固定走对应端点
     enable_thinking: bool = True                 # 开启深度思考
     thinking_budget: int = 4096                  # 思考token预算(适当调深)
     max_tokens: int = 12000                      # 最大输出token(含思考)
     temperature: float = 0.8                     # 挖掘任务需要一定创造性
     llm_timeout: int = 600                       # 单次请求超时(秒)
-    llm_max_retry: int = 6                       # 每个模型的重试次数(DeepSeek长请求偶发空内容, 提高韧性)
+    llm_max_retry: int = 6                       # 每个模型的重试次数(长请求偶发空内容, 提高韧性)
+    n_eval_workers: int = 2                      # 因子评价并行进程数(1=串行; 每进程一份全市场数据副本)
 
     # ---------- 公式约束 ----------
     max_depth: int = 7                # 语法树最大嵌套深度(暴露为最外层接口)
     max_symbol_length: int = 120      # 公式最大字符长度
     max_base_features: int = 6        # 最大基础变量个数
     max_window: int = 120             # 时间窗口 n 的上限
+
+    # ---------- 数据频率 ----------
+    # daily=日频挖掘(原逻辑, 行为完全不变); minute=分钟频率挖掘(分钟算子聚合出日频因子)
+    data_frequency: str = "daily"
+    minute_frequency: str = "1m"         # 分钟基础频率(本地数据为1分钟线)
+    minute_batch_size: int = 300         # 分钟数据分批处理的股票数(内存控制; 96GB内存可提到500-1000, 每批约几十GB按需) 
+    minute_chunk_days: int = 100         # 全市场分钟截面模式: 按日期分块的块天数(每块加载全部股票, 内存≈天数×240×股票数)
+    minute_memory_fields: str = "close,volume,amount"  # 常驻内存的分钟字段(稠密矩阵[日×240×股], 每字段约13.7GB; 其余字段用时读盘)
+    minute_dense_batch: int = 1000       # 稠密路径: 无截面聚合时按股票分批的窗口大小(每批中间内存≈天数×240×批数×4B)
+    minute_dense_chunk_days: int = 200   # 稠密路径: 含截面算子时按日期分块的块天数(每块加载全部股票, 控制截面中间内存)
+    minute_max_depth: int = 14           # 分钟模式公式嵌套深度上限(相对日频上限翻倍: 7×2, 分钟因子构成更复杂)
+    minute_max_symbol_length: int = 240  # 分钟模式公式最大字符长度(相对日频翻倍: 120×2)
+    minute_max_base_features: int = 12   # 分钟模式允许的基础变量个数(相对日频翻倍: 6×2)
+
+    @property
+    def formula_max_depth(self) -> int:
+        """分钟模式允许更高复杂度, 深度上限随频率切换"""
+        return self.minute_max_depth if self.data_frequency == "minute" else self.max_depth
+
+    @property
+    def formula_max_symbol_length(self) -> int:
+        return self.minute_max_symbol_length if self.data_frequency == "minute" else self.max_symbol_length
 
     # ---------- 数据 ----------
     data_start_date: str = "2016-01-01"   # 量价数据加载起始日(含rolling预热)
@@ -127,6 +162,7 @@ class MiningConfig:
 
     # ---------- 挖掘循环 ----------
     max_rounds: int = 12               # 最大迭代轮数
+    min_library_target: int = 0        # new模式: 库中对应前缀系列数达到该值即提前结束挖掘(0=不启用)
     factors_per_round: int = 2         # 每轮要求模型输出的因子个数
     direction: str = DEFAULT_DIRECTION # 初始挖掘方向
 

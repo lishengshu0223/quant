@@ -1,0 +1,46 @@
+{
+ "campaign": "daily_20180101",
+ "frequency": "daily",
+ "rounds": 114,
+ "adopted": [],
+ "stats": {
+  "n_factors": 228,
+  "n_failed": 182,
+  "reason_dist": {
+   "单调性C级": 53,
+   "年度为负": 25,
+   "方向无效": 37,
+   "计算失败": 67,
+   "合格": 46
+  },
+  "top_structures": [
+   "-SQRTTS_STD$amount(68次)",
+   "-TS_STD$amount(28次)",
+   "-POWTS_STD$amount(15次)",
+   "-TS_ZSCORETS_STD$amount(5次)",
+   "-TS_RANKTS_STD$amount(5次)",
+   "-DELTATS_STD$amount(5次)",
+   "TS_MEAN$volume(3次)",
+   "TS_CORR$amount(3次)"
+  ],
+  "valid_directions": [
+   "AbnormalVolumeLowImpact_10D(IC+4.2% 多头+20% →单调性C级)",
+   "VolumeRangeImpact_10D(IC+3.7% 多头+66% →单调性C级)",
+   "VolumeReturnRankRatio_20D(IC+2.4% 多头+20% →单调性C级)",
+   "AmountPriceImpact_Floored_10D(IC+5.9% 多头+147% →单调性C级)",
+   "VolumeMaxImpact_10D(IC+3.0% 多头+49% →年度为负)",
+   "VolumeStabilityImpact_10D(IC+7.2% 多头+21% →单调性C级)",
+   "AmountRangeStability_Drift_20D(IC+5.0% 多头+72% →年度为负)",
+   "StableAmountLowAmplitude_20D(IC+4.7% 多头+65% →单调性C级)",
+   "AmountStability_PriceSupport_20D(IC+5.2% 多头+73% →年度为负)",
+   "AmountStability_StateShift_20D(IC+3.1% 多头+59% →年度为负)",
+   "AmountStability_ClosePosition_20D(IC+5.2% 多头+67% →年度为负)",
+   "AmountStability_GainRatio_20D(IC+5.9% 多头+49% →单调性C级)"
+  ],
+  "adopted": []
+ },
+ "rule_text": "【失败因子库·daily战役 114轮统计】累计 228 个因子, 其中不合格 182 个。\n1. 失败原因分布: 单调性C级×53, 年度为负×25, 方向无效×37, 计算失败×67, 合格×46。\n2. 高频被拒结构(勿再重复探索): -SQRTTS_STD$amount(68次), -TS_STD$amount(28次), -POWTS_STD$amount(15次), -TS_ZSCORETS_STD$amount(5次), -TS_RANKTS_STD$amount(5次), -DELTATS_STD$amount(5次), TS_MEAN$volume(3次), TS_CORR$amount(3次)。\n3. 已探索但未达合格的有效方向(IC与多头为正, 卡在年度为负; 单调性C级): AbnormalVolumeLowImpact_10D(IC+4.2% 多头+20% →单调性C级)、VolumeRangeImpact_10D(IC+3.7% 多头+66% →单调性C级)、VolumeReturnRankRatio_20D(IC+2.4% 多头+20% →单调性C级)、AmountPriceImpact_Floored_10D(IC+5.9% 多头+147% →单调性C级)、VolumeMaxImpact_10D(IC+3.0% 多头+49% →年度为负)、VolumeStabilityImpact_10D(IC+7.2% 多头+21% →单调性C级)、AmountRangeStability_Drift_20D(IC+5.0% 多头+72% →年度为负)、StableAmountLowAmplitude_20D(IC+4.7% 多头+65% →单调性C级)、AmountStability_PriceSupport_20D(IC+5.2% 多头+73% →年度为负)、AmountStability_StateShift_20D(IC+3.1% 多头+59% →年度为负)、AmountStability_ClosePosition_20D(IC+5.2% 多头+67% →年度为负)、AmountStability_GainRatio_20D(IC+5.9% 多头+49% →单调性C级)。\n4. 经验教训: 换字段/换窗口/加包装的等价因子会被语义评审与相关性检验拦截, 新因子必须来自不同的经济逻辑; 历史完整年份秩相关为负会直接判C级。",
+ "llm_summary": "① 主要尝试量价类因子：以成交额/成交量的标准差、排名、ZSCORE为基础，叠加涨跌幅、振幅、价格位置等，构建“稳定性/冲击/比值”因子；典型如TS_STD(amount)的多种变形、volume/return比值、量幅排名比等。\n\n② 失败原因：计算失败最多（67个）；单调性C级53个，多因历史完整年份秩相关为负/越序；方向无效37个，IC为正但多头为负或IC与多头矛盾；年度为负25个，集中在2021/2023/2026；amount标准差类等价结构达126次，被语义评审/相关性检验拦截。\n\n③ 潜力方向：量稳定/量冲击类因子IC为正，但卡单调和年度，不宜再换窗口/加包装；建议优先探索不同经济逻辑，如主动买卖压力、大单占比、订单流不平衡、量价领先滞后关系，以突破当前同质化困局。",
+ "llm_ok": true,
+ "created_at": "2026-08-09 23:46:07"
+}

@@ -1,0 +1,41 @@
+{
+ "round": 2075,
+ "hypothesis": "假设1：成交额稳定+价格处于自身60日动量分布的高分位=机构在上升趋势中持续控盘，TS_RANK的有界性防止极端动量股垄断多头组，改善Q7-Q10的区分度；假设2：低价格冲击(单位成交额引起的价格变动小)+高流动性=深层机构持仓，价格冲击是微观结构维度，与CV(时序波动维度)正交，能在风格切换时提供更稳健的选股能力。",
+ "reflection": "当前最佳因子(IR=3.08)的主要问题是2020/2024/2026年Q10被Q7-Q9超越(单调性不足)，以及小盘崩盘期的脆弱性。根本原因是纯CV+流动性无法区分'机构主动建仓'和'无方向僵尸股'。本轮从两个全新经济维度切入：(1)引入价格动量的时序分位作为方向性质量门控，TS_RANK的有界性天然压缩极端动量股，防止风格切换时多头组被单一风格垄断；(2)引入Amihud价格冲击的倒数维度——",
+ "factors": [
+  {
+   "name": "AmountStability_MomentumRank_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_RANK(TS_SUM($return,20),60)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+3.97%, 多头=-36.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03972,
+   "long_total": -0.36853,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2026
+   ]
+  },
+  {
+   "name": "PriceImpact_Liquidity_20D",
+   "expr": "-TS_MEAN(ABS($return)/($amount+1e-8),20)*RANK(TS_MEAN($amount,20))",
+   "style": "流动性/微观结构",
+   "reason": "方向无效",
+   "detail": "IC=+3.01%, 多头=-31.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03008,
+   "long_total": -0.31601,
+   "monthly_pos_ratio": 0.7184,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  }
+ ]
+}

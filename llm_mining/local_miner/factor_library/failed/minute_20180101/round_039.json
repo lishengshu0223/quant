@@ -1,0 +1,31 @@
+{
+ "round": 39,
+ "hypothesis": "收盘价在日内价格区间中的相对位置体现了当日多空博弈的最终胜负，强势收盘（接近高点）往往源于持续买盘，该惯性可能在未来5日内延续；日内价格路径的高效率（净变动占总路径比例高）反映单边趋势的干净程度，市场对其反应不足，后续可能继续沿趋势方向运行。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayCloseLocation_5D",
+   "expr": "TS_MEAN((LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8), 5)",
+   "style": "趋势/短期动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.97 GiB for an array with shape (3, 176510880) and data type int32",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayPathEfficiency_5D",
+   "expr": "TS_MEAN(ABS(LAST($close) - FIRST($open)) / (SUM(ABS($return)) + 1e-8), 5)",
+   "style": "趋势/动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 SUM",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

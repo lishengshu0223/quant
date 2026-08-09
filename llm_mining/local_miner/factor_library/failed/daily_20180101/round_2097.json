@@ -1,0 +1,31 @@
+{
+ "round": 2097,
+ "hypothesis": "假设1：25分位成交额比TS_MIN更能代表机构的'常态支撑水平'，TS_MIN仅是单日极值易受非交易因素(节假日前缩量/停牌前异常)干扰，Q25底线在保持流动性筛选力的同时减少噪声，改善2020/2024/2026年的顶部单调性；假设2：在低CV+高底线的基础上，要求当前成交额处于近20日分布的较高分位(TS_RANK)，可区分'机构正在活跃建仓'(当前量偏高)与'已完成建仓进入沉寂期'(当前量",
+ "reflection": "当前核心问题：(1)多头稳定性方面，GeoMeanFloor版本信息比率仅3.01，低于SqrtMinFloor的3.48，说明POW0.25虽然提升了收益但牺牲了年度均衡性；(2)单调性方面，2020/2024/2026年Q10被Q8/Q9超越，表明因子极端顶部混入了'过度安静'的僵尸股。本轮改进方向：因子1用Q25分位数替代TS_MIN作为流动性底线，减少单日极值(节假日/停牌前)的噪声干扰，",
+ "factors": [
+  {
+   "name": "AmountStability_Pow25CV_Q25Floor_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_QUANTILE($amount,20,0.25)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.076,
+   "long_total": 1.23469,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_Pow25CV_MinFloor_Activity_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MIN($amount,20)+1)*TS_RANK($amount,20)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

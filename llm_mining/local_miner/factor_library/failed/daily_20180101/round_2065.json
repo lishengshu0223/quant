@@ -1,0 +1,31 @@
+{
+ "round": 2065,
+ "hypothesis": "假设1：成交额稳定+量价正相关=机构在稳定预算下有方向地持续建仓，量价协同度作为质量乘子可剔除无方向僵尸股，改善多头组纯度；假设2：成交额稳定+成交集中于上涨日=主动吸筹行为(机构倾向于在价格上行时加仓)，上涨日成交占比在崩盘期自然下降，提供风格切换时的自动降权。",
+ "reflection": "当前因子核心问题：(1)单调性不足——极端低CV股票中混入无方向性僵尸股，导致Q10不总是最优组；(2)压力期脆弱——小盘崩盘和抱团切换时缺乏自动降权机制。本轮改进方向：在保留'低CV×高流动性=机构锁仓'核心逻辑的基础上，引入全新的'方向性质量'维度作为乘法调节项。具体地：因子1引入量价协同度(TS_CORR)——当成交额稳定且量价正相关时，说明机构在有方向地建仓而非被动持有；因子2引入上涨日成",
+ "factors": [
+  {
+   "name": "AmountStability_PVCoordination_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*(TS_CORR($close,$volume,20)+1)/2",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_UpDayVolume_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($return>0?$amount:0,20)/(TS_SUM($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

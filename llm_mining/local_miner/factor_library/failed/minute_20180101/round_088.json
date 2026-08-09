@@ -1,0 +1,31 @@
+{
+ "round": 88,
+ "hypothesis": "近期持续的风险调整后日内收益反映资金推动效率与信息优势，且放量同波动加剧并存的信息驱动型交易行为具有持续性，两者分别从收益质量和量价配合度预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradaySharpeMomentum_5D",
+   "expr": "TS_MEAN(MEAN($return)/(STD($return)+1e-8),5)",
+   "style": "短期动量/日内风险调整收益",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolumeVolatilityComovement_5D",
+   "expr": "TS_MEAN(CORR($volume,$high-$low),5)",
+   "style": "量价配合/短期波动率",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

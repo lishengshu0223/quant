@@ -1,0 +1,31 @@
+{
+ "round": 87,
+ "hypothesis": "日内量能峰值时点与日内涨跌方向的一致性，以及日内收益极值的先后顺序，分别从资金参与时点和日内路径形态两个独立角度刻画信息冲击的定价方式；其5日平均持续性能预测未来收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "VolumePeakDirectionConfirmation_5D",
+   "expr": "TS_MEAN((TS_ARGMAX($volume) - 0.5) * SIGN(MEAN($return)), 5)",
+   "style": "量价配合/资金时点(短期)",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayReturnExtremeOrder_5D",
+   "expr": "TS_MEAN(TS_ARGMIN($return) - TS_ARGMAX($return), 5)",
+   "style": "日内路径/价格形态(短期)",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

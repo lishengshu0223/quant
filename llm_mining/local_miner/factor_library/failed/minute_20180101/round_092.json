@@ -1,0 +1,31 @@
+{
+ "round": 92,
+ "hypothesis": "日分钟级别K线实体的相对强度反映盘中买方在每个时间切片上的持续主导程度；放量分钟的平均收益方向则直接刻画增量资金介入时的价格选择。两者分别从微观K线结构和量价共振维度预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "MinuteBodyLocation_5D",
+   "expr": "TS_MEAN(MEAN(($close - $open) / ($high - $low + 1e-8)), 5)",
+   "style": "短期量价微观动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolumeUpMinuteReturn_5D",
+   "expr": "TS_MEAN(MEAN(($volume > MEAN($volume) ? 1 : 0) * $return) / (MEAN(($volume > MEAN($volume) ? 1 : 0)) + 1e-8), 5)",
+   "style": "短期量价共振",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

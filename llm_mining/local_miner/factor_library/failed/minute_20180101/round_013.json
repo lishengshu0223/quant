@@ -1,0 +1,31 @@
+{
+ "round": 13,
+ "hypothesis": "上轮反思：短周期反转与日内波动率因子IC与多头方向背离、分组单调性C，说明极端组排序失效；本轮放弃纯反转/波动率假设，转向流动性溢价与日内成交价格分布两种微观结构机制，并用量价连续特征改善排序。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayAmihudIlliquidity_5D",
+   "expr": "TS_MEAN(RANK(SUM(ABS($return)) / (SUM($amount) + 1e-8)), 5)",
+   "style": "流动性溢价/短期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 SUM",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighPriceVolumePreference_5D",
+   "expr": "TS_MEAN(LOG((SUM(MASK($volume, \">\", QUANTILE($close, 0.8))) + 1e-8) / (SUM(MASK($volume, \"<\", QUANTILE($close, 0.2))) + 1e-8)), 5)",
+   "style": "量价分布/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.231, 年度越序峰值=13.8%",
+   "ic_mean": 0.05505,
+   "long_total": 0.61636,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

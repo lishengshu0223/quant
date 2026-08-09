@@ -1,0 +1,35 @@
+{
+ "round": 2055,
+ "hypothesis": "假设1：成交额稳定+价格高于20日均线+高流动性=机构在上升趋势中主动建仓控盘，价格/均线比值作为趋势确认项可剔除无方向性的僵尸股，改善top decile纯度和分组单调性；假设2：日内振幅持续压缩(低amplitude)+高流动性=机构对价格波动有强控制力(压盘吸筹)，这是与成交额稳定性正交的机构行为信号，在不同市场风格下均有效。",
+ "reflection": "当前因子核心问题是多头组在2020/2024/2026年被Q7-Q9超越，说明极端低CV但无趋势的僵尸股污染了top decile。本轮从两个方向做结构性创新：(1)引入价格趋势确认维度——成交额稳定+价格站上均线=机构在上升趋势中主动控盘，而非被动持有，这能在动量年份(2020/2024)有效区分积极建仓与僵尸股；(2)引入全新的经济维度——日内振幅压缩(amplitude compressio",
+ "factors": [
+  {
+   "name": "AmountStability_TrendConfirm_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),0.25)*($close/(TS_MEAN($close,20)+1e-8))*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmplitudeCompression_Liquidity_20D",
+   "expr": "-POW(TS_MEAN(($high-$low)/($close+1e-8),20),0.5)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.078, 年度越序峰值=28.0%, 负年=[2020, 2025, 2026]",
+   "ic_mean": 0.07908,
+   "long_total": 0.15811,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

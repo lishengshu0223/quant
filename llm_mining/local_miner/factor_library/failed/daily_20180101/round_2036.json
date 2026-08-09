@@ -1,0 +1,31 @@
+{
+ "round": 2036,
+ "hypothesis": "假设1：成交额稳定+高流动性+量额解耦(低corr)=机构信息驱动型控盘，价格变动不依赖放量，排除动量驱动的假稳定股，提升多头组纯度和单调性；假设2：EMA5与EMA20收敛(比值趋近1)度量的是成交额无加速无减速的巡航状态，比CV更能识别算法交易匀速执行的节奏，信号有界使极端值减少，分组单调性改善。",
+ "reflection": "当前因子单调性不足的核心原因是极端低CV但无alpha的僵尸股污染多头组。本轮从两个全新经济维度做结构创新：(1)引入成交额-收益率解耦度(TS_CORR)作为乘性门控，当成交额稳定且与价格变动脱钩时，是机构信息驱动型控盘的指纹，排除动量驱动的假稳定股，提升头部区分度；(2)用EMA短长期收敛度替代CV度量稳定性，CV度量的是离散程度，而EMA收敛度量的是无趋势/无加速的稳态，两者经济含义不同，E",
+ "factors": [
+  {
+   "name": "AmountStability_VolDecouple_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(1-TS_CORR($amount,$return,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_EMAConvergence_Liq",
+   "expr": "-ABS(EMA($amount,5)-EMA($amount,20))/(EMA($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03854,
+   "long_total": 0.50066,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

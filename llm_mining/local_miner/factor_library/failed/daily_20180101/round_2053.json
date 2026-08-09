@@ -1,0 +1,31 @@
+{
+ "round": 2053,
+ "hypothesis": "假设1：成交额稳定+高流动性+短期正动量=机构主动建仓(积极控盘)，负动量时降权至0.3倍可有效剔除正在被机构减仓但成交额尚未放大的'温水煮青蛙'型股票，改善2020/2024等动量年份的单调性；假设2：成交额稳定+高流动性+高胜率(上涨天数占比高)=机构在稳定预算下持续净买入，胜率作为连续指标比二值门控更精细地区分建仓强度，且在震荡市中也能识别方向性。",
+ "reflection": "当前因子单调性问题(2020/2024/2026年Q10被Q7-Q9超越)的根源是极端低CV×高流动性的多头组中混入了'僵尸股'(成交额极稳定但无方向性alpha的大盘股)。本轮从两个不同的结构方向引入质量过滤：(1)条件门控——用短期动量方向做二值开关，负动量时大幅降权，直接剔除正在下跌的稳定股；(2)胜率维度——用上涨天数占比作为连续质量指标，过滤无方向性的被动持有。两者都是结构性创新(条件运",
+ "factors": [
+  {
+   "name": "AmountStability_MomentumGate_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(TS_MEAN($return,10)>0?1:0.3)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_WinRate_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*COUNT($return>0,20)/20*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 9 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

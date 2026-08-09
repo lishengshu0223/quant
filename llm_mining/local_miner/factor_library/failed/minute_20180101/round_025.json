@@ -1,0 +1,40 @@
+{
+ "round": 25,
+ "hypothesis": "A股个股日内收盘价格在当日振幅中的位置及尾盘成交占比分别反映多空博弈结果与资金尾盘行为，两者对未来5日短期收益均有预测力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayClosePosition_5D",
+   "expr": "TS_MEAN((LAST($close)-MIN($low))/(MAX($high)-MIN($low)+1e-8),5)",
+   "style": "短期趋势/量价位置",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.092, 年度越序峰值=13.9%, 负年=[2020, 2026]",
+   "ic_mean": 0.01435,
+   "long_total": 0.09738,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  },
+  {
+   "name": "IntradayTailVolumeRatio_5D",
+   "expr": "TS_MEAN(SUM(SLICE($amount,\"14:31\",\"15:00\"))/(SUM($amount)+1e-8),5)",
+   "style": "短期流动性/资金行为",
+   "reason": "方向无效",
+   "detail": "IC=+1.14%, 多头=-72.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01138,
+   "long_total": -0.72818,
+   "monthly_pos_ratio": 0.5728,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

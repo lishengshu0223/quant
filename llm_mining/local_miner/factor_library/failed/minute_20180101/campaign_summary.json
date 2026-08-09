@@ -1,0 +1,46 @@
+{
+ "campaign": "minute_20180101",
+ "frequency": "minute",
+ "rounds": 100,
+ "adopted": [],
+ "stats": {
+  "n_factors": 200,
+  "n_failed": 198,
+  "reason_dist": {
+   "方向无效": 59,
+   "单调性C级": 63,
+   "计算失败": 74,
+   "合格": 2,
+   "年度为负": 2
+  },
+  "top_structures": [
+   "TS_MEANCORR$return(6次)",
+   "TS_MEANLAST$close - MIN$low / MAX$high - MIN$low + 1e-8(5次)",
+   "TS_MEANTS_ARGMAX$high - TS_ARGMIN$low(4次)",
+   "TS_MEANMEANSLICE$return(3次)",
+   "TS_MEANTS_AUTOCORR$return(3次)",
+   "TS_MEANRANKCORR$return(3次)",
+   "TS_MEANRANKTS_AUTOCORR$return(3次)",
+   "TS_MEANMEANABS$return / $amount + 1e-8(3次)"
+  ],
+  "valid_directions": [
+   "IntradayReturnAutocorr_5D(IC+5.3% 多头+28% →单调性C级)",
+   "IntradayUpDownAsymmetry_5D(IC+5.2% 多头+33% →单调性C级)",
+   "IntradayOpenCloseReversal_5D(IC+2.2% 多头+38% →单调性C级)",
+   "HighPriceVolumePreference_5D(IC+5.5% 多头+62% →单调性C级)",
+   "LogPriceImpactPerAmount_5D(IC+7.8% 多头+121% →单调性C级)",
+   "IntradayReturnAutocorrRank_5D(IC+5.1% 多头+32% →单调性C级)",
+   "LiquidityLevelRank_5D(IC+7.8% 多头+132% →单调性C级)",
+   "IntradaySkewnessAvoid_5D(IC+4.9% 多头+27% →单调性C级)",
+   "IntradayDownsideVolRatio_5D(IC+2.3% 多头+20% →单调性C级)",
+   "IntradayVolatilityBurstReversal_5D(IC+5.8% 多头+31% →单调性C级)",
+   "ContinuousVolatilityClusteringReversal_5D(IC+5.8% 多头+23% →单调性C级)",
+   "IntradayReturnSkewnessPremium_5D(IC+4.9% 多头+27% →单调性C级)"
+  ],
+  "adopted": []
+ },
+ "rule_text": "【失败因子库·minute战役 100轮统计】累计 200 个因子, 其中不合格 198 个。\n1. 失败原因分布: 方向无效×59, 单调性C级×63, 计算失败×74, 合格×2, 年度为负×2。\n2. 高频被拒结构(勿再重复探索): TS_MEANCORR$return(6次), TS_MEANLAST$close - MIN$low / MAX$high - MIN$low + 1e-8(5次), TS_MEANTS_ARGMAX$high - TS_ARGMIN$low(4次), TS_MEANMEANSLICE$return(3次), TS_MEANTS_AUTOCORR$return(3次), TS_MEANRANKCORR$return(3次), TS_MEANRANKTS_AUTOCORR$return(3次), TS_MEANMEANABS$return / $amount + 1e-8(3次)。\n3. 已探索但未达合格的有效方向(IC与多头为正, 卡在单调性C级): IntradayReturnAutocorr_5D(IC+5.3% 多头+28% →单调性C级)、IntradayUpDownAsymmetry_5D(IC+5.2% 多头+33% →单调性C级)、IntradayOpenCloseReversal_5D(IC+2.2% 多头+38% →单调性C级)、HighPriceVolumePreference_5D(IC+5.5% 多头+62% →单调性C级)、LogPriceImpactPerAmount_5D(IC+7.8% 多头+121% →单调性C级)、IntradayReturnAutocorrRank_5D(IC+5.1% 多头+32% →单调性C级)、LiquidityLevelRank_5D(IC+7.8% 多头+132% →单调性C级)、IntradaySkewnessAvoid_5D(IC+4.9% 多头+27% →单调性C级)、IntradayDownsideVolRatio_5D(IC+2.3% 多头+20% →单调性C级)、IntradayVolatilityBurstReversal_5D(IC+5.8% 多头+31% →单调性C级)、ContinuousVolatilityClusteringReversal_5D(IC+5.8% 多头+23% →单调性C级)、IntradayReturnSkewnessPremium_5D(IC+4.9% 多头+27% →单调性C级)。\n4. 经验教训: 换字段/换窗口/加包装的等价因子会被语义评审与相关性检验拦截, 新因子必须来自不同的经济逻辑; 历史完整年份秩相关为负会直接判C级。",
+ "llm_summary": "① 主要尝试方向：日内收益率统计（均值、自相关、偏度、上下行不对称）、切片时段收益差、量价相关性、价格位置/振幅、成交额/流动性、极值结构等，常用TS_MEAN、CORR、RANK、SLICE、MASK组合。\n\n② 失败表现：方向无效59个（IC与多头矛盾或为负）；计算失败74个；单调性C级63个（秩相关低、年度越序、负年）；年度为负2个。已探索的12个5D因子均为IC与多头为正，但卡在单调性C级。高频被拒结构和“换字段/窗口/包装”均被语义评审与相关性检验拦截。\n\n③ 仍有潜力：LogPriceImpactPerAmount_5D、LiquidityLevelRank_5D等流动性/价格冲击逻辑IC和多头较强，建议优先围绕“流动性提供与价格冲击”设计新经济逻辑，重点改进单调性与年度稳定性；避免日内自相关、切片收益差、量价相关等旧方向。",
+ "llm_ok": true,
+ "created_at": "2026-08-09 23:45:47"
+}

@@ -1,0 +1,35 @@
+{
+ "round": 2007,
+ "hypothesis": "假设1：成交额稳定且流动性处于自身历史高位的股票(TS_RANK有界度量)，代表机构持续关注的核心持仓，有界交互避免极端值干扰，提升分组单调性；假设2：成交额稳定且价格区间收窄(20日振幅/均价低)的股票处于'弹簧蓄能'状态——量稳说明无恐慌抛压，价缩说明多空平衡即将打破，向上突破概率更大，且该维度在极端波动期(小盘崩盘)自然失效从而降低脆弱性",
+ "reflection": "当前因子单调性问题(Q10被Q7-Q9超越)的根源在于LOG(TS_MEAN($amount,20))对超大成交额股票的过度放大——极端流动性股票的因子值过大但未来收益未必最高，导致顶部组排序失真。改进方向：(1)用TS_RANK替代LOG作为流动性交互项，将流动性维度压缩到[0,1]有界区间，消除极端值对顶部组的干扰，增强单调性；(2)引入全新经济维度——价格区间压缩度(20日最高最低价差/均价",
+ "factors": [
+  {
+   "name": "AmountStability_BoundedLiq_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_RANK(TS_MEAN($amount,20),120)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.176, 年度越序峰值=9.2%, 负年=[2026]",
+   "ic_mean": 0.06301,
+   "long_total": 0.64311,
+   "monthly_pos_ratio": 0.8835,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_RangeCompress_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*(1-(TS_MAX($high,20)-TS_MIN($low,20))/(TS_MEAN($close,20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.189, 年度越序峰值=15.8%, 负年=[2021]",
+   "ic_mean": 0.03393,
+   "long_total": 0.32063,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  }
+ ]
+}

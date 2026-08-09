@@ -1,0 +1,33 @@
+{
+ "round": 33,
+ "hypothesis": "日内微观结构与量价配合的持续性反映了短期资金行为的惯性，市场对开盘相对强度与量价时间同步性反应不足，因而可预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "OpenHalfHourCrossSectionMomentum_5D",
+   "expr": "TS_MEAN(MEAN(SLICE(RANK($return), \"09:31\", \"10:00\")), 5)",
+   "style": "短期动量/开盘强度",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.95 GiB for an array with shape (200, 240, 5455) and data type floa",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayVolumePricePeakSync_5D",
+   "expr": "TS_MEAN(-ABS(TS_ARGMAX($volume) - TS_ARGMAX($return)), 5)",
+   "style": "量价配合/微观结构",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.137, 年度越序峰值=7.7%, 负年=[2025]",
+   "ic_mean": 0.03217,
+   "long_total": 0.29075,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  }
+ ]
+}

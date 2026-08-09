@@ -1,0 +1,31 @@
+{
+ "round": 2052,
+ "hypothesis": "假设1：成交额稳定+价格持续收在日内高位=机构在稳定预算下主动推升(积极建仓)，close location作为方向性质量指标比LOG(流动性)更能区分主动控盘与被动持有，改善top decile纯度；假设2：POW(0.25)压缩CV+截面RANK(流动性)的有界结构，在保持信号强度的同时避免极端值主导分组，提升单调性和风格鲁棒性。",
+ "reflection": "当前因子主要问题：(1)多头组在2020/2024/2026年被Q7-Q9超越，说明极端低CV但无方向性的僵尸股污染了top decile；(2)小盘崩盘和科创抱团期脆弱。改进方向：引入价格位置信息(close在日内range中的位置)作为方向性质量过滤，替代单纯的流动性权重LOG(amount)，使因子不仅要求成交额稳定，还要求价格持续收在日内高位(机构主动推升)，从而剔除无方向性的僵尸股，改善",
+ "factors": [
+  {
+   "name": "AmountStability_CloseLocation_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),0.25)*TS_MEAN(($close-$low)/($high-$low+1e-8),20)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2020', '2021']",
+   "ic_mean": 0.03936,
+   "long_total": 0.41381,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_PowCV_BoundedRank",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),0.25)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.09428,
+   "long_total": 1.34157,
+   "monthly_pos_ratio": 0.8447,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

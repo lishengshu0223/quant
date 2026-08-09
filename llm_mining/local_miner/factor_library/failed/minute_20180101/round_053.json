@@ -1,0 +1,36 @@
+{
+ "round": 53,
+ "hypothesis": "A股短期存在过度反应后的反转：日内收益分布左偏（恐慌性抛售）或成交量脉冲（情绪集中释放）均预示未来5日价格向均值回归，因此做多负偏度与成交量均匀的股票。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradaySkewReversal_5D",
+   "expr": "-1 * TS_MEAN(SKEW($return), 5)",
+   "style": "短期反转/量价行为",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.174, 年度越序峰值=10.1%",
+   "ic_mean": 0.05234,
+   "long_total": 0.14016,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumeSpikeReversal_5D",
+   "expr": "-1 * TS_MEAN(MAX($volume) / (MEAN($volume) + 1e-8), 5)",
+   "style": "短期反转/流动性",
+   "reason": "方向无效",
+   "detail": "IC=+0.43%, 多头=-14.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00432,
+   "long_total": -0.14117,
+   "monthly_pos_ratio": 0.4951,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2023,
+    2024
+   ]
+  }
+ ]
+}

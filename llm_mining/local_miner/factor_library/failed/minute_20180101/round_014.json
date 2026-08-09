@@ -1,0 +1,35 @@
+{
+ "round": 14,
+ "hypothesis": "日内价格路径的平滑效率与成交量在开盘/尾盘的分布不对称性，分别刻画了知情交易者推动趋势的意愿与流动性供给的时点偏好，二者均可影响未来5日收益的截面排序。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayPriceEfficiency_5D",
+   "expr": "TS_MEAN(RANK(LOG((ABS(LAST($close)-FIRST($close)) + 1e-8) / (SUM(ABS($return)) + 1e-8))), 5)",
+   "style": "趋势质量/日内动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 SUM",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolumeTimingAsymmetry_5D",
+   "expr": "TS_MEAN(RANK(LOG((SUM(SLICE($volume,\"09:31\",\"10:00\")) + 1e-8) / (SUM(SLICE($volume,\"14:00\",\"15:00\")) + 1e-8))), 5)",
+   "style": "流动性择时/量能结构",
+   "reason": "方向无效",
+   "detail": "IC=+3.85%, 多头=-16.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03854,
+   "long_total": -0.16869,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2026
+   ]
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2069,
+ "hypothesis": "假设1：近期成交额稳定性比历史平均更重要，DECAYLINEAR赋予近期CV更高权重，能更快识别机构开始/停止控盘的拐点，在风格切换期(如2024年2月小盘崩盘)及时降低暴露；假设2：成交额稳定+流动性充足+成交量处于近期高位=机构正在主动建仓，成交量扩张过滤可有效剔除无方向僵尸股，改善Q10相对Q7-Q9的单调性。",
+ "reflection": "当前因子主要问题是分组单调性不足(2020/2024/2026年Q10被Q7-Q9超越)和极端风格期脆弱。改进方向：(1)用DECAYLINEAR对短期CV做衰减加权，使因子对稳定性变化更敏感、更适应风格切换，避免僵尸股长期占据多头组；(2)在核心稳定性×流动性框架上叠加成交量趋势过滤(TS_RANK($volume,20))，剔除无买盘兴趣的僵尸股，提升多头组纯度和单调性。",
+ "factors": [
+  {
+   "name": "AmountStability_DecayCV_10D",
+   "expr": "-DECAYLINEAR(TS_STD($amount,10)/(TS_MEAN($amount,10)+1e-8),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06097,
+   "long_total": 0.85066,
+   "monthly_pos_ratio": 0.9612,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_VolExpansion_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*TS_RANK($volume,20)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

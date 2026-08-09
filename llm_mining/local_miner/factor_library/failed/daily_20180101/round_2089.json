@@ -1,0 +1,31 @@
+{
+ "round": 2089,
+ "hypothesis": "假设1：以EMA为基准的CV能自适应识别流动性正在恶化的股票（EMA下降快于均值时CV被放大），在风格切换期更快将其排除出多头组，缓解小盘崩盘期的脆弱性；假设2：TS_MEDIAN作为流动性底线比TS_MIN更稳健，不受单日极端缩量（节假日、临时停牌等）干扰，能更准确识别'真正的机构锁仓'，减少Q10中的噪声股票，改善分组单调性。",
+ "reflection": "当前因子(AmountStability_MinFloor_20D)年度信息比率3.25，主要问题是：(1)单调性不足——2020/2024/2026年Q10被Q8/Q9超越，说明因子极端顶部有噪声；(2)2024年2月小盘崩盘和2026年4月科创抱团期脆弱。本轮从两个方向改进：Factor1将CV分母从TS_MEAN替换为EMA，使CV度量能自适应流动性趋势变化（流动性下降的股票CV会被放大惩罚",
+ "factors": [
+  {
+   "name": "AmountStability_EMA_MinFloor_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(EMA($amount,20)+1e-8))*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0643,
+   "long_total": 1.13244,
+   "monthly_pos_ratio": 0.932,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_MedianFloor_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEDIAN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07103,
+   "long_total": 1.11491,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

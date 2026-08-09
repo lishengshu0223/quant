@@ -1,0 +1,37 @@
+{
+ "round": 2,
+ "hypothesis": "日内收益波动率反映了市场不确定性与投机情绪，日内收盘位置反映了多空博弈的最终平衡，两者均对短期未来收益有预测力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVolatility_5D",
+   "expr": "TS_MEAN(STD($return), 5)",
+   "style": "波动率/短期",
+   "reason": "方向无效",
+   "detail": "IC=+6.76%, 多头=-33.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.06763,
+   "long_total": -0.33931,
+   "monthly_pos_ratio": 0.8835,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2026
+   ]
+  },
+  {
+   "name": "IntradayClosePosition_5D",
+   "expr": "TS_MEAN((LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8), 5)",
+   "style": "量价背离/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.092, 年度越序峰值=13.9%, 负年=[2020, 2026]",
+   "ic_mean": 0.01435,
+   "long_total": 0.09738,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "round": 62,
+ "hypothesis": "A股日内分钟收益的偏度与自相关分别刻画买卖压力不对称性与微观反转强度，二者在短期具有预测力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayReturnSkew_5D",
+   "expr": "TS_MEAN(-SKEW($return), 5)",
+   "style": "量价背离/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.174, 年度越序峰值=10.1%",
+   "ic_mean": 0.05234,
+   "long_total": 0.14016,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "IntradayReturnAutocorr_5D",
+   "expr": "TS_MEAN(-TS_AUTOCORR($return, 1), 5)",
+   "style": "微观反转/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.100, 年度越序峰值=18.0%, 负年=[2025]",
+   "ic_mean": 0.05292,
+   "long_total": 0.27846,
+   "monthly_pos_ratio": 0.7573,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  }
+ ]
+}

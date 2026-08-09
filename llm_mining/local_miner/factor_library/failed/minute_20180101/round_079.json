@@ -1,0 +1,31 @@
+{
+ "round": 79,
+ "hypothesis": "上轮 MemoryError 源于 REGRESSION_SLOPE/RANK 等构造产生的超大三维中间矩阵；本轮改用纯分钟聚合、低内存的 TS_AUTOCORR 与 TS_ARGMAX/ARGMIN，避免截面 RANK 与大体积回归。假设分钟成交量的自相关反映订单流持续性，日内最大涨/跌幅出现次序反映多空承接节奏，二者均可预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVolumePersistence_5D",
+   "expr": "TS_MEAN(TS_AUTOCORR($volume, 1), 5)",
+   "style": "流动性/微观结构/短期",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayExtremeReturnLag_5D",
+   "expr": "TS_MEAN(TS_ARGMAX($return) - TS_ARGMIN($return), 5)",
+   "style": "日内路径/量价行为/短期",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

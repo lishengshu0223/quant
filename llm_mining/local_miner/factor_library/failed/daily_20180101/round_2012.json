@@ -1,0 +1,38 @@
+{
+ "round": 2012,
+ "hypothesis": "假设1（因子1）：成交额变异系数经时序分位数有界化后，能更准确地识别真正稳定的股票（排除极端噪声），有界信号与流动性水平的交互在分组排序上更单调；假设2（因子2）：成交额稳定性信号仅在当日成交额处于正常范围（接近中位数）时才可信，当日处于极端放量或缩量状态的股票其稳定性度量不可靠，应降低信号权重——这一门控在压力期自动过滤异常交易股票，增强鲁棒性",
+ "reflection": "当前因子核心问题：(1)单调性不足——2020/2024/2026年多头组被Q7-Q9超越，说明因子极端值对应的股票并非收益最高的，极端CV读数可能反映数据噪声而非真实稳定性；(2)压力期脆弱——小盘股崩盘和科创板抱团期间回撤明显。改进方向：因子1用TS_RANK对CV做时序有界化，将CV信号压缩到[0,1]区间，消除极端值对分组排序的干扰，直接改善单调性；因子2在原始CV×LOG结构上叠加'当日",
+ "factors": [
+  {
+   "name": "AmountStability_BoundedCV_20D",
+   "expr": "-TS_RANK(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.03611,
+   "long_total": 0.58759,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_MedianGate_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))*(1-ABS(TS_RANK($amount,20)-0.5)*2)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+0.30%, 多头=-85.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00297,
+   "long_total": -0.85539,
+   "monthly_pos_ratio": 0.5728,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2025
+   ]
+  }
+ ]
+}

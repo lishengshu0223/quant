@@ -1,0 +1,31 @@
+{
+ "round": 2021,
+ "hypothesis": "假设1：成交额稳定+日内持续收高(买压)+高流动性=机构主动吸筹的三重确认，日内买压过滤掉无方向性的僵尸稳定股，提升头部组纯度；假设2：成交额稳定+近20日上涨天数占比高+高流动性=机构在稳定交易中持续净买入(非脉冲式拉升)，方向一致性确保稳定交易有alpha来源而非单纯低波动。",
+ "reflection": "当前因子单调性问题根源在于极端低CV+高流动性的股票中包含大量'稳定但无方向'的僵尸股，导致Q10被Q7-Q9超越。本轮改进方向：(1)引入日内买压信号(收盘价在当日振幅中的位置)作为方向性过滤，剔除无买盘支撑的稳定股；(2)引入上涨天数占比作为多日方向一致性确认，确保稳定交易伴随净买入方向。两个因子均保留SQRT(CV)×流动性的核心结构，但通过不同维度的方向性门控提升多头组的纯度和单调性，预期",
+ "factors": [
+  {
+   "name": "AmountStability_BuyPressure_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN(($close-$low)/($high-$low+1e-8),10)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_UpDayRatio_Liq_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*COUNT($return>0,20)/20*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 9 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2023,
+ "hypothesis": "假设1：成交额稳定+近期价格趋势向上=机构在稳定交易中主动加仓(而非被动锁仓)，状态门控将无方向性的僵尸稳定股降权，提升多头组纯度；假设2：成交额整体稳定但近期占比提升=机构从观望转向积极建仓的拐点信号，这种'稳定中的加速'比静态低CV更能预测未来收益，且在风格切换时更鲁棒(因为度量的是相对变化)。",
+ "reflection": "针对单调性问题(Q10被Q7-Q9超越)，核心诊断是极端稳定但无方向性的僵尸股污染了多头组。本轮两个方向：(1)状态门控——仅当股价处于上升趋势时才给予稳定性溢价，过滤无方向性的稳定股，提升头部组的纯度和单调性；(2)近期成交集中度——度量近5日成交额占20日总额的比例，高集中度+低CV=机构近期加速建仓的信号，比静态稳定性更能捕捉alpha起点，且在不同风格环境下都有经济逻辑支撑。两者均从经济逻",
+ "factors": [
+  {
+   "name": "AmountStability_TrendGate_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(TS_SUM($return,10)>0?1.2:0.3)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_RecentConcentration_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_SUM($amount,5)/(TS_SUM($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06417,
+   "long_total": 0.78874,
+   "monthly_pos_ratio": 0.9417,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

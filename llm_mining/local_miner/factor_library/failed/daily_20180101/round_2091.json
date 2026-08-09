@@ -1,0 +1,31 @@
+{
+ "round": 2091,
+ "hypothesis": "假设1：以中位数为基准的CV比以均值为基准的CV更能识别真正的机构均匀建仓——均值易被单日异常放量(指数调仓/大宗交易)扭曲，导致伪稳定股混入多头顶部，中位数基准可过滤此噪声，改善顶部单调性；假设2：对数成交额的时序标准差是尺度不变的离散度度量，等价于几何CV，在不同流动性水平的股票间具有更好的可比性，能避免超大流动性股票因天然低CV而垄断多头顶部。",
+ "reflection": "当前因子在2020/2024/2026年出现顶部单调性不足(Q10被Q8/Q9超越)，诊断原因可能是：(1)单日异常放量(如指数调仓、大宗交易)使TS_MEAN被抬高，导致CV被人为压低，将噪声股推入顶部；(2)原始CV(STD/MEAN)对不同流动性水平的股票可比性不足，超大流动性股票的CV天然偏低。改进方向：Factor1用TS_MEDIAN替代TS_MEAN作为CV分母，中位数对单日异常量不",
+ "factors": [
+  {
+   "name": "AmountStability_MedianCV_MinFloor_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8))*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0652,
+   "long_total": 1.09093,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_LogCV_MinFloor_20D",
+   "expr": "-TS_STD(LOG($amount),20)*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06807,
+   "long_total": 0.97895,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

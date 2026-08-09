@@ -1,0 +1,31 @@
+{
+ "round": 66,
+ "hypothesis": "A股短期反转效应：当日日内收益与分钟收益分布的右偏特征均反映过度交易/彩票偏好，未来5日收益趋于回归，取负值可预测收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayReturnReversal_5D",
+   "expr": "TS_MEAN(-(LAST($close)-FIRST($open))/(FIRST($open)+1e-8), 5)",
+   "style": "短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.121, 年度越序峰值=10.7%",
+   "ic_mean": 0.01237,
+   "long_total": 0.31208,
+   "monthly_pos_ratio": 0.8246,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "IntradaySkewReversal_5D",
+   "expr": "TS_MEAN(-SKEW($return), 5)",
+   "style": "短期反转/偏度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.174, 年度越序峰值=10.1%",
+   "ic_mean": 0.05234,
+   "long_total": 0.14016,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

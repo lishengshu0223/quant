@@ -1,0 +1,38 @@
+{
+ "round": 2013,
+ "hypothesis": "假设1：成交额均值与中位数的偏离度(尖峰不对称性)比标准差更能识别真正的机构锁仓——均值显著高于中位数说明存在偶发性投机脉冲，这类股票并非真正稳定；mean≈median的股票才是持续均匀交易的机构持仓。假设2：成交额稳定+高流动性+短期波动率处于自身历史低位(波动压缩)的股票处于'蓄势待发'状态，机构锁仓+波动收敛=不确定性降低后的突破前兆，未来收益更高且更稳定。",
+ "reflection": "针对当前因子的两个核心问题：(1)分组单调性不足(Q10被Q7-Q9超越)，说明因子极端值端噪声大， mega-cap或极端低CV股票污染顶部；(2)2021年多头收益偏弱(+3.64%)，年度稳定性仍有提升空间。本轮改进方向：因子1用mean-median gap替代CV作为稳定性度量，该指标专门捕捉成交量正向尖峰(投机脉冲)，比CV对单日极端值更鲁棒，能更精准识别真正机构锁仓股；因子2在核心C",
+ "factors": [
+  {
+   "name": "AmountSpikeAsymmetry_20D",
+   "expr": "-(TS_MEAN($amount,20)-TS_MEDIAN($amount,20))/(TS_MEAN($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.202, 年度越序峰值=10.2%",
+   "ic_mean": 0.037,
+   "long_total": 0.19508,
+   "monthly_pos_ratio": 0.932,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_VolSqueeze_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))*(1-TS_RANK(TS_STD($return,10),60))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+0.42%, 多头=-51.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00419,
+   "long_total": -0.51093,
+   "monthly_pos_ratio": 0.5534,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2021,
+    2022,
+    2024,
+    2026
+   ]
+  }
+ ]
+}

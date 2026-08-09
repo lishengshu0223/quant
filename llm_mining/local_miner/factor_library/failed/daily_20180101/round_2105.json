@@ -1,0 +1,33 @@
+{
+ "round": 2105,
+ "hypothesis": "假设1：成交额与价格的正相关性是机构主动建仓的直接证据——当成交额稳定且与价格同向变动时，说明资金在有节奏地推升股价，而非被动承接抛压；这种量价共振结合低CV，比单纯的高流动性底线更能预测未来收益，且能改善顶部单调性。假设2：流动性正在加速扩张(近期均额>历史均额)的稳定股处于建仓上升期，而流动性已见顶的稳定股可能进入派发期；用加速度替代绝对水平可动态跟踪机构行为周期，提升各年份的多头收益稳定性。",
+ "reflection": "当前因子在2020/2024/2026年出现Q10被Q8/Q9超越的单调性问题，核心原因是LOG(TS_MIN)作为流动性底线项仅衡量绝对规模，无法区分'被动高流动性'与'主动机构建仓'。本轮从两个全新经济维度做结构性创新：(1)引入量价协同维度——用TS_CORR($amount,$close,20)替代LOG底线项，捕捉'稳定放量且价格同步上行'的机构吸筹特征，使Q10选股从'最稳定+最大流动",
+ "factors": [
+  {
+   "name": "AmountStability_Pow25CV_VolPriceSync_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*TS_CORR($amount,$close,20)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.05685,
+   "long_total": 0.53344,
+   "monthly_pos_ratio": 0.9417,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_Pow25CV_ActivityAccel_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MEAN($amount,5)/(TS_MEAN($amount,20)+1e-8)+1)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.191, 年度越序峰值=13.5%, 负年=[2021]",
+   "ic_mean": 0.05298,
+   "long_total": 0.50502,
+   "monthly_pos_ratio": 0.932,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  }
+ ]
+}

@@ -1,0 +1,37 @@
+{
+ "round": 2006,
+ "hypothesis": "假设1：成交额稳定且当前成交额处于自身历史低位(TS_RANK低)的股票，代表机构在低位静默吸筹——量稳+量缩=筹码高度锁定且未被市场关注，未来收益更高且更稳定；假设2：成交额稳定且近期收益率在加速(5日均值的5日变化为正)的股票，代表机构建仓正在加速，量稳价升的加速度信号比单纯的价格位置更能捕捉建仓动态。",
+ "reflection": "当前最佳因子AmountStability_20D的核心问题是：(1)单调性不足——2020/2024/2026年Q7-Q9超越Q10，说明极端高因子值区域存在噪声或拥挤；(2)2024年2月小盘崩盘和2026年4月科创板抱团期间脆弱。LOG(TS_MEAN($amount))交互项引入了流动性水平偏好，在风格切换时容易受损。本轮改进方向：(1)用TS_RANK替代LOG来度量成交额的历史相对位置",
+ "factors": [
+  {
+   "name": "AmountStability_HistoricalLow_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*(1-TS_RANK($amount,60))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+4.10%, 多头=-4.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04105,
+   "long_total": -0.03965,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_MomentumAccel_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*DELTA(TS_MEAN($return,5),5)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+2.03%, 多头=-58.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02029,
+   "long_total": -0.58205,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2026
+   ]
+  }
+ ]
+}

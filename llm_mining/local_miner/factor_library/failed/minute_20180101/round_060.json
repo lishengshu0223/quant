@@ -1,0 +1,31 @@
+{
+ "round": 60,
+ "hypothesis": "上轮效率类因子分组单调性差，本轮转向日内价格位置与量价相关性两个更平滑的微观结构特征，捕捉短期定价异象。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayClosePosition_5D",
+   "expr": "TS_MEAN(MEAN(($close - $low) / ($high - $low + 1e-8)), 5)",
+   "style": "日内趋势/微观结构",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolPriceCorrelation_5D",
+   "expr": "TS_MEAN(CORR($return, $amount), 5)",
+   "style": "量价关系/短期动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.32 GiB for an array with shape (176510880,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

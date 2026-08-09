@@ -1,0 +1,31 @@
+{
+ "round": 2072,
+ "hypothesis": "假设1：真正的机构锁仓不仅表现为成交额稳定(低CV)，还表现为即使最冷清的日子也有可观的成交底线(高TS_MIN)，流动性地板高的股票在极端风格切换中更抗跌；假设2：机构隐蔽建仓的完整特征是'量稳+价静'——成交额稳定且价格波动低，用1/(1+收益波动率)作为分母惩罚，可在动量崩溃和抱团瓦解期自动规避高波动陷阱，提升年度稳定性。",
+ "reflection": "当前因子在2020/2024/2026年出现Q10被Q7-Q9超越的单调性问题，以及小盘股崩盘和科创板抱团时期的脆弱性。诊断根源：(1)极端低CV股票中包含大量低流动性僵尸股，在流动性危机中被踩踏；(2)单纯依赖LOG(均值成交额)作为流动性度量，无法区分'有底部支撑的稳定'和'无人问津的冷清'。本轮从两个全新经济维度切入：因子1引入'流动性地板'概念(TS_MIN)，识别即使在最冷清交易日仍有机",
+ "factors": [
+  {
+   "name": "AmountStability_LiquidityFloor_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*RANK(TS_MIN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06694,
+   "long_total": 1.04424,
+   "monthly_pos_ratio": 0.7864,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_StealthAccum_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))/(1+TS_STD($return,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.237, 年度越序峰值=13.3%",
+   "ic_mean": 0.04897,
+   "long_total": 0.69002,
+   "monthly_pos_ratio": 0.9126,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,34 @@
+{
+ "round": 2088,
+ "hypothesis": "假设1：TS_MIN/TS_MEAN比率(有界0~1)比LOG(TS_MIN)更能区分'真正的机构锁仓'与'过度拥挤的大盘股'，因为有界性防止极端值主导多头组，使因子打分在顶部保持单调性；假设2：成交量的变异系数比成交额的变异系数更纯粹地度量交易节奏稳定性，因为amount=price×volume在价格暴跌时会机械性放大CV，而volume CV不受此干扰，在小盘股流动性危机中更稳健。",
+ "reflection": "当前因子主要问题：(1)2020/2024/2026年Q10被Q7-Q9超越，说明极端高因子值对应的股票可能存在'过度拥挤'效应——极度稳定+极高流动性的股票已被充分定价；(2)2024年2月小盘崩盘和2026年4月科技抱团期脆弱。针对问题1，将流动性度量从LOG(TS_MIN)替换为有界的TS_MIN/TS_MEAN比率，自然压缩因子顶部极端值，缓解拥挤效应改善单调性；针对问题2，将稳定性度量从",
+ "factors": [
+  {
+   "name": "AmountStability_MinRatio_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*(TS_MIN($amount,20)/(TS_MEAN($amount,20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+2.88%, 多头=-8.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0288,
+   "long_total": -0.07971,
+   "monthly_pos_ratio": 0.8058,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  },
+  {
+   "name": "VolumeStability_MinFloor_20D",
+   "expr": "-SQRT(TS_STD($volume,20)/(TS_MEAN($volume,20)+1e-8))*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06568,
+   "long_total": 1.09646,
+   "monthly_pos_ratio": 0.932,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2059,
+ "hypothesis": "假设1：CV的时序相对位置(TS_RANK)比绝对水平更能识别'正在变稳定'的动态过程，且天然有界，避免极端值对多头组的污染，改善单调性；假设2：成交额稳定+日内持续收高=机构在稳定预算下主动推升，close location作为方向性过滤可剔除无催化剂的僵尸股，在动量年份(2020/2024)尤其有效。",
+ "reflection": "当前因子单调性问题(Q10被Q7-Q9超越)表明极端低CV+高流动性的股票中包含'僵尸股'(稳定但无方向性)。本轮从两个方向做结构性创新：(1)用TS_RANK将CV转化为相对自身历史的位置，避免绝对CV在不同市值/风格下的尺度差异导致极端值失真，提升单调性；(2)引入日内收盘位置(close location)作为方向性质量指标，区分'主动建仓型稳定'与'无人问津型稳定'，改善2020/2024",
+ "factors": [
+  {
+   "name": "AmountStability_CVRank_60D",
+   "expr": "-TS_RANK(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.03611,
+   "long_total": 0.58759,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_CloseLoc_10D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN(($close-$low)/($high-$low+1e-8),10)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.182, 年度越序峰值=12.0%",
+   "ic_mean": 0.04386,
+   "long_total": 0.38133,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "round": 7,
+ "hypothesis": "尾盘大单资金流方向与日内收益偏度分别捕捉知情交易者的尾盘行为与投机情绪，二者对未来5日收益具有预测能力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "TailVWAPDrift_5D",
+   "expr": "TS_MEAN(SUM(SLICE($return * $amount, \"14:30\", \"15:00\")) / (SUM(SLICE($amount, \"14:30\", \"15:00\")) + 1e-8) - MEAN(SLICE($return, \"14:30\", \"15:00\")), 5)",
+   "style": "资金流/大单行为（短期）",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.35 GiB for an array with shape (181482720,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradaySkewness_5D",
+   "expr": "TS_MEAN(SKEW($return), 5)",
+   "style": "情绪/彩票偏好（短期）",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.174, 年度越序峰值=13.2%, 负年=[2026]",
+   "ic_mean": 0.05234,
+   "long_total": 0.14016,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

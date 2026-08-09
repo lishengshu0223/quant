@@ -1,0 +1,33 @@
+{
+ "round": 2047,
+ "hypothesis": "假设1：IQR/mean度量中间50%成交额的离散程度，对单日脉冲式放量(如大宗交易、ETF调仓)天然免疫，能更纯粹地识别机构匀速控盘；假设2：Range ratio (max-min)/mean直接度量20日内是否出现过任何异常交易日，低range ratio意味着筹码被完全锁定、无任何恐慌或投机性交易，是更强机构控盘信号；假设3：RANK($amount)作为有界流动性度量，在大小盘风格切换时",
+ "reflection": "当前因子主要问题：(1)单调性不足——极端低CV的僵尸股污染多头组，2020/2024/2026年top decile被Q7-Q9超越；(2)小盘股崩盘和科创板抱团期间回撤明显。改进方向：①用IQR和Range替代STD作为离散度度量，IQR对单日异常成交(大宗交易/指数调仓)更鲁棒，Range直接捕捉是否存在任何异常交易日，两者都比CV更能区分'真稳定'和'伪稳定'；②用RANK($amount",
+ "factors": [
+  {
+   "name": "AmountStability_IQR_RankLiq",
+   "expr": "-(TS_QUANTILE($amount,20,0.75)-TS_QUANTILE($amount,20,0.25))/(TS_MEAN($amount,20)+1e-8)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.266, 年度越序峰值=6.1%, 负年=[2026]",
+   "ic_mean": 0.09046,
+   "long_total": 1.32736,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_RangeRatio_RankLiq",
+   "expr": "-(TS_MAX($amount,20)-TS_MIN($amount,20))/(TS_MEAN($amount,20)+1e-8)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.09425,
+   "long_total": 1.36384,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

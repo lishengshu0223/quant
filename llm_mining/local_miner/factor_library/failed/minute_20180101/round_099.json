@@ -1,0 +1,40 @@
+{
+ "round": 99,
+ "hypothesis": "上轮反馈显示单调性与分年度稳健性不足，本轮基于两条独立逻辑：一、量价协同度高的股票趋势更有资金确认，未来5日动量可能延续；二、突破新高频率反映强势趋势的自我强化，而非简单接近压力位。两者均采用日频数据避免内存问题，并通过截面排名或比例形式提升单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "VolumePriceCorrelationPersistence_10D",
+   "expr": "TS_MEAN(RANK(TS_CORR($return, $volume, 5)), 10)",
+   "style": "量价协同/动量",
+   "reason": "方向无效",
+   "detail": "IC=+2.23%, 多头=-5.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02227,
+   "long_total": -0.05805,
+   "monthly_pos_ratio": 0.7476,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2022,
+    2025
+   ]
+  },
+  {
+   "name": "BreakoutFrequency_10D_20D",
+   "expr": "COUNT($high > TS_MAX(DELAY($high,1),20), 10) / 10",
+   "style": "动量突破/趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.044, 年度越序峰值=10.7%, 负年=[2018, 2020, 2023]",
+   "ic_mean": 0.04164,
+   "long_total": 0.00712,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2023
+   ]
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "round": 10,
+ "hypothesis": "上轮因子虽多头收益为正但分组单调性差，主因是原始分布偏峰或窗口期噪声大；本轮改用截面排名作为中间变换以均匀化因子分布，并转向两个新的量价微观结构机制——收盘价相对日内VWAP的偏离度（尾盘资金托举强度）与日内买卖量失衡（买方主动性成交比例），二者均反映资金行为惯性，预计在未来5日有更平滑的线性预测力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "CloseVWAPDrift_5D",
+   "expr": "TS_MEAN(RANK(LAST($close) / (SUM($amount) / (SUM($volume) + 1e-8) + 1e-8)), 5)",
+   "style": "量价偏离/资金流/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.137, 年度越序峰值=14.4%, 负年=[2024]",
+   "ic_mean": 0.0178,
+   "long_total": 0.29412,
+   "monthly_pos_ratio": 0.7379,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "IntradayVolumeImbalance_5D",
+   "expr": "TS_MEAN(RANK(SUM(SIGN($close - $open) * $volume) / (SUM($volume) + 1e-8)), 5)",
+   "style": "量价失衡/资金流向/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+2.31%, 多头=-17.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02309,
+   "long_total": -0.17482,
+   "monthly_pos_ratio": 0.7379,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

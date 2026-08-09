@@ -1,0 +1,31 @@
+{
+ "round": 96,
+ "hypothesis": "本轮从交易日内的价格路径结构出发：价格路径的顺畅程度反映趋势资金的方向性持续力，开盘时段相对全天均价的溢价反映隔夜情绪的过度反应。两个因子分别捕捉高效趋势延续与开盘错估回归。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayPathEfficiency_5D",
+   "expr": "TS_MEAN((LAST($close) - FIRST($open)) / (MEAN($close) * SUM(ABS($return)) + 1e-8), 5)",
+   "style": "日内趋势/路径效率",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 SUM",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "MorningPremiumReversal_5D",
+   "expr": "-TS_MEAN(MEAN(SLICE($close, \"09:31\", \"10:00\")) / (MEAN($close) + 1e-8) - 1, 5)",
+   "style": "短期反转/开盘溢价",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

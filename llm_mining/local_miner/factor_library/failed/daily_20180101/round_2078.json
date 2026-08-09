@@ -1,0 +1,31 @@
+{
+ "round": 2078,
+ "hypothesis": "假设1：TS_RANK(CV,60)度量的是'当前CV处于自身60日分布的哪个位置'，低分位意味着股票正处于其最稳定的状态（机构控盘的起点），且TS_RANK的有界性天然防止极端值主导Q10，改善分组单调性；假设2：成交额稳定+高流动性+近20日正动量=机构在上升趋势中主动建仓（而非被动持有），动量乘子在牛市放大信号、熊市衰减信号，使因子在不同风格环境下均能贡献正alpha，提升年度稳定性。",
+ "reflection": "当前因子主要问题：(1)单调性不足——2020/2024/2026年Q10被Q7-Q9超越，说明极端低CV+高流动性区域存在'僵尸股'污染；(2)最差年2020仅+7.78%，该年为强动量牛市，纯稳定性因子缺乏趋势捕捉能力。改进方向：因子1用TS_RANK替代SQRT压缩CV信号，TS_RANK的有界均匀分布特性防止极端值垄断Q10，改善单调性；因子2在保留核心公式基础上乘以(1+20日累计收益)",
+ "factors": [
+  {
+   "name": "AmountStability_CVRank_60D",
+   "expr": "-TS_RANK(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.03611,
+   "long_total": 0.58759,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_MomentumGate_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(1+TS_SUM($return,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

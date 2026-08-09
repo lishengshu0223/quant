@@ -1,0 +1,31 @@
+{
+ "round": 2045,
+ "hypothesis": "假设1：DECAYLINEAR对近期CV赋予更高权重，能捕捉机构开始建仓导致成交额从波动走向稳定的动态过程，比静态CV更能识别alpha起点，且在牛熊市中均有效；假设2：成交额稳定且量额相关性接近零的股票，其价格变动不依赖成交量变化，是机构信息驱动型交易的指纹，叠加高流动性可构建跨风格稳健的多头组合。",
+ "reflection": "当前因子单调性不足的核心原因是极端低CV的僵尸股占据多头组但无alpha。本轮从两个方向做结构性创新：(1)用DECAYLINEAR替代SQRT对CV做时序加权，捕捉稳定性正在改善的动态信号（机构开始控盘的起点），而非静态低CV水平，使因子在不同风格环境下都能识别增量信息；(2)引入量额解耦维度(1-|corr(amount,return)|)，过滤掉价格变动依赖放量的动量驱动型假稳定股，保留真正",
+ "factors": [
+  {
+   "name": "AmountStability_DecayCV_20D",
+   "expr": "-DECAYLINEAR(TS_STD($amount,5)/(TS_MEAN($amount,5)+1e-8),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06383,
+   "long_total": 0.87507,
+   "monthly_pos_ratio": 0.9709,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_VolDecouple_10D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(1-ABS(TS_CORR($amount,$return,10)))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

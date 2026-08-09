@@ -1,0 +1,31 @@
+{
+ "round": 2083,
+ "hypothesis": "假设1：以EMA为基准的CV能自适应识别'流动性正在改善且稳定'的股票，天然排除流动性萎缩的僵尸股，使多头组在不同年份都保持纯正的机构锁仓特征；假设2：成交额与收益率的正相关性是机构主动吸筹的行为指纹，将其作为乘性门控可在不改变核心稳定性逻辑的前提下，剔除'稳定但无alpha'的噪声股，改善分组单调性和年度稳定性。",
+ "reflection": "当前因子核心问题：(1)多头组(Q10)在2020/2024/2026年被Q7-Q9超越，说明极端低CV+高流动性区域混入了'僵尸股'（交易稳定但无方向性alpha）；(2)小盘崩盘和科创抱团期脆弱。改进方向：Factor1用EMA替代TS_MEAN作为CV分母——EMA对近期趋势更敏感，当股票近期成交额趋势上升时(EMA>简单均值)，有效CV更低，奖励'正在苏醒'的稳定股，惩罚'逐渐消亡'的僵尸",
+ "factors": [
+  {
+   "name": "AmountStability_EMA_Base_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(EMA($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0648,
+   "long_total": 1.10075,
+   "monthly_pos_ratio": 0.9417,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_VolReturnCorr_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(TS_CORR($amount,$return,20)+1)/2",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 9 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

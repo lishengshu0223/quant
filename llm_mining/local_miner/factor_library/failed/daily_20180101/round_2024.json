@@ -1,0 +1,31 @@
+{
+ "round": 2024,
+ "hypothesis": "因子1：成交额稳定+日内持续收高(买压)+充足流动性=机构主动吸筹的三重确认，收盘位置过滤掉无方向性的僵尸稳定股，提升头部分组单调性；因子2：成交额稳定+充足流动性+低收益波动率=深度控盘股，除以收益率波动率使因子在波动率飙升期自动降权，增强对极端风格切换的鲁棒性。",
+ "reflection": "针对两个核心问题：(1)单调性不足(2020/2024/2026年Q10被Q7-Q9超越)——引入日内收盘位置作为方向性过滤，将无方向性的僵尸稳定股从头部剔除，提升顶部分组的纯度；(2)压力期脆弱(小盘崩盘/科创抱团)——引入收益率波动率作为分母进行风险调整，在波动率飙升时自动降低因子值，起到天然的风险状态过滤作用，减少极端风格切换时的回撤。两个因子分别从'方向性确认'和'风险调整'两个不同经济维",
+ "factors": [
+  {
+   "name": "AmountStability_ClosePosition_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN(($close-$low)/($high-$low+1e-8),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 公式长度 121 超过上限 120",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_RiskAdjusted_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))/(TS_STD($return,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

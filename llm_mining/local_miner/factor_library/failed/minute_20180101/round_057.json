@@ -1,0 +1,34 @@
+{
+ "round": 57,
+ "hypothesis": "上轮开盘量价相关因子在年度稳健性与组排序上不达标，因此本轮转向两个更直接的日内微观结构新逻辑：一是分钟收益分布的负偏度（左尾风险）反映恐慌抛售与情绪超调，后续存在反转修复；二是尾盘成交量占比反映资金尾盘介入动向，具有短期动量延续性。两者均采用日内分钟聚合后取5日平均排名，以改善截面线性和分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "NegativeIntradaySkew_5D",
+   "expr": "TS_MEAN(RANK(-SKEW($return)),5)",
+   "style": "短期反转/情绪超调",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.167, 年度越序峰值=10.2%",
+   "ic_mean": 0.0492,
+   "long_total": 0.27072,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "AfternoonVolumeShare_5D",
+   "expr": "TS_MEAN(RANK(SUM(SLICE($volume,\"13:01\",\"15:00\")) / (SUM($volume)+1e-8)),5)",
+   "style": "流动性/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+3.64%, 多头=-10.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03636,
+   "long_total": -0.10643,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020
+   ]
+  }
+ ]
+}

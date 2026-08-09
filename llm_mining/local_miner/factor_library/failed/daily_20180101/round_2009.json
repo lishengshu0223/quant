@@ -1,0 +1,31 @@
+{
+ "round": 2009,
+ "hypothesis": "假设1：成交额稳定(低CV)且流动性处于自身历史较高水平(TS_RANK有界度量)的股票，代表机构持续关注的核心持仓，TS_RANK的有界性避免极端大市值股票主导最高分组，改善单调性；假设2：成交额序列的自相关性高(今天量≈昨天量)代表交易行为高度规律化，是机构程序化建仓/持仓的典型特征，与CV衡量的离散度互补，结合流动性水平可捕捉被低估的稳定筹码股。",
+ "reflection": "当前最佳因子(info ratio=2.95)的主要问题是分组单调性不足(2020/2024/2026年多头组非第一)和极端风格期脆弱。单调性问题的根源可能是LOG($amount)交互项在极端大成交额股票上产生过大因子值，导致最高分组混入超额收益有限的超大盘股。改进方向：(1)用有界的TS_RANK替代LOG度量流动性水平，压缩极端值，改善单调性；(2)引入全新的'成交额自相关性'维度替代变异系",
+ "factors": [
+  {
+   "name": "AmountStability_RankLiq60_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_RANK(TS_MEAN($amount,20),60)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.05875,
+   "long_total": 0.69009,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountAutocorr_Liq_20D",
+   "expr": "TS_CORR($amount,DELAY($amount,1),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2018', '2023']",
+   "ic_mean": 0.04338,
+   "long_total": 0.49115,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "round": 2071,
+ "hypothesis": "假设1：CV的时序Z分数比绝对水平更能识别'正在变稳定'的动态过程，天然有界且自适应不同股票的波动基线，可改善极端分组的单调性；假设2：成交额与绝对收益的低相关性(量价解耦)是机构算法建仓的独立指纹，与CV互补，在不同市场风格下均有效。",
+ "reflection": "当前因子单调性不足的核心原因是：绝对CV水平会将'永久低量但无alpha的僵尸股'推入多头组极端位置，导致Q10被Q7-Q9超越。本轮从两个方向做结构性创新：(1)用TS_ZSCORE对CV做时序标准化，将信号从'绝对稳定'转为'相对自身历史正在变稳定'，动态捕捉机构开始控盘的拐点，避免僵尸股污染极端分组；(2)引入全新经济维度——量价解耦度(TS_CORR($amount, ABS($retur",
+ "factors": [
+  {
+   "name": "AmountCVZScore_Liquidity_60D",
+   "expr": "-TS_ZSCORE(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.197, 年度越序峰值=12.2%",
+   "ic_mean": 0.02983,
+   "long_total": 0.43003,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumeReturnDecouple_Liquidity_20D",
+   "expr": "-TS_CORR($amount,ABS($return),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+0.99%, 多头=-9.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00992,
+   "long_total": -0.09874,
+   "monthly_pos_ratio": 0.6214,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  }
+ ]
+}

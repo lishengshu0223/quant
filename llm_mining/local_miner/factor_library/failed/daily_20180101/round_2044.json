@@ -1,0 +1,33 @@
+{
+ "round": 2044,
+ "hypothesis": "假设1：TS_RANK($amount,60)作为有界流动性度量，避免LOG对超大市值的过度倾斜，使因子在大小盘风格切换中更稳健，提升年度稳定性；假设2：成交额稳定+收盘位置高(持续收在日内高位)=机构在稳定预算下持续提供买方支撑，是主动建仓的价格行为指纹，比单纯高流动性更能识别有方向性的吸筹，改善top decile的单调性。",
+ "reflection": "当前PowCV因子的问题：(1)LOG(TS_MEAN($amount,20))使因子过度偏向超大市值股票，在小盘风格年份(2020/2024)多头组被Q7-Q9超越；(2)纯流动性维度无法区分'有方向性建仓的稳定'与'无alpha的僵尸稳定'。本轮改进：因子1将LOG替换为TS_RANK($amount,60)，有界流动性度量避免极端大市值垄断多头组，提升年度稳定性；因子2引入全新经济维度——收",
+ "factors": [
+  {
+   "name": "AmountStability_PowCV_RankLiq60",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),0.25)*TS_RANK($amount,60)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.147, 年度越序峰值=13.8%, 负年=[2026]",
+   "ic_mean": 0.06181,
+   "long_total": 0.28606,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_PowCV_CloseLoc",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),0.25)*TS_MEAN(($close-$low)/($high-$low+1e-8),20)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2020', '2021']",
+   "ic_mean": 0.03936,
+   "long_total": 0.41381,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

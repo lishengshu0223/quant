@@ -1,0 +1,41 @@
+{
+ "round": 2084,
+ "hypothesis": "假设1：流动性趋势(60d/20d均值比)比绝对流动性水平更能区分'机构主动建仓'与'僵尸低波动'，因为前者捕捉的是资金流向的动态变化，在不同市场风格下都有效；假设2：成交量CV比成交额CV更纯粹地度量交易节奏的稳定性，不受价格水平影响，可减少超大盘股对多头组的过度贡献，提升年度稳定性。",
+ "reflection": "当前因子在2020/2024/2026年出现Q10被Q7-Q9超越的单调性问题，核心原因是绝对流动性水平LOG(TS_MEAN($amount,20))无法区分'健康稳定'与'僵尸稳定'——部分极低CV股票实际处于流动性萎缩状态，虽CV低但无alpha。本轮改进将流动性项从绝对水平替换为流动性趋势(60日均值/20日均值)，捕捉'正在被增持'的动态信号。经济逻辑：(1)流动性改善(20d>60d)",
+ "factors": [
+  {
+   "name": "AmountStability_LiqTrend_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,60)/(TS_MEAN($amount,20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+0.97%, 多头=-42.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00971,
+   "long_total": -0.42476,
+   "monthly_pos_ratio": 0.6019,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  },
+  {
+   "name": "VolumeStability_LiqTrend_20D",
+   "expr": "-SQRT(TS_STD($volume,20)/(TS_MEAN($volume,20)+1e-8))*LOG(TS_MEAN($amount,60)/(TS_MEAN($amount,20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+1.47%, 多头=-33.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01472,
+   "long_total": -0.33842,
+   "monthly_pos_ratio": 0.6505,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2033,
+ "hypothesis": "假设1：成交额的高序列自相关是机构算法交易匀速执行的指纹，比低CV更能识别有方向性的机构控盘，且信号有界使分组单调性更优；假设2：成交额稳定+近期正漂移=机构在稳定预算下主动加仓，连续动量权重将僵尸稳定股因子值压缩至零，减少头部组污染，改善2020/2024年的单调性问题。",
+ "reflection": "针对单调性不足(Q10被Q7-Q9超越)和风格脆弱性问题，本轮从两个方向做结构性创新：(1)用成交额自相关替代CV度量稳定性——高自相关意味着机构算法匀速执行，比低方差更能区分'有方向的稳定'和'无方向的僵尸稳定'，且自相关天然有界[-1,1]，头部区分度更线性；(2)在核心CV稳定性基础上叠加近期收益方向作为连续权重，将无方向性的僵尸稳定股因子值压向零，提升头部组的纯度，改善单调性。两者都保持了",
+ "factors": [
+  {
+   "name": "AmountAutocorr_Liq_20D",
+   "expr": "TS_CORR($amount,DELAY($amount,1),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2018', '2023']",
+   "ic_mean": 0.04338,
+   "long_total": 0.49115,
+   "monthly_pos_ratio": 0.8932,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_DriftWeighted_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*TS_MEAN($return,10)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

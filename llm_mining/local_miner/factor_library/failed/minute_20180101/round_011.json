@@ -1,0 +1,37 @@
+{
+ "round": 11,
+ "hypothesis": "上轮反思：CloseVWAPDrift_5D虽有正IC和正多头累计超额，但秩相关低、年度越序高，原因是单纯收盘价偏离VWAP的噪声大，排序结构不稳定；IntradayVolumeImbalance_5D出现IC与多头方向矛盾，说明用分钟涨跌方向直接加权成交量的信号不具备稳健截面预测力。本轮跳出价格偏离和分钟涨跌加权，转而度量两类更基础的微观结构：一是日内价格趋势在波动率标准化后的质量（趋势越平稳越",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayTrendQuality_5D",
+   "expr": "TS_MEAN(RANK(REGRESSION_SLOPE(LOG($close), $minute) / (STD($return) + 1e-8)), 5)",
+   "style": "趋势/日内动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 REGRESSION_SLOPE",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolumeReturnSynergy_5D",
+   "expr": "TS_MEAN(RANK(CORR($return, $volume)), 5)",
+   "style": "量价配合/资金流向",
+   "reason": "方向无效",
+   "detail": "IC=+2.32%, 多头=-21.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02315,
+   "long_total": -0.21364,
+   "monthly_pos_ratio": 0.7476,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2023,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

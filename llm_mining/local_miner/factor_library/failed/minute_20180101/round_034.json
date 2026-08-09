@@ -1,0 +1,35 @@
+{
+ "round": 34,
+ "hypothesis": "上轮显示日内价格峰值同步性在2025年后排序失效，需换用更稳健的日内趋势效率与尾盘量能效率差，并以5日截面排名均值输出以增强分组单调性，捕捉市场对日内资金行为持续性反应不足。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayTrendEfficiency_5D",
+   "expr": "TS_MEAN(RANK(REGRESSION_SLOPE($close, $minute) * 240 / (MAX($high) - MIN($low) + 1e-8)), 5)",
+   "style": "趋势/短期动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.32 GiB for an array with shape (176510880,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "TailVolumeEfficiencyDisparity_5D",
+   "expr": "TS_MEAN(RANK((MEAN(SLICE($return, \"14:30\", \"15:00\")) / (MEAN(SLICE($volume, \"14:30\", \"15:00\")) + 1e-8)) - (MEAN(SLICE($return, \"09:31\", \"10:00\")) / (MEAN(SLICE($volume, \"09:31\", \"10:00\")) + 1e-8))), 5)",
+   "style": "量价背离/日内动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.082, 年度越序峰值=18.3%, 负年=[2022, 2023, 2024]",
+   "ic_mean": 0.00706,
+   "long_total": 0.53237,
+   "monthly_pos_ratio": 0.5631,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023,
+    2024
+   ]
+  }
+ ]
+}

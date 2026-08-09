@@ -1,0 +1,37 @@
+{
+ "round": 2099,
+ "hypothesis": "假设1：TS_MIN/TS_MEDIAN比率(有界0~1)是尺度不变的'底部支撑质量'度量，衡量最冷清日成交额接近常态水平的程度，避免了LOG(TS_MIN)对超大市值股票的过度偏好，使Q10选股更纯粹地反映交易均匀性而非绝对规模；假设2：近期10日平均成交额比20日最低成交额更能反映机构当前的参与意愿——历史底线高但近期活跃度下降的股票可能正处于机构撤离初期，用近期活跃度替代历史底线可在风格切换",
+ "reflection": "当前因子在2020/2024/2026年出现Q10被Q7-Q9超越的单调性问题，诊断认为极端低CV+高绝对底线的股票中混入了'僵尸稳定股'(机构已撤出但历史底线仍高)。改进方向：(1)将无界的LOG(TS_MIN)替换为有界的TS_MIN/TS_MEDIAN比率，消除超大流动性股票因绝对规模垄断Q10的问题，使因子在极端值端更平滑；(2)将底线概念替换为近期活跃度(TS_MEAN 10日)，要求股",
+ "factors": [
+  {
+   "name": "AmountStability_Pow25CV_MinMedianRatio_20D",
+   "expr": "-(POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25))*(TS_MIN($amount,20)/(TS_MEDIAN($amount,20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+1.39%, 多头=-66.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01394,
+   "long_total": -0.66639,
+   "monthly_pos_ratio": 0.7184,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_Pow25CV_RecentActivity_20D",
+   "expr": "-(POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MEAN($amount,10)+1))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07698,
+   "long_total": 1.21918,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

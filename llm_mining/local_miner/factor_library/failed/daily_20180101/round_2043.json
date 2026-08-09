@@ -1,0 +1,31 @@
+{
+ "round": 2043,
+ "hypothesis": "假设1：四次根压缩(POW 0.25)比SQRT更有效地消除CV极端值的过度影响，使因子在top decile内部的区分度更依赖于流动性差异而非稳定性差异，从而避免僵尸股垄断多头组；假设2：截面RANK(CV)将稳定性信号标准化为均匀分布，配合LOG(流动性)的连续信号，因子值的分布更加规整，分组边界更清晰，单调性系统性提升。",
+ "reflection": "当前因子主要问题是分组单调性不足(2020/2024/2026年多头组被Q7-Q9超越)，根源在于SQRT压缩仍不够强，极端低CV的僵尸股(无alpha但极稳定)占据了多头组顶部。本轮从两个方向加强尾部压缩：(1)用POW(0.25)四次根替代SQRT，更激进地压缩CV尾部差异，使极端稳定但无alpha的股票因子值不再显著高于'较稳定且有alpha'的股票；(2)用截面RANK将CV信号约束到[0",
+ "factors": [
+  {
+   "name": "AmountStability_PowCV_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),0.25)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.08015,
+   "long_total": 1.27493,
+   "monthly_pos_ratio": 0.9417,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_RankCV_LogLiq_20D",
+   "expr": "-RANK(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.05785,
+   "long_total": 0.74297,
+   "monthly_pos_ratio": 0.9709,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

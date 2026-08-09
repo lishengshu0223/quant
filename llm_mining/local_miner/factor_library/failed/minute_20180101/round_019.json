@@ -1,0 +1,33 @@
+{
+ "round": 19,
+ "hypothesis": "A股散户主导下，日内收益分布不对称（左偏）或收盘价偏离日内成交均价（超跌/超涨）的股票，短期存在过度反应后的反转补偿。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayReturnAsymmetry_5D",
+   "expr": "TS_MEAN(ZSCORE((MEDIAN($return)-MEAN($return))/(STD($return)+1e-8)),5)",
+   "style": "短期反转/收益不对称",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.099, 年度越序峰值=15.7%, 负年=[2026]",
+   "ic_mean": 0.03564,
+   "long_total": 0.07251,
+   "monthly_pos_ratio": 0.835,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "CloseVwapReversal_5D",
+   "expr": "TS_MEAN(ZSCORE(1 - LAST($close)/(SUM($amount)/(SUM($volume)+1e-8)+1e-8)),5)",
+   "style": "短期反转/量价背离",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 673. MiB for an array with shape (176510880,) and data type float32",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

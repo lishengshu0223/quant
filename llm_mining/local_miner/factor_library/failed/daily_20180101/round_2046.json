@@ -1,0 +1,35 @@
+{
+ "round": 2046,
+ "hypothesis": "假设1：成交额处于自身60日低位(TS_RANK低)的股票，其流通筹码被机构锁定导致交易萎缩，结合高绝对流动性可识别大盘机构重仓锁仓股，比CV更能排除天然低波动的僵尸股；假设2：振幅短期压缩(5日/20日<1)意味着多空博弈趋于平衡、机构已完成建仓进入控盘阶段，结合高流动性可捕捉突破前的蓄能状态，该信号在风格切换时更鲁棒因为度量的是相对压缩而非绝对水平。",
+ "reflection": "当前最佳因子(PowCV_20D)年度信息比率3.08已较好，但单调性在2020/2024/2026年不足（多头组被Q7-Q9超越），说明极端低CV+高流动性的股票中存在'僵尸稳定股'污染多头组。本轮从两个全新经济维度切入：(1)用TS_RANK($amount,60)度量成交额相对自身历史的压缩程度，捕捉'机构锁仓导致流通盘收缩'的动态信号，比静态CV更能区分主动锁仓vs天然低波动；(2)引入振",
+ "factors": [
+  {
+   "name": "AmountCompression_RankLiq_60D",
+   "expr": "-TS_RANK($amount,60)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.155, 年度越序峰值=14.2%, 负年=[2026]",
+   "ic_mean": 0.06532,
+   "long_total": 0.28279,
+   "monthly_pos_ratio": 0.9126,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmplitudeCompression_Liq_20D",
+   "expr": "-TS_MEAN($high-$low,5)/(TS_MEAN($high-$low,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.143, 年度越序峰值=15.1%, 负年=[2026]",
+   "ic_mean": 0.05086,
+   "long_total": 0.25413,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

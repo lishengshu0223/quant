@@ -1,0 +1,31 @@
+{
+ "round": 2086,
+ "hypothesis": "假设1：真正的机构锁仓不仅表现为成交额稳定(低CV)，还表现为即使最冷清的日子也有可观的成交底线(高TS_MIN)，流动性底线过滤能剔除僵尸股对多头组的污染，改善顶部单调性；假设2：高amount/|return|比率意味着大量成交仅引起微小价格波动，这是机构'吸收'供需的典型指纹，与绝对流动性水平相比，该比率在不同市值和风格环境下更稳定，可缓解小盘崩盘和科技抱团期的脆弱性。",
+ "reflection": "针对单调性不足(Q10被Q7-Q9超越)和风格脆弱性问题，核心诊断是极端低CV组混入了'僵尸股'(成交极低但CV也低的股票)和'被动稳定股'(无人问津导致的伪稳定)。改进方向：(1)用TS_MIN替代TS_MEAN作为流动性度量，直接过滤有零成交日的僵尸股，因为机构锁仓股的最低日成交额也应有可观底线；(2)引入Amihud吸收率(amount/|return|)替代绝对流动性，度量'单位价格波动对",
+ "factors": [
+  {
+   "name": "AmountStability_MinFloor_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07057,
+   "long_total": 1.13408,
+   "monthly_pos_ratio": 0.9417,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_Absorption_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20)/(TS_MEAN(ABS($return),20)+1e-8))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06374,
+   "long_total": 1.09084,
+   "monthly_pos_ratio": 0.9612,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

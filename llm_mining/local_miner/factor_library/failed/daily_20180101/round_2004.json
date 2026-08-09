@@ -1,0 +1,35 @@
+{
+ "round": 2004,
+ "hypothesis": "假设1：成交额稳定+价格高于均线=机构主动吸筹(量稳价升)，未来收益更高；单纯量稳但价格疲软=被市场遗忘，alpha弱。假设2：成交额CV相对自身60日历史处于极低分位，代表筹码锁定度发生质变(从分散到集中)，这种状态突变更能捕捉机构建仓的拐点，对不同市场风格更鲁棒。",
+ "reflection": "当前因子AmountStability_RankLiq_20D的年度信息比率(2.33)低于基础版(2.95)，且2020/2024年单调性不足(多头组被Q7-Q9超越)。诊断发现：极端稳定的股票中混入了'死水股'(无趋势的冷门股)，在动量市中跑输。改进方向：(1)引入价格趋势门控——仅当稳定性伴随正向价格漂移时才给予高分，区分'机构吸筹式稳定'与'无人问津式稳定'；(2)用TS_ZSCORE捕捉",
+ "factors": [
+  {
+   "name": "AmountStability_TrendGate_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*($close/(TS_MEAN($close,20)+1e-8)-1)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+4.51%, 多头=-24.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04512,
+   "long_total": -0.24933,
+   "monthly_pos_ratio": 0.8058,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_StateShift_20D",
+   "expr": "-TS_ZSCORE(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021', '2023']",
+   "ic_mean": 0.03143,
+   "long_total": 0.59115,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

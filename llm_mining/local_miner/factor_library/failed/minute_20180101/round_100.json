@@ -1,0 +1,37 @@
+{
+ "round": 100,
+ "hypothesis": "上轮RANK与突破类因子单调性不足，本轮改用日K路径效率与实体占幅比两类连续形态因子，捕捉趋势质量与坚定资金行为，避免截面RANK依赖，以改善分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "TrendEfficiency_10D",
+   "expr": "ABS(TS_SUM($return, 10)) / (TS_SUM(ABS($return), 10) + 1e-8)",
+   "style": "动量/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+0.39%, 多头=-5.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00389,
+   "long_total": -0.05113,
+   "monthly_pos_ratio": 0.6311,
+   "grade": "C",
+   "neg_years": [
+    2018
+   ]
+  },
+  {
+   "name": "CandleDecisiveness_10D",
+   "expr": "TS_MEAN(ABS($close - $open) / ($high - $low + 1e-8), 10)",
+   "style": "价格形态/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+0.30%, 多头=-13.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00298,
+   "long_total": -0.13383,
+   "monthly_pos_ratio": 0.534,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2023
+   ]
+  }
+ ]
+}

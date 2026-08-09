@@ -1,0 +1,40 @@
+{
+ "round": 18,
+ "hypothesis": "基于低波动异象与尾盘信息交易：日内高频波动率越低的股票未来收益越高，尾盘半小时成交量占比则反映机构调仓或知情资金在收盘阶段的集中交易行为，两者均使用分钟级连续统计量，避免截面排名与极值扰动，以改善分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "RealizedVolatility_5D",
+   "expr": "TS_MEAN(STD($return),5)",
+   "style": "波动率/短期",
+   "reason": "方向无效",
+   "detail": "IC=+6.76%, 多头=-33.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.06763,
+   "long_total": -0.33931,
+   "monthly_pos_ratio": 0.8835,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2026
+   ]
+  },
+  {
+   "name": "TailVolumeRatio_5D",
+   "expr": "TS_MEAN(SUM(SLICE($volume,\"14:30\",\"15:00\"))/(SUM($volume)+1e-8),5)",
+   "style": "流动性/微观结构/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.24%, 多头=-69.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01239,
+   "long_total": -0.69576,
+   "monthly_pos_ratio": 0.5728,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

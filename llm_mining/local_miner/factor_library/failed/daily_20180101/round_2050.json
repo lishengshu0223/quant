@@ -1,0 +1,31 @@
+{
+ "round": 2050,
+ "hypothesis": "假设1：成交额稳定+持续高于自身60日中位数=机构在稳定预算下主动维持仓位(积极控盘)，而非被动持有导致的交易萎缩，COUNT占比作为门控可有效剔除僵尸股，改善top decile单调性；假设2：成交额右偏(mean>median)意味着在稳定底仓基础上偶有放量(机构大宗买入)，这种分布形态是主动建仓的微观结构证据，与CV度量的离散程度互补，能在不同风格环境下保持区分力。",
+ "reflection": "当前因子单调性不足的核心原因是top decile混入了'稳定但无方向性alpha'的僵尸股。本轮从两个全新经济维度切入：(1)用COUNT度量成交额持续高于自身中位数的天数占比，捕捉'稳定且活跃'的机构建仓模式，排除稳定但萎缩的僵尸股；(2)用成交额分布的右偏度(mean-median)/std捕捉机构大宗交易叠加稳定底仓的特征，这是与CV完全不同的分布形态维度。两者都能改善top decile",
+ "factors": [
+  {
+   "name": "AmountStability_Persistence_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*COUNT($amount>TS_MEDIAN($amount,60),20)/20",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountSkewness_Liq_20D",
+   "expr": "-(TS_MEAN($amount,20)-TS_MEDIAN($amount,20))/(TS_STD($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2022', '2023', '2024']",
+   "ic_mean": 0.02521,
+   "long_total": 0.16767,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

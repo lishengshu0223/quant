@@ -1,0 +1,35 @@
+{
+ "round": 36,
+ "hypothesis": "日内分钟收益的自相关与成交量分布偏度分别反映微观动量持续性和资金异动集中度，市场对其反应不足，因此两者可前瞻未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayReturnAutocorr_5D",
+   "expr": "TS_MEAN(RANK(TS_AUTOCORR($return, 1)), 5)",
+   "style": "短期动量/微观结构",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=16.6%, 负年=[2025]",
+   "ic_mean": 0.05129,
+   "long_total": 0.31819,
+   "monthly_pos_ratio": 0.7379,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "IntradayVolumeBurst_5D",
+   "expr": "TS_MEAN(RANK(SKEW($volume)), 5)",
+   "style": "流动性/资金异动",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.131, 年度越序峰值=13.2%, 负年=[2023]",
+   "ic_mean": 0.01923,
+   "long_total": 0.26548,
+   "monthly_pos_ratio": 0.6699,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  }
+ ]
+}

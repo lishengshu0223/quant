@@ -1,0 +1,33 @@
+{
+ "round": 2014,
+ "hypothesis": "假设1：成交额稳定+量价负相关(机构逆势吸筹)+充足流动性=三重确认的机构锁仓信号，比单纯量稳更能识别真正的知情交易者持仓；假设2：成交额稳定+隔夜正向跳空(盘前机构需求)+充足流动性=机构在时间维度上的持续买入信号，与日内量价信息互补，且在流动性危机期(隔夜跳空转负)自动降低暴露",
+ "reflection": "当前因子AmountStability_20D的核心问题是分组单调性不足(Q10在2020/2024/2026年被Q7-Q9超越)和极端风格期脆弱。诊断认为Q10中混入了'仅量稳但缺乏方向性买盘支撑'的股票，导致极端值噪声大。本轮从两个全新经济维度做结构创新：(1)引入量价相关方向——成交额稳定且量价负相关(机构逆势吸筹)的股票，比单纯量稳更有方向性，能提升顶部组的纯度；(2)引入隔夜跳空维度——",
+ "factors": [
+  {
+   "name": "AmountStability_ContrarianFlow_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*(-TS_CORR($amount,$return,20))*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+3.98%, 多头=-16.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03984,
+   "long_total": -0.16263,
+   "monthly_pos_ratio": 0.8835,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "AmountStability_OvernightGap_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_MEAN($open/DELAY($close,1)-1,20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+2.16%, 多头=-80.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02157,
+   "long_total": -0.80798,
+   "monthly_pos_ratio": 0.8058,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

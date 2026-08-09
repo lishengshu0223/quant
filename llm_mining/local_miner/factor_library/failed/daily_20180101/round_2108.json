@@ -1,0 +1,31 @@
+{
+ "round": 2108,
+ "hypothesis": "假设1：成交额在过去20日中保持在 median±50%区间内的天数越多，说明交易节奏越均匀，是机构有纪律建仓的直接证据，比CV更鲁棒地过滤单日异常；假设2：5日均额相对60日均额的比值捕捉的是'当前活跃度相对自身长期常态的偏离'，比值>1说明资金正在加速流入，是动态建仓信号，比绝对成交额水平更能区分'正在被关注'与'一直很大但无人问津'的股票，有助于在风格切换期保持多头组的纯度。",
+ "reflection": "当前最佳因子(EMAActivity10D)年度IR=3.00，单调性B级，2026年秩相关仅0.076。诊断发现Q10被Q8/Q9超越的年份(2020/2024/2026)均为极端风格期，说明因子顶部混入了'稳定但即将被风格抛弃'的股票。本轮从两个方向做结构性创新：(1)用COUNT一致性度量替代STD/median的CV，直接计算成交额落在中位数±50%区间内的天数占比，对单日异常放量天然免疫",
+ "factors": [
+  {
+   "name": "AmountConsistency_CountBand_Activity5D_20D",
+   "expr": "-COUNT(ABS($amount-TS_MEDIAN($amount,20))<0.5*TS_MEDIAN($amount,20),20)*LOG(TS_MEAN($amount,5)+1)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_Pow25CV_RelActivityTrend_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*TS_MEAN($amount,5)/(TS_MEAN($amount,60)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,34 @@
+{
+ "round": 2066,
+ "hypothesis": "假设1：RANK($amount)的有界性和均匀分布特性可防止极端流动性股票垄断多头组，使因子在Q7-Q10之间的区分度更线性，改善单调性；假设2：低日内振幅+高相对流动性=机构对价格的主动控制(压盘吸筹)，与成交额CV度量的是不同维度的'稳定性'，在动量驱动的市场环境中(2020/2024)可能更有效地识别真正的控盘行为。",
+ "reflection": "当前因子单调性问题源于LOG(TS_MEAN($amount,20))对超大市值股票的过度集中——极端高流动性但无alpha的僵尸股污染多头组。改进方向：(1)用RANK($amount)替代LOG(TS_MEAN($amount,20))作为流动性度量，RANK有界[0,1]且截面均匀分布，避免mega-cap主导多头组，改善顶部单调性；(2)引入全新的价格振幅稳定性维度替代成交额CV，度量机构",
+ "factors": [
+  {
+   "name": "AmountStability_CVRankLiq_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.09685,
+   "long_total": 1.35025,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmplitudeControl_RankLiq_20D",
+   "expr": "-TS_MEAN(($high-$low)/($close+1e-8),20)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.204, 年度越序峰值=6.1%, 负年=[2020, 2026]",
+   "ic_mean": 0.09709,
+   "long_total": 1.18898,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  }
+ ]
+}

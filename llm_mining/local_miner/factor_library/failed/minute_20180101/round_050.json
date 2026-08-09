@@ -1,0 +1,33 @@
+{
+ "round": 50,
+ "hypothesis": "日内价格路径的低点位置（盘中探底回升结构）与单位成交额的价格冲击（非流动性补偿）分别刻画了买卖方力量演化与信息成本，这两类微观结构信号在A股5日周期内具有连续性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "EarlyLowPoint_5D",
+   "expr": "TS_MEAN(1 - TS_ARGMIN($low), 5)",
+   "style": "日内价格路径/趋势",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.32 GiB for an array with shape (176510880,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayPriceImpact_5D",
+   "expr": "TS_MEAN(MEAN(ABS($return) / ($amount + 1e-8)), 5)",
+   "style": "流动性/交易成本",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.120, 年度越序峰值=21.4%, 负年=[2020]",
+   "ic_mean": 0.01463,
+   "long_total": 0.26487,
+   "monthly_pos_ratio": 0.6019,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  }
+ ]
+}

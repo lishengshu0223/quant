@@ -1,0 +1,34 @@
+{
+ "round": 27,
+ "hypothesis": "上轮失败显示单一统计量难以同时满足方向与分组单调性，本轮转向基于短期反转的日内形态因子：日内收益为负者和日内高点出现较早者在散户过度反应后更易反弹。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ShortTermIntradayReversal_5D",
+   "expr": "TS_MEAN(FIRST($open) / (LAST($close) + 1e-8) - 1, 5)",
+   "style": "短期反转",
+   "reason": "方向无效",
+   "detail": "IC=-0.78%, 多头=+0.6%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00784,
+   "long_total": 0.00584,
+   "monthly_pos_ratio": 0.6214,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "EarlyIntradayHighReversal_5D",
+   "expr": "TS_MEAN(1 - TS_ARGMAX($high), 5)",
+   "style": "日内形态/短期反转",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.35 GiB for an array with shape (181482720,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

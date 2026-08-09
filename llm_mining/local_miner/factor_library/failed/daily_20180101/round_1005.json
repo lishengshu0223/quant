@@ -1,0 +1,34 @@
+{
+ "round": 1005,
+ "hypothesis": "因子1：上涨日成交量占总成交的比重越高且单位价格冲击越大，说明大资金在价格上行时有序吸筹而非恐慌性交易，未来收益更好且更稳定。因子2：过去10日中'成交量高于20日均量且绝对收益低于20日均绝对收益'的天数越多，说明机构在持续进行低冲击建仓，这种事件频率信号比连续比值更鲁棒。",
+ "reflection": "当前因子VolumePriceImpact_10D的核心问题是：(1)2023-2024年单调性严重退化，极端比值噪声大；(2)小盘股崩盘时脆弱。改进方向：①将量价冲击比拆解为'上涨日成交量占比/价格冲击'，过滤恐慌抛售日的噪声量，使信号更纯净地反映主动吸筹；②用事件计数法(COUNT)替代连续比值，统计'放量但低波动'天数占比，这种离散计数结构天然对极端值鲁棒，且在风格切换时更稳定，有助于提升年",
+ "factors": [
+  {
+   "name": "UpVolumeImpactRatio_10D",
+   "expr": "TS_SUM($volume * ($return > 0), 10) / (TS_SUM($volume, 10) + 1e-8) / (TS_MEAN(ABS($return), 10) + 1e-8)",
+   "style": "量价背离/流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.074, 年度越序峰值=17.0%, 负年=[2025, 2026]",
+   "ic_mean": 0.049,
+   "long_total": 0.0426,
+   "monthly_pos_ratio": 0.7573,
+   "grade": "C",
+   "neg_years": [
+    2025,
+    2026
+   ]
+  },
+  {
+   "name": "QuietAccumulationCount_10D",
+   "expr": "COUNT(($volume > TS_MEAN($volume, 20)) && (ABS($return) < TS_MEAN(ABS($return), 20)), 10)",
+   "style": "量价背离/流动性",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 81.0 MiB for an array with shape (10617415,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "round": 2041,
+ "hypothesis": "假设1：TS_RANK($amount,60)作为有界流动性度量，避免极端大市值股票因LOG值过大而垄断多头组，使因子值分布更均匀，分组单调性改善；假设2：成交额稳定(低CV)+近期加速(5日均额>20日均额)+高流动性=机构从匀速建仓转入加速阶段，是alpha释放的起点，加速度项为因子注入方向性，过滤无趋势的僵尸稳定股。",
+ "reflection": "当前因子单调性问题源于LOG($amount)无界导致极端大盘僵尸股占据Q10但无alpha。改进方向：(1)用有界的TS_RANK($amount,60)替代LOG，约束流动性维度在[0,1]内，避免极端值污染多头组；(2)引入成交额加速度维度(5日均额/20日均额)，识别从稳态开始放量的机构加仓起点，增加方向性信号过滤无方向僵尸股，提升2020/2024/2026年的分组单调性。两个因子均保持",
+ "factors": [
+  {
+   "name": "AmountStability_BoundedLiq_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_RANK($amount,60)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.152, 年度越序峰值=12.3%, 负年=[2026]",
+   "ic_mean": 0.06245,
+   "long_total": 0.29517,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_AccelRank_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*(TS_MEAN($amount,5)/(TS_MEAN($amount,20)+1e-8))*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

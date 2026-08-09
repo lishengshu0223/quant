@@ -1,0 +1,37 @@
+{
+ "round": 93,
+ "hypothesis": "信息交易者的大额成交会在放量日留下方向痕迹，放量日平均收益相对全体平均收益的溢价，以及连续上涨日的比例，分别捕捉量能确认的动量和短期情绪惯性，从而预测未来5日收益的延续。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "DailyNetUpCount_10D",
+   "expr": "TS_MEAN(($return > 0 ? 1 : 0) - ($return < 0 ? 1 : 0), 10)",
+   "style": "短期情绪/惯性",
+   "reason": "方向无效",
+   "detail": "IC=-1.54%, 多头=+0.3%(IC与多头矛盾或为负)",
+   "ic_mean": -0.01537,
+   "long_total": 0.00266,
+   "monthly_pos_ratio": 0.3398,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "VolumeWeightedReturnPremium_20D",
+   "expr": "TS_MEAN($volume * $return, 20) / (TS_MEAN($volume, 20) + 1e-8) - TS_MEAN($return, 20)",
+   "style": "",
+   "reason": "方向无效",
+   "detail": "IC=+5.28%, 多头=-7.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.05281,
+   "long_total": -0.07244,
+   "monthly_pos_ratio": 0.9126,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

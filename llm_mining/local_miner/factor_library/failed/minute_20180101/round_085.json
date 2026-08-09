@@ -1,0 +1,31 @@
+{
+ "round": 85,
+ "hypothesis": "上轮开盘位置因子因方向矛盾与分组单调性C级被拒，表明简单日频位置结构难以稳定排序。本轮转向日内量价时序错位与分钟K线影线形态：最高价时点相对量峰时点的先后刻画资金推动价格的效率，平均上影线占比刻画盘中反复冲高回落的抛压强度；两者均在分钟聚合后经截面排名与5日平滑，以增强单调性与稳健性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighVolumeLeadTime_5D",
+   "expr": "TS_MEAN(RANK(TS_ARGMAX($high) - TS_ARGMAX($volume)), 5)",
+   "style": "量价时序/微观结构",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "UpperShadowPersistence_5D",
+   "expr": "TS_MEAN(RANK(MEAN(($high - $close) / ($high - $low + 1e-8))), 5)",
+   "style": "K线形态/抛压",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

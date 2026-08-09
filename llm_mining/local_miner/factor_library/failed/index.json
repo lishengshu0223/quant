@@ -1,0 +1,16 @@
+{
+ "campaigns": [
+  {
+   "campaign": "minute_20180101",
+   "ts": "2026-08-09 23:45:47",
+   "frequency": "minute",
+   "summary_text": "① 主要尝试方向：日内收益率统计（均值、自相关、偏度、上下行不对称）、切片时段收益差、量价相关性、价格位置/振幅、成交额/流动性、极值结构等，常用TS_MEAN、CORR、RANK、SLICE、MASK组合。\n\n② 失败表现：方向无效59个（IC与多头矛盾或为负）；计算失败74个；单调性C级63个（秩相关低、年度越序、负年）；年度为负2个。已探索的12个5D因子均为IC与多头为正，但卡在单调性C级。高频被拒结构和“换字段/窗口/包装”均被语义评审与相关性检验拦截。\n\n③ 仍有潜力：LogPriceImpactPerAmount_5D、LiquidityLevelRank_5D等流动性/价格冲击逻辑IC和多头较强，建议优先围绕“流动性提供与价格冲击”设计新经济逻辑，重点改进单调性与年度稳定性；避免日内自相关、切片收益差、量价相关等旧方向。\n【失败因子库·minute战役 100轮统计】累计 200 个因子, 其中不合格 198 个。\n1. 失败原因分布: 方向无效×59, 单调性C级×63, 计算失败×74, 合格×2, 年度为负×2。\n2. 高频被拒结构(勿再重复探索): TS_MEANCORR$return(6次), TS_MEANLAST$close - MIN$low / MAX$high - MIN$low + 1e-8(5次), TS_MEANTS_ARGMAX$high - TS_ARGMIN$low(4次), TS_MEANMEANSLICE$return(3次), TS_MEANTS_AUTOCORR$return(3次), TS_MEANRANKCORR$return(3次), TS_MEANRANKTS_AUTOCORR$return(3次), TS_MEANMEANABS$return / $amount + 1e-8(3次)。\n3. 已探索但未达合格的有效方向(IC与多头为正, 卡在单调性C级): IntradayReturnAutocorr_5D(IC+5.3% 多头+28% →单调性C级)、IntradayUpDownAsymmetry_5D(IC+5.2% 多头+33% →单调性C级)、IntradayOpenCloseReversal_5D(IC+2.2% 多头+38% →单调性C级)、HighPriceVolumePreference_5D(IC+5.5% 多头+62% →单调性C级)、LogPriceImpactPerAmount_5D(IC+7.8% 多头+121% →单调性C级)、IntradayReturnAutocorrRank_5D(IC+5.1% 多头+32% →单调性C级)、LiquidityLevelRank_5D(IC+7.8% 多头+132% →单调性C级)、IntradaySkewnessAvoid_5D(IC+4.9% 多头+27% →单调性C级)、IntradayDownsideVolRatio_5D(IC+2.3% 多头+20% →单调性C级)、IntradayVolatilityBurstReversal_5D(IC+5.8% 多头+31% →单调性C级)、ContinuousVolatilityClusteringReversal_5D(IC+5.8% 多头+23% →单调性C级)、IntradayReturnSkewnessPremium_5D(IC+4.9% 多头+27% →单调性C级)。\n4. 经验教训: 换字段/换窗口/加包装的等价因子会被语义评审与相关性检验拦截, 新因子必须来自不同的经济逻辑; 历史完整年份秩相关为负会直接判C级。"
+  },
+  {
+   "campaign": "daily_20180101",
+   "ts": "2026-08-09 23:46:07",
+   "frequency": "daily",
+   "summary_text": "① 主要尝试量价类因子：以成交额/成交量的标准差、排名、ZSCORE为基础，叠加涨跌幅、振幅、价格位置等，构建“稳定性/冲击/比值”因子；典型如TS_STD(amount)的多种变形、volume/return比值、量幅排名比等。\n\n② 失败原因：计算失败最多（67个）；单调性C级53个，多因历史完整年份秩相关为负/越序；方向无效37个，IC为正但多头为负或IC与多头矛盾；年度为负25个，集中在2021/2023/2026；amount标准差类等价结构达126次，被语义评审/相关性检验拦截。\n\n③ 潜力方向：量稳定/量冲击类因子IC为正，但卡单调和年度，不宜再换窗口/加包装；建议优先探索不同经济逻辑，如主动买卖压力、大单占比、订单流不平衡、量价领先滞后关系，以突破当前同质化困局。\n【失败因子库·daily战役 114轮统计】累计 228 个因子, 其中不合格 182 个。\n1. 失败原因分布: 单调性C级×53, 年度为负×25, 方向无效×37, 计算失败×67, 合格×46。\n2. 高频被拒结构(勿再重复探索): -SQRTTS_STD$amount(68次), -TS_STD$amount(28次), -POWTS_STD$amount(15次), -TS_ZSCORETS_STD$amount(5次), -TS_RANKTS_STD$amount(5次), -DELTATS_STD$amount(5次), TS_MEAN$volume(3次), TS_CORR$amount(3次)。\n3. 已探索但未达合格的有效方向(IC与多头为正, 卡在年度为负; 单调性C级): AbnormalVolumeLowImpact_10D(IC+4.2% 多头+20% →单调性C级)、VolumeRangeImpact_10D(IC+3.7% 多头+66% →单调性C级)、VolumeReturnRankRatio_20D(IC+2.4% 多头+20% →单调性C级)、AmountPriceImpact_Floored_10D(IC+5.9% 多头+147% →单调性C级)、VolumeMaxImpact_10D(IC+3.0% 多头+49% →年度为负)、VolumeStabilityImpact_10D(IC+7.2% 多头+21% →单调性C级)、AmountRangeStability_Drift_20D(IC+5.0% 多头+72% →年度为负)、StableAmountLowAmplitude_20D(IC+4.7% 多头+65% →单调性C级)、AmountStability_PriceSupport_20D(IC+5.2% 多头+73% →年度为负)、AmountStability_StateShift_20D(IC+3.1% 多头+59% →年度为负)、AmountStability_ClosePosition_20D(IC+5.2% 多头+67% →年度为负)、AmountStability_GainRatio_20D(IC+5.9% 多头+49% →单调性C级)。\n4. 经验教训: 换字段/换窗口/加包装的等价因子会被语义评审与相关性检验拦截, 新因子必须来自不同的经济逻辑; 历史完整年份秩相关为负会直接判C级。"
+  }
+ ]
+}

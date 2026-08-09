@@ -1,0 +1,31 @@
+{
+ "round": 2034,
+ "hypothesis": "假设1：成交额分布右偏(mean>median)的股票存在机构大宗买入叠加散户基线交易的模式，结合高流动性可识别主动建仓行为，这是与CV完全不同的分布形态维度；假设2：CV的20日下降(DELTA<0)捕捉的是机构开始锁仓的动态拐点，已经处于极低CV的僵尸股无法继续下降因此不会被选中，天然过滤了静态因子中的无alpha极端值，改善头部单调性。",
+ "reflection": "当前因子主要问题：(1)单调性不足——2020/2024/2026年Q7-Q9超越Q10，说明极端稳定+极端流动性的股票中包含无方向性alpha的僵尸股；(2)需提升年度稳定性。本轮从两个全新经济维度切入：因子1引入成交额分布形态(偏度)维度，右偏分布意味着机构大宗交易叠加散户基线，是全新的结构性信号；因子2引入稳定性动态变化(DELTA of CV)，捕捉从分散交易向锁仓状态的转换拐点，避免静态",
+ "factors": [
+  {
+   "name": "AmountSkewness_Liq_20D",
+   "expr": "(TS_MEAN($amount,20)-TS_MEDIAN($amount,20))/(TS_STD($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2022', '2023', '2024']",
+   "ic_mean": 0.02521,
+   "long_total": 0.16767,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountCV_Delta_Liq_20D",
+   "expr": "-DELTA(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2024']",
+   "ic_mean": 0.02551,
+   "long_total": 0.19439,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 30,
+ "hypothesis": "上轮波动聚集与开盘量能因子单调性差，原因在于使用截面排名与计数使因子分布扭曲、分组边界噪声大。本轮改用连续化的波动聚集超额度量与成交量分布基尼系数，既能保留微观结构风险溢价逻辑，又避免非线性排名导致的分组无序。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ContinuousVolatilityClusteringReversal_5D",
+   "expr": "TS_MEAN(- (MEAN(INTRADAY_STD($return, 5)) - STD($return)) / (STD($return) + 1e-8), 5)",
+   "style": "波动率/反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.154, 年度越序峰值=18.4%",
+   "ic_mean": 0.0579,
+   "long_total": 0.23057,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "IntradayVolumeGini_5D",
+   "expr": "TS_MEAN(- (SUM(ABS($volume - MEAN($volume))) / (2 * SUM($volume) + 1e-8)), 5)",
+   "style": "流动性/集中度",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 SUM",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

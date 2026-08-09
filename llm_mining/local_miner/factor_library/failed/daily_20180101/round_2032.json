@@ -1,0 +1,36 @@
+{
+ "round": 2032,
+ "hypothesis": "假设1：EMA5/EMA20≈1度量的是成交额无加速/减速的稳态，比CV更能捕捉机构匀速建仓的节奏感，且信号有界，头部区分度更线性；假设2：成交额稳定+收益率低波动=机构对价格和交易量的双重管控，这类股票在不同市场风格下都具备防御性alpha，年度稳定性更优。",
+ "reflection": "针对单调性不足(Q10被Q7-Q9超越)和压力期脆弱性问题，本轮从两个方向做结构性创新：(1)用EMA短长期比值替代CV度量稳定性，EMA收敛(ratio≈1)是趋势维度的稳定性，与CV(离散度维度)互补，且天然有界，减少极端值对头部单调性的破坏；(2)将流动性项替换为收益率波动率的倒数，构建'量稳+价稳'的双重平静因子，在压力期(小盘崩盘/抱团瓦解)中，低收益波动率过滤掉最脆弱的标的，提升鲁棒性",
+ "factors": [
+  {
+   "name": "AmountStability_EMAConvergence",
+   "expr": "-ABS(EMA($amount,5)/(EMA($amount,20)+1e-8)-1)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_DualCalm",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*INV(TS_STD($return,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+4.98%, 多头=-39.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04982,
+   "long_total": -0.38964,
+   "monthly_pos_ratio": 0.699,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

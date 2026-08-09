@@ -1,0 +1,33 @@
+{
+ "round": 51,
+ "hypothesis": "上轮单位成交额冲击因子在2019/2020/2024等风格切换年失效且分组单调性差，说明单一流动性成本信号不稳定；本轮转向成交价量路径与风险偏好：收盘价相对VWAP的偏离反映买方控盘强度，日内低波动反映对高波动彩票股的回避，两者均预期在未来5日延续或获得补偿。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVWAPDeviation_5D",
+   "expr": "TS_MEAN((LAST($close) - SUM($close * $volume) / (SUM($volume) + 1e-8)) / (MAX($high) - MIN($low) + 1e-8), 5)",
+   "style": "量价行为/短期趋势",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 673. MiB for an array with shape (176510880,) and data type float32",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "NegIntradayRealizedVolatility_5D",
+   "expr": "-1 * TS_MEAN(STD($return), 5)",
+   "style": "波动率/短期风险偏好",
+   "reason": "方向无效",
+   "detail": "IC=+6.76%, 多头=-33.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.06763,
+   "long_total": -0.33931,
+   "monthly_pos_ratio": 0.8835,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  }
+ ]
+}

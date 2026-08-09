@@ -1,0 +1,31 @@
+{
+ "round": 2025,
+ "hypothesis": "假设1：成交额稳定+近期量能放大( volume短期/长期比值>1)=机构在稳定预算下加速吸筹，比纯静态稳定更能识别alpha起点，改善头部单调性；假设2：成交额稳定+收益波动率低=价格被机构有序管控(非市场随机波动)，双重稳定性过滤掉虽然amount稳定但价格大幅波动的投机股，提升多头组纯度。",
+ "reflection": "针对单调性不足问题(Q10被Q7-Q9超越)，核心原因是极端低CV选入了无方向性的僵尸股。本轮从两个不同经济维度做结构创新：(1)引入量能动量维度——成交额稳定但近期成交量相对放大，意味着在稳定金额下交易更活跃(隐含价格上升)，是主动吸筹信号，过滤被动锁仓；(2)引入收益波动率维度——成交额稳定且收益波动也低的股票，说明价格被机构有序管理(非随机波动)，双重稳定性确认提升头部区分度。两者均非参数堆",
+ "factors": [
+  {
+   "name": "AmountStability_VolMomentum_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*TS_MEAN($volume,5)/(TS_MEAN($volume,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 公式长度 123 超过上限 120",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_DualCalm_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*INV(TS_STD($return,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

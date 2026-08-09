@@ -1,0 +1,39 @@
+{
+ "round": 2002,
+ "hypothesis": "Factor1: 成交额稳定且日内振幅低的股票代表真正的机构锁仓（稳定量+窄幅波动=筹码高度集中），SQRT压缩避免极端值干扰排序单调性；Factor2: 成交额稳定且收益率波动低的股票处于'静默吸筹'阶段（量稳+价稳=机构在不引起市场注意的情况下建仓），低回报波动率是机构控盘的关键特征",
+ "reflection": "针对两个核心问题改进：(1)单调性不足——原因子LOG项对极端低成交额股票给予过大权重，导致Q10被Q7-Q9超越。Factor1用SQRT压缩变异系数的极端值，同时引入振幅维度替代绝对成交额水平，使因子在极端值处更平滑；(2)压力期脆弱性——小盘股崩盘和科创板抱团期间，高波动股票受损严重。Factor2引入收益率波动率作为交互维度，在波动率飙升的压力期自动降低受影响股票的因子值，增强鲁棒性。两个",
+ "factors": [
+  {
+   "name": "StableAmountLowAmplitude_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*(1-TS_MEAN(($high-$low)/($close+1e-8),20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.238, 年度越序峰值=16.7%",
+   "ic_mean": 0.04689,
+   "long_total": 0.64856,
+   "monthly_pos_ratio": 0.9126,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietAccumulation_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)/(TS_STD($return,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+2.13%, 多头=-87.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0213,
+   "long_total": -0.87925,
+   "monthly_pos_ratio": 0.6214,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

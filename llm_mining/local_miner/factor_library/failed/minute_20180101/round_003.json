@@ -1,0 +1,36 @@
+{
+ "round": 3,
+ "hypothesis": "日内量价关系和极值出现时点分别反映了资金方向一致性与日内多空力量演化顺序，这些微观行为信息对未来数日收益具有预测力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "VolumeReturnCorrelation_5D",
+   "expr": "TS_MEAN(CORR($return, $volume), 5)",
+   "style": "量价配合/短期",
+   "reason": "方向无效",
+   "detail": "IC=+2.77%, 多头=-27.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02769,
+   "long_total": -0.27429,
+   "monthly_pos_ratio": 0.7767,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025,
+    2026
+   ]
+  },
+  {
+   "name": "IntradayHighLowTiming_5D",
+   "expr": "TS_MEAN(TS_ARGMAX($high) - TS_ARGMIN($low), 5)",
+   "style": "日内趋势/短期",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.35 GiB for an array with shape (181482720,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

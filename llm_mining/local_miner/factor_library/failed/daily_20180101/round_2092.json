@@ -1,0 +1,31 @@
+{
+ "round": 2092,
+ "hypothesis": "假设1：25分位成交额比TS_MIN更能代表机构的'常态支撑水平'——TS_MIN仅是单日极值，可能由节假日/停牌前等非常态因素造成，而25分位数反映的是'正常低活跃日'的成交水平，真正有机构托底的股票该值应显著高于无支撑股票；假设2：对CV做60日时序排名归一化后，因子值被压缩到[0,1]区间，避免了极端低CV股票(可能是流动性枯竭的僵尸股)垄断多头顶部，使Q8-Q10之间的区分度更合理，改善单",
+ "reflection": "当前因子在2020/2024/2026年出现Q10被Q8/Q9超越的单调性问题，说明极端低CV+极端高TS_MIN的股票并非最优。诊断原因：TS_MIN是单日极值，易受单一异常低量日影响，导致部分'伪高底线'股票进入Q10但实际表现不如Q8/Q9。改进方向：(1)用TS_QUANTILE($amount,20,0.25)替代TS_MIN作为流动性底线度量，25分位数比单日最小值更稳健地反映'典型低",
+ "factors": [
+  {
+   "name": "AmountStability_MedianCV_Q25Floor_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8))*LOG(TS_QUANTILE($amount,20,0.25)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0658,
+   "long_total": 1.07625,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_CVRank60_MinFloor_20D",
+   "expr": "-TS_RANK(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),60)*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.225, 年度越序峰值=12.5%",
+   "ic_mean": 0.03396,
+   "long_total": 0.55962,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

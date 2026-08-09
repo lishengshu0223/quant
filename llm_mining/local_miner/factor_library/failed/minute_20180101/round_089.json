@@ -1,0 +1,35 @@
+{
+ "round": 89,
+ "hypothesis": "成交金额相对自身中枢的持续放大体现资金关注度与信息交易强度，下行波动占比则刻画近期利空驱动的风险分布，两者分别从流动性和风险结构预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "AmountSurgeMomentum_5D",
+   "expr": "TS_MEAN(TS_ZSCORE($amount,20),5)",
+   "style": "流动性/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.117, 年度越序峰值=17.1%, 负年=[2021]",
+   "ic_mean": 0.03776,
+   "long_total": 0.08178,
+   "monthly_pos_ratio": 0.7864,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "DownsideVolatilityRatio_20D",
+   "expr": "TS_STD(($return - ABS($return))/2, 20) / (TS_STD($return,20) + 1e-8)",
+   "style": "波动率/风险偏好",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.116, 年度越序峰值=20.4%, 负年=[2020]",
+   "ic_mean": 0.04782,
+   "long_total": 0.24661,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  }
+ ]
+}

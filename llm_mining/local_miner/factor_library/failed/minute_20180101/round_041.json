@@ -1,0 +1,38 @@
+{
+ "round": 41,
+ "hypothesis": "A股交易者常依据日内量价配合程度与成交活跃度的时序变化做出反应，这些行为模式可能被市场短期延续或修正，进而影响未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVolumePriceAlignment_5D",
+   "expr": "TS_MEAN(CORR($return, $volume), 5)",
+   "style": "量价背离/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+2.77%, 多头=-27.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02769,
+   "long_total": -0.27429,
+   "monthly_pos_ratio": 0.7767,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "IntradayVolumeTimeTrend_5D",
+   "expr": "TS_MEAN(REGRESSION_SLOPE($volume, $minute) / (MEAN($volume) + 1e-8), 5)",
+   "style": "流动性/日内交易行为",
+   "reason": "方向无效",
+   "detail": "IC=+3.52%, 多头=-37.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03523,
+   "long_total": -0.37266,
+   "monthly_pos_ratio": 0.7864,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020
+   ]
+  }
+ ]
+}

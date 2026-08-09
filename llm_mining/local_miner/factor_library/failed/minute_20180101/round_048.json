@@ -1,0 +1,31 @@
+{
+ "round": 48,
+ "hypothesis": "日内分钟收益的稳定性和日内放量出现的时点分别反映了资金控盘强度与尾盘承接力量；在A股市场中，日内净涨跌更平滑（单位波动收益更高）的股票往往有更强的短期连续性，而放量峰值出现在尾盘则暗示尾盘资金主动买入，二者均可能预示未来5日超额收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayRiskAdjustedMomentum_5D",
+   "expr": "TS_MEAN(RANK(MEAN($return) / (STD($return) + 1e-8)), 5)",
+   "style": "短期动量/波动率",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.084, 年度越序峰值=7.2%",
+   "ic_mean": 0.02539,
+   "long_total": 0.15184,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumePeakTiming_5D",
+   "expr": "TS_MEAN(RANK(TS_ARGMAX($volume)), 5)",
+   "style": "流动性/量价分布",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.097, 年度越序峰值=12.6%",
+   "ic_mean": 0.04101,
+   "long_total": 0.19116,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

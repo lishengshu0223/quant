@@ -1,0 +1,33 @@
+{
+ "round": 2030,
+ "hypothesis": "假设1：成交额稳定+量价解耦(低|corr|)+高流动性=机构信息驱动型控盘，价格变动不依赖放量，排除动量驱动的假稳定股，提升Q10纯度和单调性；假设2：成交额稳定+成交量加权收益为正+高截面流动性=机构在稳定预算下主动净买入，方向性过滤僵尸股，RANK流动性降低市值风格暴露。",
+ "reflection": "当前因子核心问题：(1)单调性不足——2020/2024/2026年Q10被Q7-Q9超越，说明极端低CV×高流动性的股票中混入了无方向性的僵尸股或动量股；(2)压力期脆弱——小盘崩盘和科技抱团期回撤大。本轮从两个全新经济维度做结构创新：因子1引入量价解耦维度(1-|corr(return,volume)|)，当价格变动与成交量脱钩时说明信息驱动而非散户追涨，过滤动量型假稳定股，改善头部单调性；因",
+ "factors": [
+  {
+   "name": "AmountStability_VolDecouple_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(1-ABS(TS_CORR($return,$volume,20)))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_VWAPMomentum_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_SUM($return*$volume,20)/(TS_SUM($volume,20)+1e-8)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+6.58%, 多头=-17.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.06582,
+   "long_total": -0.17357,
+   "monthly_pos_ratio": 0.9029,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

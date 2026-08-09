@@ -1,0 +1,37 @@
+{
+ "round": 2087,
+ "hypothesis": "假设1：CV正在下降(收敛)的股票正处于机构从分散建仓转向集中控盘的过渡期，比已经极度稳定的股票更有上行动力，能改善多头组顶部单调性；假设2：成交额与收益符号正相关(涨日量大、跌日量小)是机构'逢低吸纳、顺势加仓'的行为指纹，结合稳定性可区分'主动控盘'与'被动沉寂'，在极端风格期提供方向性保护。",
+ "reflection": "针对单调性不足(Q8/Q9超越Q10)和风格脆弱性问题，从两个方向做结构创新：(1)用CV的变化方向(DELTA)替代CV的绝对水平，捕捉'正在进入机构锁仓阶段'的股票，避免选中已经稳定但缺乏上行动力的僵尸股，改善顶部单调性；(2)引入成交额与收益方向的时序相关性(TS_CORR($amount,SIGN($return)))，识别'涨时放量、跌时缩量'的机构建仓节奏，这是一个全新的价量关系维度，",
+ "factors": [
+  {
+   "name": "AmountStability_Convergence_20D",
+   "expr": "-DELTA(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),10)*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+1.86%, 多头=-19.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01857,
+   "long_total": -0.19108,
+   "monthly_pos_ratio": 0.7767,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_UpDayCorr_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_CORR($amount,SIGN($return),20)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+2.52%, 多头=-12.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02516,
+   "long_total": -0.12311,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025
+   ]
+  }
+ ]
+}

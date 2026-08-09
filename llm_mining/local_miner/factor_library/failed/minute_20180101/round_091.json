@@ -1,0 +1,31 @@
+{
+ "round": 91,
+ "hypothesis": "午前最后半小时的风险调整后收益强度与开盘/尾盘波动结构的持续性，反映信息交易者在休市前后价格发现中的不对称参与，并在未来5日延续。",
+ "reflection": "R90 UpDownVolumePressure 的IC方向与月度占比虽达标，但分组单调性为C级，核心问题是日频合成压力比在2020/2021/2023等风格切换年中排序失效；R90 DailyReturnAutocorr 则方向矛盾、稳定性差。说明应放弃日频粗粒度合成与RANK平滑，改用分钟级时段不对称性直接构造连续量价特征。",
+ "factors": [
+  {
+   "name": "PreLunchMomentum_5D",
+   "expr": "TS_MEAN(MEAN(SLICE($return,\"11:00\",\"11:30\")) / (STD(SLICE($return,\"11:00\",\"11:30\")) + 1e-8), 5)",
+   "style": "短期动量/时段动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "OpenCloseVolatilityRatio_5D",
+   "expr": "TS_MEAN(STD(SLICE($return,\"09:31\",\"10:00\")) / (STD(SLICE($return,\"14:30\",\"15:00\")) + 1e-8), 5)",
+   "style": "波动率/信息不对称",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

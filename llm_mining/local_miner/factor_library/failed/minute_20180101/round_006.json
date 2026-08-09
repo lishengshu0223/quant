@@ -1,0 +1,39 @@
+{
+ "round": 6,
+ "hypothesis": "日内上涨与下跌分钟的平均推力不对称，以及开盘/尾盘波动率的时间衰减，分别刻画了买盘强度和隔夜信息吸收效率；这两个微观结构信号在未来5日具有一定的收益预测能力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayUpDownAsymmetry_5D",
+   "expr": "TS_MEAN(RANK(MEAN(MASK($return, \">\", 0)) / (ABS(MEAN(MASK($return, \"<\", 0))) + 1e-8)), 5)",
+   "style": "短期动量/量价不对称",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.166, 年度越序峰值=14.0%, 负年=[2026]",
+   "ic_mean": 0.05231,
+   "long_total": 0.32754,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "IntradayVolatilityDecay_5D",
+   "expr": "TS_MEAN(RANK(STD(SLICE($return, \"09:31\", \"10:00\")) / (STD(SLICE($return, \"14:00\", \"15:00\")) + 1e-8)), 5)",
+   "style": "波动率/信息效率",
+   "reason": "方向无效",
+   "detail": "IC=+4.31%, 多头=-3.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04306,
+   "long_total": -0.03087,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

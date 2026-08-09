@@ -1,0 +1,33 @@
+{
+ "round": 2027,
+ "hypothesis": "因子1：成交额稳定(SQRT压缩CV)+流动性接近近期峰值(有界比率)=机构正在积极建仓且尚未完成，比静态高流动性更能识别alpha起点，有界设计避免大盘股垄断多头组；因子2：短期成交额波动率显著低于长期(10日/40日比值<1)=股票正从分散交易向集中锁仓过渡，这种动态稳定性改善信号比静态低CV更能捕捉机构开始控盘的拐点，在不同风格环境下均有效。",
+ "reflection": "当前因子单调性问题源于LOG(流动性)无上限导致极端大盘股占据多头组但alpha有限，且2020/2024年小盘风格下这些股票表现不佳。改进方向：(1)用有界的流动性比率(当前/120日峰值)替代LOG，使因子聚焦于'当前正在被积极交易'的股票而非'历史上一直很大'的股票，减少风格切换时的脆弱性；(2)用短期/长期成交额波动率之比替代静态CV，捕捉'正在进入稳定状态'的动态信号，这种状态转换信号在",
+ "factors": [
+  {
+   "name": "AmountStability_RelLiq_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN($amount,20)/(TS_MAX($amount,120)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_DynamicRatio_10v40",
+   "expr": "-TS_STD($amount,10)/(TS_STD($amount,40)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.191, 年度越序峰值=12.6%, 负年=[2026]",
+   "ic_mean": 0.04557,
+   "long_total": 0.66645,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

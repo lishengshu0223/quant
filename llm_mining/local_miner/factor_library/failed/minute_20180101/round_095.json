@@ -1,0 +1,31 @@
+{
+ "round": 95,
+ "hypothesis": "上轮因子依赖截面排名后再时间平均，导致排序结构在风格切换年份失效。本轮改为直接从日内微观行为提取连续型过程特征：分钟收益的自相关强度与分钟振幅的日内时间趋势，分别刻画知情资金持续建仓倾向与日内波动率分配，避免横截面RANK造成的分组截断。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayReturnAutocorr_5D",
+   "expr": "TS_MEAN(TS_AUTOCORR($return, 1), 5)",
+   "style": "日内动量/微观结构",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayRangeIntraDayTrend_5D",
+   "expr": "TS_MEAN(REGRESSION_SLOPE(($high - $low) / ($open + 1e-8), $minute), 5)",
+   "style": "日内波动率结构",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "round": 84,
+ "hypothesis": "A股市场中开盘定价与午间休市缺口分别反映隔夜/午间信息冲击的定价效率：开盘在日内区间中的位置代表开盘阶段买方力量，午间缺口相对日内振幅代表午间信息流强度；两者的五日持续性是短期价格趋势延续或反转发散的领先信号。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "OpenRangeLocationPersistence_5D",
+   "expr": "TS_MEAN(($open - $low) / ($high - $low + 1e-8) - 0.5, 5)",
+   "style": "短期动量/开盘定价",
+   "reason": "方向无效",
+   "detail": "IC=+2.69%, 多头=-6.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02694,
+   "long_total": -0.06092,
+   "monthly_pos_ratio": 0.7573,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "LunchGapRangeNormalized_5D",
+   "expr": "TS_MEAN((FIRST(SLICE($open,\"13:01\",\"13:01\")) / LAST(SLICE($close,\"09:31\",\"11:30\")) - 1) / (MAX($high) - MIN($low) + 1e-8), 5)",
+   "style": "短期动量/午间信息流",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

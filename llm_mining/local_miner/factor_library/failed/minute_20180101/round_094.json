@@ -1,0 +1,38 @@
+{
+ "round": 94,
+ "hypothesis": "短周期内被持续抛售的弱势股与缺乏彩票属性的稳健股在A股散户主导市场中存在系统性错误定价，未来5日分别倾向于均值回归与风险溢价补偿。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "PersistentLoserReversal_5D",
+   "expr": "-TS_MEAN(RANK(TS_SUM($return, 5)), 20)",
+   "style": "短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.061, 年度越序峰值=16.6%, 负年=[2020, 2021]",
+   "ic_mean": 0.04064,
+   "long_total": 0.28182,
+   "monthly_pos_ratio": 0.767,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "LotteryAvoidance_20D",
+   "expr": "-TS_MEAN(RANK(TS_MAX($return, 20)), 20)",
+   "style": "极端收益规避/彩票效应",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.063, 年度越序峰值=20.9%, 负年=[2019, 2020, 2025]",
+   "ic_mean": 0.05752,
+   "long_total": 0.09011,
+   "monthly_pos_ratio": 0.767,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  }
+ ]
+}

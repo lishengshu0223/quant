@@ -34,7 +34,8 @@ COLORS = {
 }
 
 
-def generate_report(best: dict, data, cfg, png_path: str | None = None) -> str:
+def generate_report(best: dict, data, cfg, png_path: str | None = None,
+                    factor_wide: pd.DataFrame | None = None) -> str:
     if png_path is None:
         png_path = REPORT_PNG_PATH
     name = best.get("name", "factor")
@@ -44,14 +45,24 @@ def generate_report(best: dict, data, cfg, png_path: str | None = None) -> str:
     ev = best.get("eval") or {}
     qualified = ev.get("qualified", False)
 
-    console.log(f"    重新计算最佳因子全区间值: {name}")
-    factor_wide = compute_factor(expr, data, cfg)
+    if factor_wide is None:
+        console.log(f"    重新计算最佳因子全区间值: {name}")
+        factor_wide = compute_factor(expr, data, cfg)
+    else:
+        console.log(f"    使用预计算因子值(如中性化因子): {name}")
     if ev.get("flipped"):
         factor_wide = -factor_wide
         console.log("    该因子评价时已翻转方向, 报告按翻转后方向展示。")
     series = factor_wide.stack(future_stack=True).dropna()
     series.index.names = ["date", "code"]
     series.name = "factor"
+
+    # 交易资格遮盖: 剔除 ST/停牌/次新/涨跌停 股票(与评价口径一致, 避免收益虚高)
+    if getattr(data, "tradable", None) is not None and not data.tradable.empty:
+        tradable_long = data.tradable.stack(future_stack=True)
+        mask = tradable_long.reindex(series.index).fillna(False).astype(bool)
+        series = series[mask]
+        console.log(f"    已应用交易资格遮盖, 有效观测 {len(series)} 条。")
 
     console.log("    完整因子分析(1/5/10/20日 RankIC + 分组 + 多头多基准)...")
     with warnings.catch_warnings():

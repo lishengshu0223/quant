@@ -1,0 +1,35 @@
+{
+ "round": 69,
+ "hypothesis": "A股散户主导下，日内高频波动与隔夜跳空均反映过度关注与投机情绪，随后5个交易日价格向均值回归；以分钟数据构造拥挤度指标，再经日频截面排名与5日平滑可提升分组单调性与稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayLowVolatilityPremium_5D",
+   "expr": "TS_MEAN(RANK(-STD($return)), 5)",
+   "style": "波动率/彩票效应",
+   "reason": "方向无效",
+   "detail": "IC=+6.23%, 多头=-28.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0623,
+   "long_total": -0.28751,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "OvernightGapReversal_5D",
+   "expr": "TS_MEAN(RANK(-(FIRST($open)/(DELAY(LAST($close), 1)+1e-8)-1)), 5)",
+   "style": "短期反转/隔夜情绪",
+   "reason": "方向无效",
+   "detail": "IC=+1.59%, 多头=-16.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01587,
+   "long_total": -0.16329,
+   "monthly_pos_ratio": 0.6796,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  }
+ ]
+}

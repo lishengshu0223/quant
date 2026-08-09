@@ -1,0 +1,35 @@
+{
+ "round": 45,
+ "hypothesis": "上一轮自相关因子单调性失衡提示需避开纯收益路径，改用日内趋势斜率与尾盘量能偏移两个独立结构；二者分别捕捉平滑趋势的持续性和尾盘机构参与的定价作用。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayTrendStrength_5D",
+   "expr": "TS_MEAN(REGRESSION_SLOPE($close, $minute) / (MEAN($close) + 1e-8) / (STD($return) + 1e-8), 5)",
+   "style": "短期趋势/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.093, 年度越序峰值=10.0%, 负年=[2020]",
+   "ic_mean": 0.02459,
+   "long_total": 0.02624,
+   "monthly_pos_ratio": 0.7476,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "LateVolumeDominance_5D",
+   "expr": "TS_MEAN((MEAN(SLICE($volume, \"14:00\", \"15:00\")) - MEAN(SLICE($volume, \"09:31\", \"10:00\"))) / (MEAN($volume) + 1e-8), 5)",
+   "style": "短期流动性/量能分布",
+   "reason": "方向无效",
+   "detail": "IC=+4.15%, 多头=-28.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04149,
+   "long_total": -0.28205,
+   "monthly_pos_ratio": 0.835,
+   "grade": "C",
+   "neg_years": [
+    2018
+   ]
+  }
+ ]
+}

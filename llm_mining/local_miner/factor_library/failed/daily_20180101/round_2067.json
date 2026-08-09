@@ -1,0 +1,33 @@
+{
+ "round": 2067,
+ "hypothesis": "因子1：SQRT(CV)×RANK(流动性水平)——RANK的有界均匀分布防止极端流动性股票垄断Q10，使因子在高分区的排序更单调；因子2：短期/长期成交额波动比×LOG(流动性)——近期波动收敛(比值<1)意味着交易模式正在趋于稳定，是机构开始控盘的动态信号，比静态低CV更能捕捉alpha起点，且在风格切换时更鲁棒。",
+ "reflection": "当前最佳因子(SQRT_CV×LOG_Liq)的核心问题是Q10被极端低CV+超高流动性的僵尸股污染，导致2020/2024/2026年多头组被Q7-Q9超越。改进方向：(1)将LOG(TS_MEAN($amount,20))替换为RANK(TS_MEAN($amount,20))，利用RANK的有界性[0,1]和均匀分布特性压缩极端流动性股票的因子值，使Q10与Q7-Q9的区分度更线性，改善单调",
+ "factors": [
+  {
+   "name": "AmountStability_RankLiq_Bounded",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*RANK(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.08233,
+   "long_total": 1.34521,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountConvergence_Liquidity_20D",
+   "expr": "-TS_STD($amount,10)/(TS_STD($amount,60)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.198, 年度越序峰值=11.2%, 负年=[2026]",
+   "ic_mean": 0.05433,
+   "long_total": 0.94029,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

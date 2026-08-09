@@ -1,0 +1,31 @@
+{
+ "round": 59,
+ "hypothesis": "A股日内价格路径的效率与量能集中时点分别反映趋势质量与资金主动行为，两类信息在短周期内具有预测力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayEfficiencyTrend_5D",
+   "expr": "TS_MEAN(MEAN($return) / (MEAN(ABS($return)) + 1e-8), 5)",
+   "style": "短期趋势/量价行为",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.098, 年度越序峰值=10.7%",
+   "ic_mean": 0.04085,
+   "long_total": 0.05653,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumePeakTiming_5D",
+   "expr": "TS_MEAN(TS_ARGMAX($volume), 5)",
+   "style": "量价行为/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.080, 年度越序峰值=13.1%",
+   "ic_mean": 0.03447,
+   "long_total": 0.12465,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

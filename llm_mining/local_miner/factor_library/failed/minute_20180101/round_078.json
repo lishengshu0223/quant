@@ -1,0 +1,31 @@
+{
+ "round": 78,
+ "hypothesis": "上轮失败源于KURT/SKEW的分钟聚合导致内存爆炸，因此改用轻量的REGRESSION_SLOPE与CORR构造。假设A股尾盘成交额放大代表知情资金抢筹，而日内价格与成交量时间趋势的共振反映资金持续推动，两者均预示未来5日超额收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVolumeTrendMomentum_5D",
+   "expr": "TS_MEAN(RANK(REGRESSION_SLOPE($amount, $minute)), 5)",
+   "style": "流动性/量能趋势/短期动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayPriceVolumeTrendSync_5D",
+   "expr": "TS_MEAN(RANK(CORR($close, $minute) * CORR($volume, $minute)), 5)",
+   "style": "量价共振/趋势强度/短期动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

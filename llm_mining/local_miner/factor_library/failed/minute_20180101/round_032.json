@@ -1,0 +1,35 @@
+{
+ "round": 32,
+ "hypothesis": "日内收益分布的不对称性以及量价同步关系反映了短期资金行为的微观结构特征，市场对其反应不足，因而可预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayReturnSkewnessPremium_5D",
+   "expr": "TS_MEAN(RANK(SKEW($return)), 5)",
+   "style": "短期反转/波动率",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.167, 年度越序峰值=10.2%",
+   "ic_mean": 0.0492,
+   "long_total": 0.27072,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "IntradayVolumeReturnCorrelation_5D",
+   "expr": "TS_MEAN(CORR($return, $volume), 5)",
+   "style": "量价背离/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+2.77%, 多头=-27.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02769,
+   "long_total": -0.27429,
+   "monthly_pos_ratio": 0.7767,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025
+   ]
+  }
+ ]
+}

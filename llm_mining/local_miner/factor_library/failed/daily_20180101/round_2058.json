@@ -1,0 +1,34 @@
+{
+ "round": 2058,
+ "hypothesis": "假设1：成交额稳定+成交额加权收益为正=机构在稳定预算下持续净买入(主动建仓)，VWAP drift作为方向性质量指标可剔除无方向性的僵尸股，改善top decile单调性；假设2：成交额稳定+收益率正自相关=机构持续推升形成趋势，自相关为负则说明稳定交易对应的是均值回归噪声而非建仓行为，该维度在不同市场风格下均有效(度量的是收益动态结构而非水平)。",
+ "reflection": "当前因子核心问题：(1)单调性不足——2020/2024/2026年Q10被Q7-Q9超越，说明最高因子值区间混入了'稳定但无方向性alpha'的僵尸股；(2)小盘崩盘和科技抱团期脆弱，因子对风格切换缺乏鲁棒性。本轮改进策略：保留低CV×高流动性的核心框架，但将LOG(流动性)替换为具有方向性经济含义的变量，从结构上剔除无方向性的稳定交易。因子1用成交额加权收益(VWAP drift)度量稳定交易",
+ "factors": [
+  {
+   "name": "AmountStability_DirectionalFlow_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($return*$amount,20)/(TS_SUM($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_ReturnAutocorr_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_CORR($return,DELAY($return,1),20)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+0.26%, 多头=-63.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00263,
+   "long_total": -0.63694,
+   "monthly_pos_ratio": 0.5049,
+   "grade": "C",
+   "neg_years": [
+    2024,
+    2026
+   ]
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+{
+ "round": 4,
+ "hypothesis": "上轮量价相关性因子方向矛盾且单调性为C级，说明简单的当日相关系数结构不稳定；IntradayHighLowTiming因内存失败不可用。本轮放弃此类结构，改用截面RANK中间层强化单调性，并围绕尾盘资金参与度与日内价格冲击两个独立微观结构逻辑构建因子，使IC与多头收益同向且更稳定。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LateVolumeDominance_5D",
+   "expr": "TS_MEAN(RANK(SUM(SLICE($volume, \"14:00\", \"15:00\")) / (SUM($volume) + 1e-8)), 5)",
+   "style": "流动性/资金流向(短期)",
+   "reason": "方向无效",
+   "detail": "IC=+2.71%, 多头=-30.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02713,
+   "long_total": -0.30925,
+   "monthly_pos_ratio": 0.6796,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  },
+  {
+   "name": "AmihudIntradayImpact_5D",
+   "expr": "TS_MEAN(RANK(MEAN(ABS($return) / ($amount + 1e-8))), 5)",
+   "style": "流动性/价格冲击(短期)",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.123, 年度越序峰值=10.1%, 负年=[2020]",
+   "ic_mean": 0.01588,
+   "long_total": 0.8147,
+   "monthly_pos_ratio": 0.5922,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "round": 52,
+ "hypothesis": "A股短期动量与反转并存：收盘价在日内区间的相对位置反映当日多空博弈的最终优劣，位置越高代表买方主导越强，短期内存在动量延续；而分钟收益与成交量的正相关代表放量推动，容易出现情绪透支后的反转，因此分别捕捉动量延续与量价反转两类微观结构信号。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ClosePositionMomentum_5D",
+   "expr": "TS_MEAN((LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8), 5)",
+   "style": "短期动量/量价行为",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolumeReturnReversal_5D",
+   "expr": "-1 * TS_MEAN(CORR($return, $volume), 5)",
+   "style": "量价背离/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+2.77%, 多头=-27.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02769,
+   "long_total": -0.27429,
+   "monthly_pos_ratio": 0.7767,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025
+   ]
+  }
+ ]
+}

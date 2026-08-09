@@ -1,0 +1,37 @@
+{
+ "round": 2029,
+ "hypothesis": "假设1：TS_RANK(CV,60)度量的是'当前稳定性相对于自身近3个月历史的分位'，在机构开始锁仓的拐点处信号最敏感，且不受市场整体波动水平影响，年度稳定性更优；假设2：中位数/均值比接近1意味着成交额分布对称无尖峰，是程序化机构交易的特征，比CV更稳健地识别真正的锁仓状态，改善单调性。",
+ "reflection": "当前因子单调性不足的核心原因是SQRT(CV)在极端值处仍保留非线性扭曲，导致最高分组混入僵尸股。本轮从两个结构性方向改进：(1)用TS_RANK将CV转化为相对自身历史的分位数，使信号在不同市场波动环境下自适应，避免绝对CV阈值在2020高波动年和2024风格切换年失效；(2)用中位数/均值比替代CV度量稳定性，该指标对单日极端成交额天然免疫，减少脉冲式放量对稳定性判断的干扰，从而改善头部分组的",
+ "factors": [
+  {
+   "name": "AmountStability_RankCV_60D",
+   "expr": "-TS_RANK(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.03611,
+   "long_total": 0.58759,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_MedianRatio_20D",
+   "expr": "TS_MEDIAN($amount,20)/(TS_MEAN($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+0.45%, 多头=-119.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00445,
+   "long_total": -1.19492,
+   "monthly_pos_ratio": 0.5728,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

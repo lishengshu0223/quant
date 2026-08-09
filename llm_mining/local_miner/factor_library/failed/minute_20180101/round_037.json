@@ -1,0 +1,31 @@
+{
+ "round": 37,
+ "hypothesis": "前两轮因子因分组单调性C级被拒，核心问题是日内噪声过大。本轮转向截面持续性更强的开盘相对强度与订单流不平衡，用5日RANK均值平滑，预期能提升排序稳定性并捕捉短期资金惯性效应。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "OpeningRelativeStrength_5D",
+   "expr": "TS_MEAN(RANK(MEAN(SLICE(RANK($return), \"09:31\", \"10:00\"))), 5)",
+   "style": "动量/短期",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.95 GiB for an array with shape (200, 240, 5455) and data type floa",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayOrderFlowImbalance_5D",
+   "expr": "TS_MEAN(RANK(SUM($amount * SIGN($return)) / (SUM($amount) + 1e-8)), 5)",
+   "style": "量价背离/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.93%, 多头=-10.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01934,
+   "long_total": -0.10539,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

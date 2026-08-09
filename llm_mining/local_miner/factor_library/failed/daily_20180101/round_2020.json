@@ -1,0 +1,35 @@
+{
+ "round": 2020,
+ "hypothesis": "假设1：日内振幅波动率低（range stability）的股票处于机构控盘状态，价格被有序管理，未来收益更高且在不同市场风格下更稳定；假设2：成交量与绝对收益负相关（volume-volatility decorrelation）的股票呈现机构吸筹特征（平静日放量、波动日缩量），该信号天然有界且与CV正交，能改善极端分组的单调性。",
+ "reflection": "当前因子单调性问题源于极端低CV股票中混入无催化剂的僵尸股，且LOG(TS_MEAN($amount,20))在超大市值股上产生极端值导致Q10被少数股票主导。本轮从两个全新经济维度切入：(1)用日内振幅的时序稳定性替代成交额CV，振幅压缩直接反映机构控盘程度，与价格行为更紧密关联，在不同风格环境下更鲁棒；(2)用成交量与绝对收益的相关性度量量价协同模式，负相关代表机构在平静日吸筹（量增价稳），是",
+ "factors": [
+  {
+   "name": "AmplitudeStability_Liq_20D",
+   "expr": "-TS_STD(($high-$low)/($close+1e-8),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.120, 年度越序峰值=23.1%, 负年=[2026]",
+   "ic_mean": 0.0774,
+   "long_total": 0.26769,
+   "monthly_pos_ratio": 0.8447,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "VolReturnDecorrelation_Liq_20D",
+   "expr": "-TS_CORR($volume,ABS($return),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+1.00%, 多头=-15.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00999,
+   "long_total": -0.15348,
+   "monthly_pos_ratio": 0.5922,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  }
+ ]
+}

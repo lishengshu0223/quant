@@ -1,0 +1,33 @@
+{
+ "round": 44,
+ "hypothesis": "日内价格位置和分钟收益的自相关结构反映了市场参与者的行为惯性：收盘位置较高、日内趋势性较强的股票，其短期强势信号可能在未来数日延续，从而产生超额收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayClosePosition_5D",
+   "expr": "TS_MEAN(RANK((LAST($close) - MIN($low)) / (MAX($high) - MIN($low) + 1e-8)), 5)",
+   "style": "短期动量/日内价格位置",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayReturnAutocorr_5D",
+   "expr": "TS_MEAN(RANK(TS_AUTOCORR($return, 1)), 5)",
+   "style": "短期趋势/自相关",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=16.6%, 负年=[2025]",
+   "ic_mean": 0.05129,
+   "long_total": 0.31819,
+   "monthly_pos_ratio": 0.7379,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  }
+ ]
+}

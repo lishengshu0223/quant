@@ -1,0 +1,31 @@
+{
+ "round": 2039,
+ "hypothesis": "假设1：成交额稳定+上涨日成交额占比高=机构在稳定预算下持续净买入，比单纯高流动性更能识别有方向性的建仓行为，且该信号有界[0,1]使分组单调性更优；假设2：成交额稳定+高胜率+高截面流动性排名=三重确认的机构控盘，胜率过滤掉无方向僵尸股，RANK($amount)消除绝对规模的非线性放大，两者结合在不同风格环境下均有效。",
+ "reflection": "当前因子单调性不足的根源在于：极端低CV+高流动性的股票中包含大量无方向性的'僵尸稳定股'，它们在2020/2024/2026年拖累了多头组表现。本轮从经济逻辑层面引入'资金流向方向性'这一全新维度：(1)用上涨日成交额占比替代LOG(流动性)，度量稳定交易中隐含的买入压力；(2)用胜率(COUNT)×截面流动性排名构建方向确认+流动性双重过滤。两者均为有界[0,1]信号，天然改善头部区分度和单调",
+ "factors": [
+  {
+   "name": "AmountStability_UpAmountShare_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($amount*($return>0),20)/(TS_SUM($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_WinRate_RankLiq_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*COUNT($return>0,20)/20*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 9 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

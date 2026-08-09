@@ -1,0 +1,37 @@
+{
+ "round": 2073,
+ "hypothesis": "假设1：峰值/均值比低意味着20日内无单日异常放量，排除了事件驱动型交易(如游资打板、消息刺激)，剩余的是机构按节奏均匀建仓的标的，SQRT压缩使Q8-Q10之间的区分更线性；假设2：中位数/均值比高意味着成交额分布对称无右偏，即没有少数几天贡献了大部分成交额，这是算法交易(TWAP)的统计指纹，与CV度量的整体波动率互补，天然有界性可改善极端分组单调性。",
+ "reflection": "当前因子的单调性问题(Q10被Q7-Q9超越)源于CV作为离散度指标对极端值过度敏感——极低CV的僵尸股与真正机构锁仓股难以区分。本轮从成交额分布形态入手做结构性创新：(1)用峰值/均值比替代CV，捕捉'是否存在单日异常放量'这一独立经济维度，SQRT压缩极端值改善尾部单调性；(2)用中位数/均值比度量分布右偏程度，高比值=无尖峰脉冲=机构均匀建仓，天然有界[0,1]避免极端值污染Q10。两者均保",
+ "factors": [
+  {
+   "name": "AmountPeakRatio_Liquidity_20D",
+   "expr": "-SQRT(TS_MAX($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06583,
+   "long_total": 1.22248,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountMedianRatio_Liquidity_20D",
+   "expr": "TS_MEDIAN($amount,20)/(TS_MEAN($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+0.45%, 多头=-119.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00445,
+   "long_total": -1.19492,
+   "monthly_pos_ratio": 0.5728,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025,
+    2026
+   ]
+  }
+ ]
+}

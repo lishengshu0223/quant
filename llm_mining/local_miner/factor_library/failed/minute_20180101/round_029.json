@@ -1,0 +1,31 @@
+{
+ "round": 29,
+ "hypothesis": "上轮因子主要因分组单调性不足而失败，本轮改用“截面相对排序+5日平均”来强化单调性，并分别从日内波动率爆发频率与开盘成交量集中度两个独立微观结构维度捕捉风险溢价与注意力反转。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVolatilityBurstReversal_5D",
+   "expr": "TS_MEAN(-RANK(COUNT(MASK(INTRADAY_STD($return, 5), \">\", STD($return)))), 5)",
+   "style": "波动率/风险溢价 (短期)",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.169, 年度越序峰值=16.8%",
+   "ic_mean": 0.05808,
+   "long_total": 0.30576,
+   "monthly_pos_ratio": 0.835,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "OpeningVolumeAttentionReversal_5D",
+   "expr": "TS_MEAN(-RANK(MEAN(SLICE($volume, \"09:31\", \"10:00\")) / (MEAN($volume) + 1e-8)), 5)",
+   "style": "流动性/注意力 (短期)",
+   "reason": "方向无效",
+   "detail": "IC=+4.18%, 多头=-6.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04181,
+   "long_total": -0.0638,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

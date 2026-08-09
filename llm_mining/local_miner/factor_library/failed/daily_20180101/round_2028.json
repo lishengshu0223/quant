@@ -1,0 +1,31 @@
+{
+ "round": 2028,
+ "hypothesis": "假设1：用RANK替代LOG度量流动性，消除绝对规模对因子值的非线性放大，使因子在高分区的区分度更均匀，单调性改善；假设2：日间成交额变化频率低(序列光滑)是机构算法执行的直接证据，比CV更能区分'有规律的稳定'和'偶然的低波动'，在不同风格环境下都有效。",
+ "reflection": "当前因子单调性问题根源在于LOG(TS_MEAN($amount,20))无上限增长，导致多头组被超大市值股票主导，而这些股票在2020/2024等年份弹性不足，被Q7-Q9超越。改进方向：(1)将流动性度量从LOG改为截面RANK，使其有界[0,1]，削弱超大市值股票对头部的垄断，让中盘低CV股也能进入多头组，提升单调性；(2)用全新的日间成交额持续性指标(逐日变化幅度小于阈值的频率)替代CV，",
+ "factors": [
+  {
+   "name": "AmountStability_RankLiq_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*RANK(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.08233,
+   "long_total": 1.34521,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountPersistence_Liq_20D",
+   "expr": "COUNT(ABS($amount/DELAY($amount,1)-1)<0.3,20)/20*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 9 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

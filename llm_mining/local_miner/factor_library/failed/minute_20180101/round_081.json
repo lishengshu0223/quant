@@ -1,0 +1,31 @@
+{
+ "round": 81,
+ "hypothesis": "A股日内分钟频率中，波动区间与成交量的协同程度反映了信息流驱动的交易活跃度，波动聚集性则反映了信息释放的持续性，两者均蕴含对未来收益的可预测信息。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVolatilityVolumeSync_1D",
+   "expr": "CORR($high-$low, $volume)",
+   "style": "量价共振/微观结构",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayVolatilityClustering_1D",
+   "expr": "TS_AUTOCORR(ABS($return), 1)",
+   "style": "波动率聚集/微观结构",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 TS_AUTOCORR",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

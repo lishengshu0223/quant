@@ -1,0 +1,38 @@
+{
+ "round": 23,
+ "hypothesis": "A股日内价格路径斜率和流动性时间分布反映交易者行为：日内持续买盘推动的斜率越强、早盘资金参与度越高，未来5日短期收益越可能延续；针对上轮单调性不足，改用日频截面排序并做5日均值以强化分组结构。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayTrendSlopeNorm_5D",
+   "expr": "TS_MEAN(RANK(REGRESSION_SLOPE($close, $minute) / (MAX($high) - MIN($low) + 1e-8)), 5)",
+   "style": "短期趋势/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.070, 年度越序峰值=8.7%, 负年=[2020, 2026]",
+   "ic_mean": 0.01657,
+   "long_total": 0.12116,
+   "monthly_pos_ratio": 0.6796,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  },
+  {
+   "name": "IntradayVolumeTimingSpread_5D",
+   "expr": "TS_MEAN(RANK(LOG(MEAN(SLICE($amount, \"09:31\", \"10:00\")) / (MEAN(SLICE($amount, \"14:00\", \"15:00\")) + 1e-8))), 5)",
+   "style": "流动性/日内关注度",
+   "reason": "方向无效",
+   "detail": "IC=+3.73%, 多头=-19.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03733,
+   "long_total": -0.1977,
+   "monthly_pos_ratio": 0.8155,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2026
+   ]
+  }
+ ]
+}

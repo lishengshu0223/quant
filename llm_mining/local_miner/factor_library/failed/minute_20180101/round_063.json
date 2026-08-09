@@ -1,0 +1,36 @@
+{
+ "round": 63,
+ "hypothesis": "日内价格极值的时间分布与尾盘成交量集中度反映了多空力量切换的时点与尾盘资金行为，在5日周期内具有预测力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayHighLowTimeAsym_5D",
+   "expr": "TS_MEAN(TS_ARGMAX($high) - TS_ARGMIN($low), 5)",
+   "style": "趋势/量价背离",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.32 GiB for an array with shape (176510880,) and data type int64",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ClosingVolumeConcentration_5D",
+   "expr": "TS_MEAN(SUM(SLICE($volume,\"14:30\",\"15:00\"))/(SUM($volume)+1e-8), 5)",
+   "style": "流动性/尾盘行为",
+   "reason": "方向无效",
+   "detail": "IC=+1.24%, 多头=-69.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01239,
+   "long_total": -0.69576,
+   "monthly_pos_ratio": 0.5728,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025
+   ]
+  }
+ ]
+}

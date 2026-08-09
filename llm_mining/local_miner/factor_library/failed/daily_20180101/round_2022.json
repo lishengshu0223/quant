@@ -1,0 +1,31 @@
+{
+ "round": 2022,
+ "hypothesis": "假设1：近期稳定性比历史平均稳定性更有预测力，DECAYLINEAR赋予近期CV更高权重，能更快识别机构开始锁仓的拐点，在不同风格环境下都能及时响应；假设2：成交额在自身窗口内的排名序列如果也很稳定（低std），说明交易节奏高度规律（如机构定时定量交易），这种'节奏稳定性'比水平稳定性更能排除偶发因素，且在极端行情中更鲁棒（因为rank有界）。",
+ "reflection": "当前因子主要问题：(1)2020/2024/2026年多头组被Q7-Q9超越，说明极端低CV的僵尸股污染了头部；(2)小盘崩盘和科创板抱团期回撤大，说明静态CV度量对风格切换不够鲁棒。本轮从两个方向做结构性创新：方向一是用DECAYLINEAR对短周期CV做时间衰减加权，捕捉'正在变稳定'的动态信号而非静态水平，使因子对风格切换更敏感、更快适应；方向二是用TS_RANK的时序标准差度量成交额的'节",
+ "factors": [
+  {
+   "name": "AmountStability_DecayCV_5x20D",
+   "expr": "-DECAYLINEAR(TS_STD($amount,5)/(TS_MEAN($amount,5)+1e-8),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06383,
+   "long_total": 0.87507,
+   "monthly_pos_ratio": 0.9709,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountRankStability_Liq_20D",
+   "expr": "-TS_STD(TS_RANK($amount,20),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.134, 年度越序峰值=10.5%",
+   "ic_mean": 0.02914,
+   "long_total": 0.28475,
+   "monthly_pos_ratio": 0.767,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

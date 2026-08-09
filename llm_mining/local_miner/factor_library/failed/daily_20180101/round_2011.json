@@ -1,0 +1,33 @@
+{
+ "round": 2011,
+ "hypothesis": "因子1：成交额IQR变异系数(75分位-25分位)/均值越低，说明交易模式真正稳定(排除单日脉冲干扰)，筹码锁定度高，未来收益更高；因子2：成交额稳定且近期流动性相对长期历史扩张(5日均额/60日均额>1)，代表机构在稳定底仓基础上开始加仓，是更可靠的看多信号，且有界比率避免极端尾部噪声",
+ "reflection": "当前最佳因子AmountStability_20D的核心问题是分组单调性不足(2020/2024/2026年Q10被Q7-Q9超越)，说明因子极端值存在噪声。诊断原因：(1)STD对单日异常成交量(大宗交易、指数调仓)敏感，导致部分股票CV被人为压低进入Q10但实际并非真正稳定；(2)LOG(amount)交互在极端高流动性端过度偏向超大盘股，在动量/中小盘风格年份(2020/2024)表现不佳。",
+ "factors": [
+  {
+   "name": "AmountStability_IQR_20D",
+   "expr": "-(TS_QUANTILE($amount,20,0.75)-TS_QUANTILE($amount,20,0.25))/(TS_MEAN($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.05096,
+   "long_total": 0.50141,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_RelLiq_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_MEAN($amount,5)/(TS_MEAN($amount,60)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.167, 年度越序峰值=10.1%, 负年=[2026]",
+   "ic_mean": 0.06376,
+   "long_total": 0.77969,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

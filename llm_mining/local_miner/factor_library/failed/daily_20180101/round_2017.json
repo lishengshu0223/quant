@@ -1,0 +1,31 @@
+{
+ "round": 2017,
+ "hypothesis": "假设1：CV经SQRT压缩后，极端值的影响被削弱，因子在高分区的区分度更线性，单调性改善；假设2：CV的时序下降(稳定性改善)是机构开始锁仓的动态信号，比静态低CV更能捕捉alpha的起点，且在不同风格环境下都有效(因为度量的是变化而非水平)。",
+ "reflection": "当前最佳因子(info ratio=2.95)的主要问题是分组单调性不足(2020/2024/2026年多头组被Q7-Q9超越)和极端风格期脆弱。诊断发现：极端高因子值(最稳定+最大流动性)的股票未必是未来收益最高的，说明因子在尾部存在非线性失真。本轮从两个方向改进：(1)用SQRT压缩CV信号，降低极端稳定股(可能是僵尸股/停牌复牌股)的过度权重，使因子值与未来收益的关系更接近线性，从而改善单调",
+ "factors": [
+  {
+   "name": "AmountStability_SqrtCV_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0704,
+   "long_total": 1.10499,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_ImprovingCV_20D",
+   "expr": "-DELTA(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),20)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2024']",
+   "ic_mean": 0.02551,
+   "long_total": 0.19439,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

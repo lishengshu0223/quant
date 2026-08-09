@@ -1,0 +1,34 @@
+{
+ "round": 2063,
+ "hypothesis": "假设1：成交额稳定+收益方向效率高(净涨幅/总波动大)=机构在稳定预算下有方向性地持续建仓，方向效率项可剔除无方向僵尸股，改善顶部单调性；假设2：成交额稳定+日内买入压力持续为正(close>open)=机构在盘中主动推升而非尾盘拉升，是更真实的建仓信号，且该维度在不同市场风格下均有效。",
+ "reflection": "当前因子单调性问题源于极端低CV但无方向性的僵尸股占据多头组顶部。本轮从两个全新经济维度做结构创新：(1)引入收益方向效率(净收益/总波动)作为质量乘数，识别稳定成交额下有明确方向性建仓的股票；(2)引入日内买入压力(close/open)作为机构行为识别维度，捕捉稳定流动性下机构在盘中持续推升的行为特征。两者均非对原核心项的参数微调或平滑包装，而是引入独立的经济逻辑维度来改善多头组纯度。",
+ "factors": [
+  {
+   "name": "AmountStability_DirectionalEfficiency_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($return,20)/(TS_SUM(ABS($return),20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_IntradayPressure_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN($close/($open+1e-8)-1,20)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.117, 年度越序峰值=22.9%, 负年=[2020, 2026]",
+   "ic_mean": 0.06115,
+   "long_total": 0.1932,
+   "monthly_pos_ratio": 0.9029,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  }
+ ]
+}

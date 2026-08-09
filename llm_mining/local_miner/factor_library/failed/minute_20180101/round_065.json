@@ -1,0 +1,35 @@
+{
+ "round": 65,
+ "hypothesis": "日内量价配合程度和尾盘相对强度分别刻画资金参与意愿与日内资金流向变化，二者独立反映短期价格持续能力，可用于预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVolumeReturnCorr_5D",
+   "expr": "TS_MEAN(CORR($volume, $return), 5)",
+   "style": "量价配合/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+2.77%, 多头=-27.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02769,
+   "long_total": -0.27429,
+   "monthly_pos_ratio": 0.7767,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "IntradayRelativeStrengthShift_5D",
+   "expr": "TS_MEAN(MEAN(SLICE(RANK($return), \"14:30\", \"15:00\")) - MEAN(SLICE(RANK($return), \"09:31\", \"10:00\")), 5)",
+   "style": "日内动量/资金流",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 1.95 GiB for an array with shape (200, 240, 5455) and data type floa",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

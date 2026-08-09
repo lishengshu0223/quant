@@ -1,0 +1,31 @@
+{
+ "round": 2102,
+ "hypothesis": "假设1：5日均额比20日最低成交额更能反映机构当前的建仓强度——TS_MIN是回溯性极值，可能来自数周前的单日缩量，而5日均额捕捉的是'此刻'的交易活跃度，能更好区分正在被 accumulation 的股票与已经沉寂的股票；假设2：成交底线×价格位置的交互项能识别'有量且有价'的机构控盘股——单纯高底线可能是大盘蓝筹的被动稳定，叠加价格位置确认后，只有处于上升趋势中的稳定股才能获得高评分，改善Q1",
+ "reflection": "当前因子的核心问题是Q10被Q8/Q9超越(2020/2024/2026年)，说明因子极端顶部的股票(最稳定+最高成交底线)中混入了'稳定但缺乏上行动力'的大盘股。改进方向：(1)将底部支撑从TS_MIN(回溯性极值)替换为TS_MEAN($amount,5)(近期活跃度)，使因子更偏向'正在被积极交易'的稳定股，而非'曾经有支撑但当前沉寂'的股票；(2)在LOG内部将TS_MIN与TS_RANK",
+ "factors": [
+  {
+   "name": "AmountStability_Pow25CV_RecentActivity5D_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MEAN($amount,5)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07796,
+   "long_total": 1.22134,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_Pow25CV_PriceAdjFloor_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MIN($amount,20)*TS_RANK($close,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07743,
+   "long_total": 1.06504,
+   "monthly_pos_ratio": 0.9126,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

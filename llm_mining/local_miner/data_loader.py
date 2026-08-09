@@ -4,8 +4,13 @@
 完全脱离 qlib / rqagent: 直接从本地 F:\\Trade_data\\stock_price 的 parquet 文件
 (通过项目自有的 local_api) 一次性加载全A股后复权量价数据到内存,
 构造成 宽表(日期×股票代码) 供因子表达式引擎快速计算。
+
+同时加载每日可交易状态(F:\\Trade_data\\tradable_status, 由 update/tradable_status
+模块生成): 剔除 ST / 停牌 / 上市未满一年 / 涨跌停 的股票, 避免因子收益虚高。
 """
 
+import glob
+import os
 import time
 
 import numpy as np
@@ -16,6 +21,9 @@ import local_api
 from . import console
 
 FIELDS = ["open", "close", "high", "low", "volume", "total_turnover"]
+
+# 每日可交易状态数据目录(update/tradable_status 模块产出, YYYYMMDD.parquet)
+TRADABLE_STATUS_DIR = r"F:\Trade_data\tradable_status"
 
 
 class MarketData:
@@ -51,6 +59,9 @@ class MarketData:
         self.close_long.index.names = ["date", "code"]
         del df
 
+        # 每日可交易状态宽表(True=可交易), 用于剔除 ST/停牌/次新/涨跌停
+        self.tradable = self._load_tradable_status()
+
         self.n_dates = self.close.shape[0]
         self.n_stocks = self.close.shape[1]
         self.date_range = (str(self.close.index.min().date()), str(self.close.index.max().date()))
@@ -59,6 +70,26 @@ class MarketData:
             f"区间 {self.date_range[0]} ~ {self.date_range[1]}, "
             f"耗时 {time.time()-t0:.1f} 秒"
         )
+
+    def _load_tradable_status(self) -> pd.DataFrame:
+        """从 F:\\Trade_data\\tradable_status 加载每日可交易状态宽表(日期×股票, bool)"""
+        t0 = time.time()
+        files = sorted(glob.glob(os.path.join(TRADABLE_STATUS_DIR, "*.parquet")))
+        if not files:
+            console.log("    [警告] tradable_status 数据目录为空, 交易资格遮盖失效。")
+            return pd.DataFrame(index=self.close.index, columns=self.close.columns, dtype=bool).fillna(True)
+        frames = []
+        for fp in files:
+            day = pd.read_parquet(fp, columns=["code", "tradable"])
+            day["date"] = pd.Timestamp(os.path.basename(fp)[:8])
+            frames.append(day)
+        df = pd.concat(frames, ignore_index=True)
+        wide = df.pivot_table(index="date", columns="code", values="tradable", aggfunc="first")
+        wide = wide.astype(bool)
+        console.log(
+            f"    可交易状态加载完成: {len(wide)} 个交易日, 耗时 {time.time()-t0:.1f} 秒"
+            f" (剔除 ST/停牌/次新/涨跌停)")
+        return wide
 
     def var(self, name: str) -> pd.DataFrame:
         """按变量名($open等)返回对应宽表"""

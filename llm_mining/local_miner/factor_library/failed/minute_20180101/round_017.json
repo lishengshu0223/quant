@@ -1,0 +1,35 @@
+{
+ "round": 17,
+ "hypothesis": "基于A股个人投资者主导与有限套利环境：低流动性资产需更高的预期收益补偿，且右尾彩票型分钟收益分布吸引过度买入导致未来低收益；两者均从日内微观行为映射到截面预期收益排序。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LiquidityLevelRank_5D",
+   "expr": "TS_MEAN(RANK(MEAN($amount)),5)",
+   "style": "流动性/流动性溢价",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.243, 年度越序峰值=7.5%, 负年=[2026]",
+   "ic_mean": 0.0783,
+   "long_total": 1.31569,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "IntradaySkewnessAvoid_5D",
+   "expr": "TS_MEAN(RANK(-SKEW($return)),5)",
+   "style": "波动率/彩票偏好",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.167, 年度越序峰值=10.3%, 负年=[2026]",
+   "ic_mean": 0.0492,
+   "long_total": 0.27072,
+   "monthly_pos_ratio": 0.8641,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

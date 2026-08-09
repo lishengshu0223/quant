@@ -1,0 +1,31 @@
+{
+ "round": 2093,
+ "hypothesis": "假设1：以DECAYLINEAR为基准的CV天然具有'近期加权'特性，当流动性正在恶化时(如小盘股崩盘前)，近期成交额下降会使DECAYLINEAR快速低于TS_MEDIAN，CV被放大，从而更早将恶化股票排除出多头组，增强压力期鲁棒性；假设2：10分位成交额比TS_MIN更能代表机构的'常态支撑水平'——TS_MIN仅是单日极值，可能由节假日/停牌前等非市场因素造成，而10分位数过滤了最极端的1",
+ "reflection": "当前因子的核心问题是分组单调性不足(Q10被Q7-Q9超越)和压力期脆弱。诊断认为：(1)TS_MIN作为成交底线度量过于极端，单日异常低值(节假日/停牌前)会扭曲排序，导致Q10混入伪稳定股；(2)TS_MEAN/TS_MEDIAN作为CV分母对近期流动性变化反应迟钝，在风格切换期(如2024年2月小盘崩盘)无法及时排除流动性正在恶化的股票。本轮改进方向：因子1用DECAYLINEAR替代TS_",
+ "factors": [
+  {
+   "name": "AmountStability_DecayCV_MinFloor_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(DECAYLINEAR($amount,20)+1e-8))*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06016,
+   "long_total": 1.13686,
+   "monthly_pos_ratio": 0.932,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_MedianCV_Q10Floor_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8))*LOG(TS_QUANTILE($amount,20,0.1)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0654,
+   "long_total": 1.07636,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "round": 15,
+ "hypothesis": "上轮量价时点类因子分组单调性不佳，说明非线性拆分易受极端分钟干扰；本轮改用连续且低自由度的日内价格路径位置与单位成交额冲击成本，分别捕捉短期动量惯性与流动性溢价。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayCloseLocation_5D",
+   "expr": "TS_MEAN((LAST($close)-MIN($close))/(MAX($close)-MIN($close)+1e-8),5)",
+   "style": "短期动量/日内趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.097, 年度越序峰值=14.6%, 负年=[2020, 2026]",
+   "ic_mean": 0.01482,
+   "long_total": 0.0651,
+   "monthly_pos_ratio": 0.6796,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  },
+  {
+   "name": "LogPriceImpactPerAmount_5D",
+   "expr": "TS_MEAN(LOG(MEAN(ABS($return))+1e-8)-LOG(MEAN($amount)+1e-8),5)",
+   "style": "流动性溢价/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.240, 年度越序峰值=8.1%, 负年=[2026]",
+   "ic_mean": 0.07811,
+   "long_total": 1.20856,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

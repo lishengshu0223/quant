@@ -1,0 +1,36 @@
+{
+ "round": 71,
+ "hypothesis": "A股日内分钟收益的偏度（彩票型脉冲）与分钟收益对时间的回归斜率（盘中趋势）均反映短期投机情绪过度，未来5个交易日价格回归均值，因此取负向构造反转因子",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradaySkewReversal_5D",
+   "expr": "TS_MEAN(-SKEW($return), 5)",
+   "style": "短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.174, 年度越序峰值=10.1%",
+   "ic_mean": 0.05234,
+   "long_total": 0.14016,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "IntradayTimeTrendReversal_5D",
+   "expr": "TS_MEAN(-REGRESSION_SLOPE($return, $minute), 5)",
+   "style": "短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+0.44%, 多头=-107.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00439,
+   "long_total": -1.07469,
+   "monthly_pos_ratio": 0.5049,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025
+   ]
+  }
+ ]
+}

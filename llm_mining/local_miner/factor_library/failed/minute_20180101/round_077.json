@@ -1,0 +1,31 @@
+{
+ "round": 77,
+ "hypothesis": "A股散户对日内彩票型极端收益与脉冲式放量的股票过度乐观，导致其未来5日跑输；低峰度/低偏度代表的稳健交易结构应获得风险补偿。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayKurtosisLottery_5D",
+   "expr": "TS_MEAN(RANK(-KURT($return)), 5)",
+   "style": "彩票效应/跳跃风险(短期)",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayVolumeSkewFlow_5D",
+   "expr": "TS_MEAN(RANK(-SKEW($volume)), 5)",
+   "style": "流动性脉冲/交易结构(短期)",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

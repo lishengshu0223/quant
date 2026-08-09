@@ -1,0 +1,31 @@
+{
+ "round": 2049,
+ "hypothesis": "假设1：TS_ZSCORE(CV,60)度量当前成交额稳定性在自身近3个月中的相对位置，低分位=正在变稳定(机构开始控盘的动态信号)，比绝对低CV更能排除长期无交易的僵尸股，改善top decile的单调性；假设2：成交额稳定+成交额加权收益为正=机构在稳定预算下持续净买入(有方向性的建仓)，比单纯高流动性更能识别主动建仓行为，且该信号在不同市场风格下均有正向预测力。",
+ "reflection": "针对单调性不足问题(Q10被Q7-Q9超越)，核心原因是极端低CV的僵尸股污染多头组。本轮从两个方向做结构性创新：(1)用TS_ZSCORE替代静态SQRT(CV)，度量'当前稳定性相对自身历史的改善程度'，捕捉机构开始锁仓的动态起点而非静态水平，避免长期低成交的僵尸股入选；(2)引入成交额加权收益方向(VWAP drift)作为全新经济维度，将'稳定'与'方向性资金流入'结合，使多头组不仅有稳定",
+ "factors": [
+  {
+   "name": "AmountStability_ZScoreDynamic_60D",
+   "expr": "-TS_ZSCORE(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.197, 年度越序峰值=12.2%",
+   "ic_mean": 0.02983,
+   "long_total": 0.43003,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_VWAPDrift_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($return*$amount,20)/(TS_SUM($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

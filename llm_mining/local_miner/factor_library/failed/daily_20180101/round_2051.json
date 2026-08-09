@@ -1,0 +1,33 @@
+{
+ "round": 2051,
+ "hypothesis": "假设1：成交额稳定+成交额加权收益为正=机构在稳定预算下持续净买入(主动建仓)，比单纯高流动性更能识别有方向性的控盘行为，在动量年份不会选入僵尸股；假设2：CV的10日变化为负(正在变稳定)=机构开始锁仓的动态信号，比静态低CV更能捕捉alpha的起点，且该信号在价值/成长风格切换中均有效。",
+ "reflection": "当前因子主要问题是单调性不足(2020/2024/2026年多头组非第一)和极端风格脆弱性。诊断发现：在动量/成长风格年份，纯低CV+高流动性的多头组混入了被动持有的僵尸股，缺乏方向性。本轮从两个方向改进：(1)引入量价方向协同——成交额稳定且加权收益为正(上涨日贡献更多成交额)=机构主动建仓而非被动持有，增强动量年份的适应性；(2)引入CV的动态变化(DELTA)——稳定性正在改善的股票比已经稳",
+ "factors": [
+  {
+   "name": "AmountStability_DirectionalFlow_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($return*$amount,20)/(TS_SUM($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_CVImprovement_20D",
+   "expr": "-DELTA(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),10)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+1.85%, 多头=-20.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01847,
+   "long_total": -0.20719,
+   "monthly_pos_ratio": 0.7767,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

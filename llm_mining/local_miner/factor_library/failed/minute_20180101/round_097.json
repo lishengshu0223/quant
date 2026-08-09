@@ -1,0 +1,31 @@
+{
+ "round": 97,
+ "hypothesis": "日内最高与最低价出现顺序及分钟K线下影线强度分别刻画盘中多空动能切换与低位承接力量，在A股散户主导环境下具有持续性，可预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayExtremeOrder_5D",
+   "expr": "TS_MEAN(TS_ARGMAX($high) - TS_ARGMIN($low), 5)",
+   "style": "日内价格结构/短期动量",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "MinuteLowerShadowSupport_5D",
+   "expr": "TS_MEAN(MEAN((($open < $close) ? ($open - $low) : ($close - $low)) / ($high - $low + 1e-8)), 5)",
+   "style": "量价行为/支撑强度",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

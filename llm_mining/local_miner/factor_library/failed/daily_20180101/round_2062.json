@@ -1,0 +1,34 @@
+{
+ "round": 2062,
+ "hypothesis": "假设1：成交额稳定+价格处于60日相对高位=机构在上升趋势中持续控盘建仓，TS_RANK的有界性[0,1]天然压缩极端值，改善尾部单调性；在2024小盘崩盘和2026科创抱团期间，价格下行的伪稳定股TS_RANK趋近0被自动降权。假设2：成交额稳定+高价格效率(净位移占日内振幅比例大)=机构资金具有明确方向性(主动建仓)，低效率股票即使成交额稳定也只是噪音交易，不应进入多头组。",
+ "reflection": "当前因子在2020/2024/2026年出现多头组被Q7-Q9超越的单调性问题，核心原因是极端低CV+高流动性的股票中混入了'无人问津的僵尸股'（成交额稳定但价格无方向甚至下行）。本轮从两个全新维度进行结构性创新：(1)引入价格趋势位置(TS_RANK)作为质量门控，只保留处于60日高位的稳定成交股票，在崩盘期自动剔除价格下行的伪稳定股；(2)引入价格效率比率(净位移/日内振幅)度量机构资金的方向",
+ "factors": [
+  {
+   "name": "AmountStability_PriceRank_60D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_RANK($close,60)",
+   "style": "流动性/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+5.56%, 多头=-11.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.05563,
+   "long_total": -0.10966,
+   "monthly_pos_ratio": 0.8252,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_EfficiencyRatio_10D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN(ABS($close-DELAY($close,1))/($high-$low+1e-8),10)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.04258,
+   "long_total": 0.43232,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

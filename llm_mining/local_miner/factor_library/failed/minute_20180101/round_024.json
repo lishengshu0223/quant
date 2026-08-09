@@ -1,0 +1,38 @@
+{
+ "round": 24,
+ "hypothesis": "上轮反馈显示RANK+TS_MEAN结构导致分组单调性差，本轮弃用RANK，改用原始分钟聚合值的时序均值，以保持连续线性特征；同时提出两个新经济逻辑：日内量价相关性衡量买盘主动性，日内收益偏度刻画彩票式投机行为，二者均与未来短期收益有明确方向性关系。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayVPCorr_5D",
+   "expr": "TS_MEAN(CORR($return, $volume), 5)",
+   "style": "量价配合/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+2.77%, 多头=-27.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02769,
+   "long_total": -0.27429,
+   "monthly_pos_ratio": 0.7767,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025,
+    2026
+   ]
+  },
+  {
+   "name": "IntradaySkew_5D",
+   "expr": "TS_MEAN(SKEW($return), 5)",
+   "style": "短期反转/风险偏好",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.174, 年度越序峰值=13.2%, 负年=[2026]",
+   "ic_mean": 0.05234,
+   "long_total": 0.14016,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  }
+ ]
+}

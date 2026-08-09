@@ -1,0 +1,31 @@
+{
+ "round": 2042,
+ "hypothesis": "假设1：TS_RANK(CV,60)度量当前稳定性在自身近3个月中的分位，低分位=正在变稳定(机构开始控盘)，比绝对低CV更能识别建仓起点而非已完成状态；假设2：低CV×正20日收益×高流动性=机构在稳定预算下主动推升价格(积极建仓中)，负收益自动降权排除被动锁仓的僵尸股，提升多头组在不同风格年份的稳定性。",
+ "reflection": "当前最佳因子的核心问题是Q10被极端低CV但无方向性的僵尸股污染，导致2020/2024/2026年多头组被Q7-Q9超越。改进方向：(1)用TS_RANK(CV,60)替代SQRT(CV)，捕捉'正在变得更稳定'的动态信号而非极端静态稳定，避免已完成建仓的僵尸股占据头部；(2)引入TS_MEAN($return,20)作为方向性过滤，稳定成交额+正收益=机构主动推升，负收益时因子值自动降低，天然",
+ "factors": [
+  {
+   "name": "AmountStability_DynRank_RankLiq",
+   "expr": "-TS_RANK(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8),60)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07351,
+   "long_total": 1.04578,
+   "monthly_pos_ratio": 0.9223,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_DriftGate_RankLiq",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN($return,20)*RANK($amount)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

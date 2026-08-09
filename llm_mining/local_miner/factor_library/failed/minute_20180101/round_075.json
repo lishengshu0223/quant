@@ -1,0 +1,33 @@
+{
+ "round": 75,
+ "hypothesis": "上轮因子因未做截面标准化而出现IC与多头方向背离，改用日频截面秩平均构造连续性更强的短期反转与低流动性溢价信号",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayCloseReversalRank_5D",
+   "expr": "TS_MEAN(RANK(1 - LAST($close)/(DELAY(LAST($close),1)+1e-8)),5)",
+   "style": "短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+1.70%, 多头=-12.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01701,
+   "long_total": -0.12685,
+   "monthly_pos_ratio": 0.6893,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "IntradayLiquidityPremiumRank_5D",
+   "expr": "TS_MEAN(RANK(0 - MEAN($amount)),5)",
+   "style": "流动性溢价/低活跃度",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0783,
+   "long_total": 1.31576,
+   "monthly_pos_ratio": 0.7961,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

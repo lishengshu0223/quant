@@ -1,0 +1,33 @@
+{
+ "round": 2015,
+ "hypothesis": "假设1：成交额稳定(低CV)+价格处于自身60日高位(TS_RANK高)=机构持续加仓且市场认可度高，这类股票未来收益更高且更稳定。TS_RANK有界[0,1]天然压缩极端值，避免超高流动性股票主导多头组。假设2：成交额稳定(低CV)+成交额序列自相关高=交易模式高度可预测(机构程序化交易/定增锁仓)，这类股票筹码结构最稳定，未来收益更高。TS_CORR有界[-1,1]同样提供自然的极端值压缩。",
+ "reflection": "当前最佳因子的单调性问题(Q10在2020/2024/2026年被Q7-Q9超越)源于LOG(TS_MEAN($amount,20))在极端高流动性端产生过大权重，导致最高分组噪声大。本轮改进方向：(1)用有界函数替代LOG作为交互项，自然压缩极端值，改善尾部单调性；(2)引入全新经济维度——价格时序分位(机构持仓信心)和成交额自相关(交易模式可预测性)，而非对同一核心项做参数微调。预期效果：有界",
+ "factors": [
+  {
+   "name": "AmountStability_PriceRank_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_RANK($close,60)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.111, 年度越序峰值=24.6%, 负年=[2026]",
+   "ic_mean": 0.05761,
+   "long_total": 0.00083,
+   "monthly_pos_ratio": 0.835,
+   "grade": "C",
+   "neg_years": [
+    2026
+   ]
+  },
+  {
+   "name": "AmountStability_AmtAutocorr_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_CORR($amount,DELAY($amount,1),20)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.177, 年度越序峰值=11.5%",
+   "ic_mean": 0.04638,
+   "long_total": 0.53262,
+   "monthly_pos_ratio": 0.8738,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "round": 46,
+ "hypothesis": "A股市场中，日内放量价格冲击的持续性和日内上涨分钟占比的广度分别反映了资金参与意愿与买方主导程度；二者在10日窗口内的横截面相对水平可预测未来5日收益。采用截面排名均值以增强分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "VolumePriceImpactPersistence_10D",
+   "expr": "TS_MEAN(RANK(CORR(ABS($return), $volume)), 10)",
+   "style": "量价背离/流动性/短期动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 CORR",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayUpMinuteBreadth_10D",
+   "expr": "TS_MEAN(RANK(MEAN($return > 0)), 10)",
+   "style": "日内趋势/市场微观结构/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.045, 年度越序峰值=35.6%, 负年=[2019, 2020, 2025]",
+   "ic_mean": 0.04406,
+   "long_total": 0.43379,
+   "monthly_pos_ratio": 0.6699,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2103,
+ "hypothesis": "假设1：10日中位成交额比5日均额更能代表机构当前的'常态建仓强度'——中位数过滤单日异常(大宗交易/指数调仓)，10日窗口提供足够平滑度，在风格切换年份不会因短期噪声导致多头组频繁换血，从而提升年度稳定性；假设2：DECAYLINEAR加权均值兼具'近期敏感'和'平滑抗噪'双重特性，当流动性开始恶化时(如小盘股崩盘前)，近期权重使因子值快速上升(排除该股)，比TS_MIN的回溯性极值更能及时应对",
+ "reflection": "当前最佳因子Pow25CV_RecentActivity5D的年度稳定性(3.01)低于早期MedianCV_MinFloor(3.48)，主要原因是5日均额波动大、在风格切换年份(2020/2024)表现不稳定。本轮改进方向：(1)将近期活跃度从5日均值替换为10日中位数，中位数对单日异常放量更鲁棒，10日窗口比5日更平滑，预期降低年度波动、提升稳定性；(2)将近期活跃度替换为DECAYLINE",
+ "factors": [
+  {
+   "name": "AmountStability_Pow25CV_MedianActivity10D_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MEDIAN($amount,10)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07697,
+   "long_total": 1.22847,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_Pow25CV_DecayActivity10D_20D",
+   "expr": "-POW(TS_STD($amount,20)/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(DECAYLINEAR($amount,10)+1)",
+   "style": "流动性/稳定性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.07772,
+   "long_total": 1.21843,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

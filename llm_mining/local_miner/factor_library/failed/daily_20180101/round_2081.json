@@ -1,0 +1,31 @@
+{
+ "round": 2081,
+ "hypothesis": "假设1：成交额稳定+风险调整收益为正(类Sharpe)=机构在稳定建仓且有效推升价格，比单纯稳定更能区分'主动控盘'与'被动僵尸'，改善Q10纯度；假设2：成交额MIN/MAX比高意味着20日内无任何冷清交易日，是机构持续在场(而非间歇性参与)的更强信号，有界性天然改善极端分组单调性。",
+ "reflection": "当前因子核心问题是单调性不足(Q10被Q7-Q9超越)和极端风格期脆弱。诊断表明极端稳定但无alpha的僵尸股污染了多头组。本轮从两个方向做结构性创新：(1)引入风险调整趋势维度(类Sharpe比率)，将'稳定成交额'与'稳定正收益'结合，过滤掉稳定但无方向性的僵尸股，提升Q10的纯度；(2)用成交额极差压缩比(MIN/MAX)替代CV，该指标有界[0,1]且关注极端值而非离散度，经济含义为'无冷",
+ "factors": [
+  {
+   "name": "AmountStability_RiskAdjTrend_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_MEAN($return,20)/(TS_STD($return,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountRangeCompression_Liquidity_20D",
+   "expr": "TS_MIN($amount,20)/(TS_MAX($amount,20)+1e-8)*LOG(TS_MEAN($amount,20))",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.182, 年度越序峰值=17.3%",
+   "ic_mean": 0.04391,
+   "long_total": 0.33142,
+   "monthly_pos_ratio": 0.8544,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

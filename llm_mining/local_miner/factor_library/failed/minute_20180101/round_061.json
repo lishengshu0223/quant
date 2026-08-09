@@ -1,0 +1,31 @@
+{
+ "round": 61,
+ "hypothesis": "上轮失败源于逐分钟高/低/收盘组合与CORR的中间数组膨胀；本轮改用纯聚合算子，假设A股短期存在低波动溢价与收盘价相对VWAP折价反转两种独立异象。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayQuietRange_5D",
+   "expr": "TS_MEAN(-(MAX($high) - MIN($low)) / (MEAN($close) + 1e-8), 5)",
+   "style": "波动率(短期)",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "CloseVwapDiscount_5D",
+   "expr": "TS_MEAN(1 - LAST($close) * (SUM($volume) + 1e-8) / (SUM($amount) + 1e-8), 5)",
+   "style": "量价背离/短期反转",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2037,
+ "hypothesis": "假设1：成交额稳定+近期价格趋势向上=机构在稳定预算下主动推升(积极建仓)，条件门控将无方向性僵尸股降权，提升多头组在不同年份的一致性；假设2：成交额稳定+收益率低波动+高流动性=机构信息驱动型锁仓的三重确认，价格平静排除了动量驱动的假稳定，在风格切换期更鲁棒。",
+ "reflection": "当前因子主要问题是单调性不足(Q10被Q7-Q9超越)和压力期脆弱。诊断表明极端低CV股票中包含无方向性的僵尸股。本轮从两个方向做结构性创新：(1)引入趋势状态门控，用条件运算区分'主动建仓型稳定'和'被动僵尸型稳定'，在不增加深度的前提下实现非线性过滤；(2)引入收益率波动率的倒数作为第三维度，构建'额稳定+价稳定+高流动性'的三重确认结构，与之前失败的DualCalm(缺少流动性项)有本质区别",
+ "factors": [
+  {
+   "name": "AmountStability_TrendGate_5D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*(TS_MEAN($return,5)>0?1.5:0.5)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_ReturnCalm_Liq",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*LOG(TS_MEAN($amount,20))*INV(TS_STD($return,10)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

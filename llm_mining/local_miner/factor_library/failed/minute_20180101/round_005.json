@@ -1,0 +1,34 @@
+{
+ "round": 5,
+ "hypothesis": "日内价格单向推进的效率与分钟收益的自相关分别度量了知情资金的持续性与微观买卖压力，两者在5日维度上均具预测力，从而捕捉未来短期收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayTrendEfficiency_5D",
+   "expr": "TS_MEAN(ABS(LOG(LAST($close)/FIRST($open))) / (SUM(ABS($return)) + 1e-8), 5)",
+   "style": "短期趋势/动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 分钟模式: 未声明的函数或变量 SUM",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayReturnAutocorr_5D",
+   "expr": "TS_MEAN(TS_AUTOCORR($return, 1), 5)",
+   "style": "微观动量/反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.100, 年度越序峰值=18.0%, 负年=[2025, 2026]",
+   "ic_mean": 0.05292,
+   "long_total": 0.27846,
+   "monthly_pos_ratio": 0.7573,
+   "grade": "C",
+   "neg_years": [
+    2025,
+    2026
+   ]
+  }
+ ]
+}

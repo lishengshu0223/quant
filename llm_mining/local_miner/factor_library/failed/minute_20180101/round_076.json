@@ -1,0 +1,31 @@
+{
+ "round": 76,
+ "hypothesis": "A股微观结构中的流动性冲击成本与日内价格路径形态会形成对未来收益的定价偏差：低流动性需风险补偿，先抑后扬的日内走势反映资金承接，两者均能预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayPriceImpact_5D",
+   "expr": "TS_MEAN(RANK(MEAN(ABS($return) / ($amount + 1e-8))), 5)",
+   "style": "流动性/微观结构",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IntradayPathLocation_5D",
+   "expr": "TS_MEAN(RANK(TS_ARGMAX($high) - TS_ARGMIN($low)), 5)",
+   "style": "日内动量/价格路径",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 12.6 GiB for an array with shape (2574, 240, 5455) and data type flo",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

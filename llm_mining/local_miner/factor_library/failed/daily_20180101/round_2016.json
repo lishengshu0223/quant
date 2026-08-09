@@ -1,0 +1,33 @@
+{
+ "round": 2016,
+ "hypothesis": "假设1：成交额稳定+上涨日成交额占比高=机构在稳定交易中持续净买入(非脉冲式拉升)，筹码锁定且有方向性买盘支撑，未来收益更高且更稳定。上涨日金额占比是有界指标(0~1)，避免极端值破坏分组单调性。假设2：成交额稳定+持续截面跑赢=机构持仓被市场逐步认可(量稳价强)，TS_MEAN(RANK($return),20)度量的是持续性相对优势而非单日爆发，与稳定性结合形成'静默强者'信号，RANK的有界",
+ "reflection": "当前最佳因子(IC=6.24%, 年化=11.39%, 信息比率=2.95)的核心问题是分组单调性不足(2020/2024/2026年多头组非第一)和极端风格期脆弱。诊断发现LOG(成交额均值)作为交互项会产生极端值，导致超大额稳定股(如银行)进入多头组但未必跑赢Q7-Q9。本轮改进方向：(1)将交互项从'流动性水平'替换为'资金流向质量'——用上涨日成交额占比衡量净买入方向，经济逻辑更直接且值域",
+ "factors": [
+  {
+   "name": "AmountStability_UpDayAmtShare_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_SUM($amount*($return>0),20)/(TS_SUM($amount,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.187, 年度越序峰值=11.6%, 负年=[2021]",
+   "ic_mean": 0.05642,
+   "long_total": 0.44635,
+   "monthly_pos_ratio": 0.932,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "AmountStability_PersistRelStr_20D",
+   "expr": "-TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8)*TS_MEAN(RANK($return),20)",
+   "style": "流动性/稳定性",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.05362,
+   "long_total": 0.69134,
+   "monthly_pos_ratio": 0.9515,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

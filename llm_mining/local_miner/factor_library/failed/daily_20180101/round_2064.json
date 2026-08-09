@@ -1,0 +1,31 @@
+{
+ "round": 2064,
+ "hypothesis": "假设1：成交额稳定+价格风险调整趋势为正=机构在稳定预算下有效推升价格(每单位波动换来更多涨幅)，Sharpe-like项在动量年份(2020/2024)自动筛选出有方向的标的，在震荡年份则筛选出真正被控盘的标的；假设2：成交额稳定+当前成交额相对60日均值偏高=机构正在主动增加配置(活跃度上升)，而非被动持有导致的交易萎缩，该比值在不同风格环境下均能区分主动vs被动行为。",
+ "reflection": "当前因子在2020/2024/2026年单调性不足，核心原因是极端低CV股票中包含无方向性的僵尸股（成交稳定但价格无趋势），在动量主导的市场中被Q7-Q9超越。改进方向：(1)引入价格风险调整趋势项(Sharpe-like)，在稳定成交基础上要求价格有正向风险调整动量，剔除无方向僵尸股；(2)引入成交额活跃度比值(当前/60日均值)，区分主动加仓与被动持有，在不同市场风格下都能识别机构积极行为。两",
+ "factors": [
+  {
+   "name": "AmountStability_PriceSharpe_20D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*TS_SUM($return,20)/(TS_STD($return,20)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_ActivityRatio_60D",
+   "expr": "-SQRT(TS_STD($amount,20)/(TS_MEAN($amount,20)+1e-8))*$amount/(TS_MEAN($amount,60)+1e-8)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法树深度 8 超过上限 7",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

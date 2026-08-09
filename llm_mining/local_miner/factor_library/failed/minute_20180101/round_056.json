@@ -1,0 +1,31 @@
+{
+ "round": 56,
+ "hypothesis": "A股短期存在过度反应反转：日内收盘位置偏低或早盘量价负相关（恐慌性抛售）均表明情绪过度释放，未来5日价格向均值回归。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "IntradayClosePositionReversal_5D",
+   "expr": "TS_MEAN((MAX($high)-LAST($close))/(MAX($high)-MIN($low)+1e-8),5)",
+   "style": "短期反转/日内价格位置",
+   "reason": "计算失败",
+   "detail": "MemoryError: Unable to allocate 2.03 GiB for an array with shape (3, 181482720) and data type float3",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "MorningVolumeReturnCorrReversal_5D",
+   "expr": "-1 * TS_MEAN(CORR(SLICE($return,\"09:31\",\"10:00\"),SLICE($volume,\"09:31\",\"10:00\")),5)",
+   "style": "量价背离/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.162, 年度越序峰值=10.3%",
+   "ic_mean": 0.01315,
+   "long_total": 0.20449,
+   "monthly_pos_ratio": 0.7282,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "round": 2101,
+ "hypothesis": "假设1：IQR(75分位-25分位)是比STD更鲁棒的离散度度量，不受指数调仓/大宗交易等单日异常放量的影响，能更准确识别机构均匀建仓行为；假设2：成交额稳定且价格处于近期区间高位的股票，正处于机构控盘拉升阶段，比单纯'稳定但价格走弱'的股票有更强的上行动力，价格位置乘数可改善顶部单调性。",
+ "reflection": "针对两个核心问题：(1)分组单调性不足(Q10被Q8/Q9超越)——原因是TS_STD对单日异常放量敏感，导致'伪稳定'股票混入Q10顶部，且纯量维度的floor无法区分'稳定但下跌'与'稳定且上行'的股票；(2)年度稳定性需进一步提升。改进方向：用IQR(四分位距)替代TS_STD作为离散度度量，IQR天然忽略极端值(前25%和后25%)，比STD更鲁棒地识别真正的均匀建仓；同时第二个因子引入价",
+ "factors": [
+  {
+   "name": "AmountStability_IQRCV_MinFloor_20D",
+   "expr": "-POW((TS_QUANTILE($amount,20,0.75)-TS_QUANTILE($amount,20,0.25))/(TS_MEDIAN($amount,20)+1e-8),0.25)*LOG(TS_MIN($amount,20)+1)",
+   "style": "流动性/稳定性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 公式长度 125 超过上限 120",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountStability_IQRCV_PricePosition_20D",
+   "expr": "-POW((TS_QUANTILE($amount,20,0.75)-TS_QUANTILE($amount,20,0.25))/(TS_MEDIAN($amount,20)+1e-8),0.25)*($close-TS_MIN($low,20))/(TS_MAX($high,20)-TS_MIN($low,20)+1e-8)",
+   "style": "流动性/稳定性+动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 公式长度 164 超过上限 120",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}
