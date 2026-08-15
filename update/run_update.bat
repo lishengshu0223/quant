@@ -36,7 +36,7 @@ echo.
 
 echo --- Step 2: Update Missing History Data ---
 echo [%date% %time%] --- Step 2: Update Missing History Data --- >> "%LOG_FILE%"
-%PYTHON_EXE% %PROJECT_DIR%\update\update_history.py
+%PYTHON_EXE% %PROJECT_DIR%\update\daily_update.py --mode history
 echo [%date% %time%] Step 2 completed >> "%LOG_FILE%"
 echo.
 

@@ -7,6 +7,9 @@ from .stock_price import download_stock_daily_price
 from .index_price import download_index_daily_price
 from .index_weights import download_index_weights
 from .barra import download_barra_exposure, download_barra_return, download_all_barra
+from .announcements import download_announcements, download_recent_announcements
+from .turnover import download_turnover_rate
+from .shares import download_shares
 
 
 __all__ = [
@@ -25,4 +28,8 @@ __all__ = [
     "download_barra_exposure",
     "download_barra_return",
     "download_all_barra",
+    "download_announcements",
+    "download_recent_announcements",
+    "download_turnover_rate",
+    "download_shares",
 ]

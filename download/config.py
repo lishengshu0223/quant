@@ -8,6 +8,9 @@ INDEX_WEIGHTS_DIR = "index_weights"
 BARRA_DIR = "barra"
 INSTRUMENTS_DIR = "instruments"
 TRADING_DATES_DIR = "trading_dates"
+ANNOUNCEMENTS_DIR = "announcements"
+TURNOVER_DIR = "turnover"
+SHARES_DIR = "shares"
 
 STOCK_PRICE_FIELDS = ["open", "close", "high", "low", "total_turnover", "volume"]
 
@@ -25,11 +28,11 @@ INDEX_FULL_CODES = {
     "000300": "000300.XSHG",
     "000905": "000905.XSHG",
     "000852": "000852.XSHG",
-    "932000": "932000.CSI",
+    "932000": "932000.INDX",
     "866006": "866006.RI",
 }
 
-INDEX_WEIGHT_CODES = {k: v for k, v in INDEX_FULL_CODES.items() if k != "932000"}
+INDEX_WEIGHT_CODES = dict(INDEX_FULL_CODES)
 
 FACTOR_MODELS = {
     "v1": ["Liquidity", "Leverage", "BTOP", "Earnings Yield", "Growth", 
