@@ -30,7 +30,7 @@ echo.
 
 echo --- Step 1: Update Latest Trading Day ---
 echo [%date% %time%] --- Step 1: Update Latest Trading Day --- >> "%LOG_FILE%"
-%PYTHON_EXE% %PROJECT_DIR%\update\update_latest.py
+%PYTHON_EXE% %PROJECT_DIR%\update\daily_update.py --mode latest
 echo [%date% %time%] Step 1 completed >> "%LOG_FILE%"
 echo.
 
