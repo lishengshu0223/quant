@@ -1,0 +1,148 @@
+{
+ "round": 77,
+ "hypothesis": "过去多轮反馈显示，单纯对极端日收益取均值虽有一定IC，但分组单调性常停留在C级；问题在于均值会稀释极端日的内部结构。本轮改为捕捉极端bar的方向性量能、日内修复结构、放量突破实体等更连续的量价形态，并引入滚动相关与时间序列标准化，目标是提高逐日分组排序的稳定性和分年度多头一致性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "UpVolumeFlowContinuation_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"SIGN($bret)*$volume\",0.2,\"MEAN\",\"$return\",60)),5)",
+   "style": "量价动量/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.070, 年度越序峰值=24.0%, 负年=[2025]",
+   "ic_mean": 0.0636,
+   "long_total": 0.0894,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "PanicDownVolumeLowerWickRebound_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"SIGN($bret)*$volume\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60)),5)",
+   "style": "恐慌反转/量价结构",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.020, 年度越序峰值=14.8%, 负年=[2020]",
+   "ic_mean": 0.00072,
+   "long_total": 0.17218,
+   "monthly_pos_ratio": 0.4615,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HeavyMoveBodyDirection_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume*ABS($bret)\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",60)),5)",
+   "style": "放量突破/实体动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.108, 年度越序峰值=12.7%, 负年=[2020]",
+   "ic_mean": 0.04137,
+   "long_total": 0.5584,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HighAmpDayMaxReturn_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"MAX\",\"$return\",60)),5)",
+   "style": "极端动量/振幅",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=26.0%, 负年=[2025]",
+   "ic_mean": 0.05565,
+   "long_total": 0.23863,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "QuietDayMaxGainBreakout_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$amp\",0.2,\"MAX\",\"$return\",60)),5)",
+   "style": "低波突破/蓄势",
+   "reason": "方向无效",
+   "detail": "IC=+2.64%, 多头=-17.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02637,
+   "long_total": -0.17542,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "TopAmountDayTurnoverDepth_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"LAST\",\"$turnover\",60)),5)",
+   "style": "流动性/筹码交换",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "TopTurnoverDayReturnPersistence_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"$return\",60)),5)",
+   "style": "关注度动量/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.113, 年度越序峰值=9.0%, 负年=[2020]",
+   "ic_mean": 0.05349,
+   "long_total": 0.50511,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "ExtremeMoveVWAPSpreadStability_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"ABS($bret)\",0.2,\"KURT\",\"$amount/($volume+1e-8)\",60)),5)",
+   "style": "极端波动/定价分歧",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.065, 年度越序峰值=8.3%, 负年=[2023, 2024]",
+   "ic_mean": 0.00648,
+   "long_total": 0.36181,
+   "monthly_pos_ratio": 0.6058,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "TurnoverReturnVolumeSync_60D",
+   "expr": "TS_MEAN(RANK(TS_CORR(CTOP(\"$turnover\",0.2,\"MEAN\",\"$return\",20),\"$volume\",10)),5)",
+   "style": "量价同步/流动性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighAmountAmplitudeRegimeZ_60D",
+   "expr": "TS_MEAN(RANK(TS_ZSCORE(CTOP(\"$amount\",0.2,\"MEAN\",\"$amp\",60),40)),5)",
+   "style": "量能活跃度/时间序列偏离",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.112, 年度越序峰值=13.2%, 负年=[2022]",
+   "ic_mean": 0.03347,
+   "long_total": 0.45073,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  }
+ ]
+}

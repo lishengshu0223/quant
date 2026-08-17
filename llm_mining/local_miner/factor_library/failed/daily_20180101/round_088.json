@@ -1,0 +1,151 @@
+{
+ "round": 88,
+ "hypothesis": "A股中，极端bar上的资金行为存在显著的信息不对称：当低关注度/低波动日的资金承接力（用中位数刻画）相对高活跃日显著抬升时，常反映主力静默吸筹；而当活跃日出现隔夜跳空、效率突破或收益分布右偏时，则暗示增量资金由事件驱动入场。本轮用切割算子提取这些极端状态下的资金结构，并用时间序列分位数/相关性替代易失效的截面排序，以改善分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietTurnoverMedianActiveSpread_90D",
+   "expr": "TS_QUANTILE(CBOT(\"$amp\",0.2,\"MEDIAN\",\"$turnover\",90)/(CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover\",90)+1e-8),120,0.95)",
+   "style": "流动性/静默吸筹/长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.055, 年度越序峰值=14.8%, 负年=[2018, 2021]",
+   "ic_mean": 0.01832,
+   "long_total": 0.20105,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021
+   ]
+  },
+  {
+   "name": "ActiveGapInstitutionalDemand_60D",
+   "expr": "TS_QUANTILE(CTOP(\"$amount\",0.2,\"MEAN\",\"$open*(1+$return)/$close-1\",60)/(TS_STD($return,60)+1e-8),90,0.90)",
+   "style": "事件驱动/跳空/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.050, 年度越序峰值=10.9%, 负年=[2018, 2022, 2023, 2024]",
+   "ic_mean": 0.00528,
+   "long_total": 0.17772,
+   "monthly_pos_ratio": 0.5,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "HighVolumeEfficiencyTrendRank_80D",
+   "expr": "TS_RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"ABS($return)/($high-$low+1e-8)\",80)/(TS_MEAN(ABS($return)/($high-$low+1e-8),80)+1e-8),80)",
+   "style": "量价效率/趋势/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.76%, 多头=-7.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00759,
+   "long_total": -0.07684,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "TurningPointVolumeDryCount_50D",
+   "expr": "TS_QUANTILE(CBOT(\"$bret\",0.2,\"SUM\",\"($bret<0 && $amount<TS_MEDIAN($amount,50)?1:0)\",50)/(TS_SUM(($bret<0?1:0),50)+1e-8),90,0.90)",
+   "style": "反转/卖压枯竭/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.085, 年度越序峰值=13.1%, 负年=[2018, 2019]",
+   "ic_mean": 0.01286,
+   "long_total": 0.16345,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019
+   ]
+  },
+  {
+   "name": "HeavyUpDaySmartParticipation_60D",
+   "expr": "TS_RANK(CTOP(\"$turnover\",0.2,\"SUM\",\"($bret>0.05?1:0)\",60)/(TS_SUM(($bret>0.05?1:0),60)+1e-8),60)",
+   "style": "量价配合/动量/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.64%, 多头=-25.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00644,
+   "long_total": -0.25137,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2024
+   ]
+  },
+  {
+   "name": "LowActiveReturnCorrCoherence_90D",
+   "expr": "TS_CORR(CTOP(\"$amount\",0.2,\"MEAN\",\"$bret\",90), CBOT(\"$amount\",0.2,\"MEAN\",\"$bret\",90), 60)",
+   "style": "资金共振/流动性/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.025, 年度越序峰值=10.1%, 负年=[2018, 2019, 2020]",
+   "ic_mean": 0.00104,
+   "long_total": 0.18534,
+   "monthly_pos_ratio": 0.4423,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020
+   ]
+  },
+  {
+   "name": "AmplitudeVolumeAccelerationCliff_40D",
+   "expr": "TS_QUANTILE(CTOP(\"$amp\",0.2,\"MEAN\",\"$amount\",40)-DELAY(CTOP(\"$amp\",0.2,\"MEAN\",\"$amount\",40),5),120,0.85)",
+   "style": "量能拐点/波动率/短期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeBodyVolumeConviction_70D",
+   "expr": "TS_QUANTILE(CTOP(\"($close-$open)/($high-$low+1e-8)\",0.2,\"MEDIAN\",\"$amount\",70)/(CBOT(\"($close-$open)/($high-$low+1e-8)\",0.2,\"MEDIAN\",\"$amount\",70)+1e-8),90,0.90)",
+   "style": "资金方向/情绪/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.100, 年度越序峰值=9.7%",
+   "ic_mean": 0.02972,
+   "long_total": 0.2631,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietLiquidityMedianRebound_90D",
+   "expr": "TS_RANK(CBOT(\"$turnover\",0.2,\"MEDIAN\",\"$amount\",90)/(TS_MEDIAN($amount,90)+1e-8),90)",
+   "style": "流动性下限/静默吸筹/长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.106, 年度越序峰值=7.6%, 负年=[2019]",
+   "ic_mean": 0.02385,
+   "long_total": 0.33725,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2019
+   ]
+  },
+  {
+   "name": "HighTradeRangeMaxCloseCliff_60D",
+   "expr": "TS_QUANTILE(CTOP(\"$amount\",0.2,\"MAX\",\"($close-$low)/($high-$low+1e-8)\",60)-CBOT(\"$amount\",0.2,\"MIN\",\"($close-$low)/($high-$low+1e-8)\",60),90,0.90)",
+   "style": "波动结构/蓄势/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.054, 年度越序峰值=19.2%, 负年=[2024]",
+   "ic_mean": 0.0171,
+   "long_total": 0.09345,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  }
+ ]
+}

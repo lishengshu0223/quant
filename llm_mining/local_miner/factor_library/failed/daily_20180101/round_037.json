@@ -1,0 +1,139 @@
+{
+ "round": 37,
+ "hypothesis": "在连续多轮反馈中，单调性不足是主要瓶颈。本轮放弃纯RANK平滑结构，改用“秩差/极值单日LAST/时序ZSCORE”等新框架：将安静日与活跃日的价格冲击效率、收盘位置、量能分配等作对照，并保留切割算子提取尾部极端状态。核心逻辑是：低换手极端日的价格行为更多反映存量资金态度，高换手极端日反映增量情绪，二者之差具有跨期单调预测力。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietActiveReturnEfficiencyRankGap_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MEAN\",\"$return/($turnover+1e-8)\",60))-RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"$return/($turnover+1e-8)\",60)),10)",
+   "style": "量价背离/流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.051, 年度越序峰值=14.6%, 负年=[2019, 2020]",
+   "ic_mean": 0.01253,
+   "long_total": 0.04678,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020
+   ]
+  },
+  {
+   "name": "ClimaxDayVolumePositionLast_60D",
+   "expr": "TS_MEAN(CTOP(\"$amp\",0.1,\"LAST\",\"($close-$low)/($high-$low+1e-8)\",60),5)",
+   "style": "极端状态/趋势",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "DownPanicTurnoverRankGap_55D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$bret\",0.1,\"LAST\",\"$turnover\",55))-RANK(CBOT(\"$bret\",0.1,\"LAST\",\"$turnover\",55)),10)",
+   "style": "极端反转/情绪",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ActiveRangeEfficiencyZscore_80D",
+   "expr": "TS_ZSCORE(CTOP(\"$amount\",0.2,\"MEAN\",\"$amount/($high-$low+1e-8)\",80)/TS_MEAN(CTOP(\"$amount\",0.2,\"MEAN\",\"$amount/($high-$low+1e-8)\",80),80),20)",
+   "style": "波动率/成交额",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "QuietTurnoverUpShadowClimaxGap_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MEAN\",\"($high-$close)/($high-$low+1e-8)\",60))-RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"($high-$close)/($high-$low+1e-8)\",60)),10)",
+   "style": "量价背离/筹码",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.087, 年度越序峰值=8.9%",
+   "ic_mean": 0.01979,
+   "long_total": 0.20467,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeUpDownAmpRankGap_50D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$bret\",0.1,\"MEAN\",\"$amp\",50))-RANK(CBOT(\"$bret\",0.1,\"MEAN\",\"$amp\",50)),10)",
+   "style": "极端状态/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.142, 年度越序峰值=8.5%",
+   "ic_mean": 0.02645,
+   "long_total": 0.44362,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietAmountBodyPersistDelta_60D",
+   "expr": "DELTA(CBOT(\"$amount\",0.2,\"MEDIAN\",\"ABS($close-$open)/($high-$low+1e-8)\",60)/(TS_MEDIAN(ABS($close-$open)/($high-$low+1e-8),60)+1e-8),10)",
+   "style": "趋势/量价",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.035, 年度越序峰值=7.3%, 负年=[2021, 2024]",
+   "ic_mean": 0.00209,
+   "long_total": 0.09267,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2024
+   ]
+  },
+  {
+   "name": "HighAmpDownsideVolumeLast_70D",
+   "expr": "TS_MEAN(CTOP(\"$amp\",0.1,\"LAST\",\"($return<0?$turnover/($high-$low+1e-8):0)\",70),5)",
+   "style": "波动率/风险",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "LowTurnoverHighVolumeImpactGap_90D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MEAN\",\"ABS($return)/($volume+1e-8)\",90))-RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"ABS($return)/($volume+1e-8)\",90)),10)",
+   "style": "流动性/筹码",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.070, 年度越序峰值=14.5%, 负年=[2021, 2023]",
+   "ic_mean": 0.02082,
+   "long_total": 0.29512,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "ExtremeMoveClosePositionZscore_60D",
+   "expr": "TS_ZSCORE(CTOP(\"ABS($bret)\",0.1,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60),60)",
+   "style": "极端状态/趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.076, 年度越序峰值=22.2%, 负年=[2020, 2023]",
+   "ic_mean": 0.0231,
+   "long_total": 0.10037,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023
+   ]
+  }
+ ]
+}

@@ -1,0 +1,154 @@
+{
+ "round": 61,
+ "hypothesis": "本轮不再直接测量极端bar的收益方向或均值，而是转向极端bar上的“价格位置与成交量加权均价的偏离”以及“极端行为相对自身历史分位/频率的持续性”，用VWAP确认、历史分位、极端日频率等结构性信号替代单点均值，以提升分组单调性与跨年稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighVolumeVWAPClosePremium_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"($close-$amount/($volume+1e-8))/($high-$low+1e-8)\",60)),10)",
+   "style": "量价背离/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+2.15%, 多头=-24.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02146,
+   "long_total": -0.24672,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "PanicDayVWAPAbsorption_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"($close-$amount/($volume+1e-8))/($high-$low+1e-8)\",60)),10)",
+   "style": "短期反转/量价背离",
+   "reason": "方向无效",
+   "detail": "IC=+1.64%, 多头=-29.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01639,
+   "long_total": -0.29745,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "UpExtremeDayVWAPConfirm_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$bret\",0.2,\"MEAN\",\"($close-$amount/($volume+1e-8))/($high-$low+1e-8)\",60)),10)",
+   "style": "动量/量价确认",
+   "reason": "方向无效",
+   "detail": "IC=+1.57%, 多头=-55.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01569,
+   "long_total": -0.55265,
+   "monthly_pos_ratio": 0.5385,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighTurnoverVWAPDeviationRegime_60D",
+   "expr": "COUNT(CTOP(\"$turnover\",0.2,\"MEAN\",\"($close-$amount/($volume+1e-8))/($high-$low+1e-8)\",20)>TS_MEAN(CTOP(\"$turnover\",0.2,\"MEAN\",\"($close-$amount/($volume+1e-8))/($high-$low+1e-8)\",20),60),10)",
+   "style": "流动性/短期动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveEfficiencyCloseAnchor_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"ABS($bret)/($amount/($volume+1e-8)+1e-8)\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",60)),10)",
+   "style": "波动率/趋势质量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.061, 年度越序峰值=19.4%, 负年=[2020]",
+   "ic_mean": 0.02765,
+   "long_total": 0.25963,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "GapUpVolumeSurgeIntensity_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"$open*(1+$return)/$close-1\",60)),10)",
+   "style": "缺口/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.067, 年度越序峰值=13.6%, 负年=[2023, 2024]",
+   "ic_mean": 0.00699,
+   "long_total": 0.07341,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "HighAmpBodyRatioZScore_60D",
+   "expr": "TS_MEAN(RANK(TS_ZSCORE(CTOP(\"$amp\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",60),120)),10)",
+   "style": "趋势/波动率",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.080, 年度越序峰值=13.9%",
+   "ic_mean": 0.02766,
+   "long_total": 0.17961,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "AmountExtremeOvernightGapPersistence_20D",
+   "expr": "COUNT(CTOP(\"$amount\",0.2,\"MEAN\",\"$open*(1+$return)/$close-1\",20)>TS_MEAN(CTOP(\"$amount\",0.2,\"MEAN\",\"$open*(1+$return)/$close-1\",20),60),10)",
+   "style": "动量/资金流",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "PanicDayPriceImpactRebalance_60D",
+   "expr": "TS_MEAN(RANK(TS_ZSCORE(CBOT(\"$bret\",0.2,\"MEAN\",\"$amount/(ABS($bret)+1e-8)\",60),120)),10)",
+   "style": "短期反转/流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.100, 年度越序峰值=9.5%",
+   "ic_mean": 0.03373,
+   "long_total": 0.38709,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighRangeTurnoverVWAPPullback_20D",
+   "expr": "TS_MEAN(RANK(-TS_RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"($close-$amount/($volume+1e-8))/($high-$low+1e-8)\",20),120)),10)",
+   "style": "短期反转/均值回归",
+   "reason": "方向无效",
+   "detail": "IC=+2.09%, 多头=-11.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02086,
+   "long_total": -0.11345,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2022
+   ]
+  }
+ ]
+}

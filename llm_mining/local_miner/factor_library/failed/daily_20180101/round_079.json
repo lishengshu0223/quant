@@ -1,0 +1,147 @@
+{
+ "round": 79,
+ "hypothesis": "极端日价格行为往往由少数决定性资金驱动，连续多轮证明单用均值式收益方向难以形成稳定分组单调。本轮改用“决定性单日”与“极端日内部结构”的时序稳定性作为信号：以最大量/额/振幅/日内强弱等切割出最具代表性的一根或一组bar，聚合其开盘位置、实体方向、量价效率等结构，再用秩化平滑降低离群噪音，试图在保持IC方向的同时改善组间排序。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "MaxAmountDayBodyConviction_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",1,\"LAST\",\"($close-$open)/($high-$low+1e-8)\",60)),5)",
+   "style": "量价背离/短期动量",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "MaxVolumeDayUpperShadowPenalty_60D",
+   "expr": "TS_MEAN(RANK(-CTOP(\"$volume\",1,\"LAST\",\"($high-$close)/($high-$low+1e-8)\",60)),5)",
+   "style": "流动性/短期反转",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverEfficientReturnPersistence_40D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"$return/($turnover+1e-8)\",40)),5)",
+   "style": "流动性/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.051, 年度越序峰值=13.0%, 负年=[2020, 2025]",
+   "ic_mean": 0.0223,
+   "long_total": 0.40981,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "BullishBodyTurnoverSurplus_40D",
+   "expr": "TS_MEAN(RANK(CTOP(\"($close-$open)/($open+1e-8)\",0.2,\"MEAN\",\"$turnover\",40)/(TS_MEAN($turnover,40)+1e-8)),5)",
+   "style": "量价齐升/短期动量",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03998,
+   "long_total": 0.43596,
+   "monthly_pos_ratio": 0.9327,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "BearishBodyVolumeDrynessRebound_40D",
+   "expr": "TS_MEAN(RANK(-CBOT(\"($close-$open)/($open+1e-8)\",0.2,\"MEAN\",\"$turnover\",40)/(TS_MEAN($turnover,40)+1e-8)),5)",
+   "style": "量价背离/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+1.48%, 多头=-5.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0148,
+   "long_total": -0.052,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeVolumeDayOpenPositionBias_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"($high-$open)/($high-$low+1e-8)\",60)),5)",
+   "style": "流动性/开盘效应",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.092, 年度越序峰值=9.2%, 负年=[2020]",
+   "ic_mean": 0.03549,
+   "long_total": 0.31819,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "AmpExtremeDayReturnStability_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"KURT\",\"$return\",60)),5)",
+   "style": "波动率/极端日结构",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.040, 年度越序峰值=12.8%, 负年=[2018, 2025]",
+   "ic_mean": 0.00224,
+   "long_total": 0.09313,
+   "monthly_pos_ratio": 0.6058,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2025
+   ]
+  },
+  {
+   "name": "AmountTopDayIntradayEfficiencyTrend_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"MEAN\",\"$amp/($amount+1e-8)\",60)),5)",
+   "style": "流动性/价格冲击",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.200, 年度越序峰值=14.4%",
+   "ic_mean": 0.04222,
+   "long_total": 1.22421,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpVolumeCorrelationRegime_20D",
+   "expr": "TS_MEAN(RANK(TS_CORR(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",20),CTOP(\"$volume\",0.2,\"MEAN\",\"$return\",20),20)),5)",
+   "style": "量价协同/波动率",
+   "reason": "方向无效",
+   "detail": "IC=+0.16%, 多头=-13.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00165,
+   "long_total": -0.13426,
+   "monthly_pos_ratio": 0.5096,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2022,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "TurnoverSpikeCloseMomentumDecay_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.1,\"MEAN\",\"($close-$low)/($high-$low+1e-8)/($turnover+1e-8)\",60)),5)",
+   "style": "量价背离/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+4.25%, 多头=-9.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04254,
+   "long_total": -0.08964,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2025
+   ]
+  }
+ ]
+}

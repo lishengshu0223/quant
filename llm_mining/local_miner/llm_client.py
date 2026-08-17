@@ -1,9 +1,9 @@
 """
 本地化因子挖掘项目 - LLM 客户端
 
-双提供商支持:
-- 主模型: DeepSeek deepseek-v4-flash(固定, OpenAI兼容端点 https://api.deepseek.com)
-- 备用模型: 阿里百炼 qwen3.6-flash(DashScope兼容端点, 仅DeepSeek完全不可用时兜底)
+双提供商支持(2026-08-15 起, 两通道统一 DeepSeek v4-flash):
+- 主模型: 阿里百炼 deepseek-v4-flash-0731(DashScope兼容端点, 流量已恢复)
+- 备用模型: Opencode 网关 deepseek-v4-flash(主模型完全不可用时兜底)
 - 递增等待重试 + 健壮的 JSON 提取
 """
 
@@ -35,8 +35,16 @@ def _provider_route(model: str, cfg, is_primary: bool = True) -> tuple:
         return ("deepseek", DEEPSEEK_BASE_URL, DEEPSEEK_API_KEY, True)
     if provider == "dashscope":
         return ("dashscope", DASHSCOPE_BASE_URL, DASHSCOPE_API_KEY, False)
-    # auto: 按模型名前缀
-    if str(model).lower().startswith("deepseek"):
+    # auto: 按模型名路由(双通道统一 DeepSeek v4-flash):
+    #   deepseek-v4-flash-0731 → 阿里百炼 DashScope
+    #   deepseek-v4-flash      → Opencode 网关
+    #   其余 deepseek*         → DeepSeek 直连; qwen* 等 → 阿里百炼
+    m = str(model).lower()
+    if m == "deepseek-v4-flash-0731":
+        return ("dashscope", DASHSCOPE_BASE_URL, DASHSCOPE_API_KEY, False)
+    if m == "deepseek-v4-flash":
+        return ("opencode", OPENCODE_BASE_URL, OPENCODE_API_KEY, True)
+    if m.startswith("deepseek"):
         return ("deepseek", DEEPSEEK_BASE_URL, DEEPSEEK_API_KEY, True)
     return ("dashscope", DASHSCOPE_BASE_URL, DASHSCOPE_API_KEY, False)
 
@@ -45,12 +53,12 @@ def call_llm(messages: list, cfg) -> dict:
     """
     调用大模型, 返回 {"content": 正式回复, "thinking": 思考内容, "model": 实际模型}
 
-    通道策略(用户硬性要求):
-    - llm_provider == "opencode": 唯一通道 = Opencode 网关(主模型 deepseek-v4-flash)。
+    通道策略:
+    - llm_provider == "opencode": 唯一通道 = Opencode 网关(建议配 --model deepseek-v4-flash)。
       任何暂时性故障(网络/限流/超时/空内容/HTTP 4xx5xx)一律在网关通道内无限等待重试,
       直到调用成功为止; 绝不切换到 DeepSeek 直连或百炼兜底。
       重试等待时间按 8 秒起步递增, 封顶 300 秒, 避免无意义的高频轮询。
-    - 其余 provider: 按原逻辑多通道依次尝试(主模型直连 -> 备用模型), 每通道内递增等待重试。
+    - 其余 provider: 按原逻辑多通道依次尝试(主模型(百炼) -> 备用模型(Opencode)), 每通道内递增等待重试。
     """
     opencode_only = (cfg.llm_provider or "auto").lower() == "opencode"
     if opencode_only:
@@ -91,6 +99,9 @@ def call_llm(messages: list, cfg) -> dict:
                     headers=headers,
                     json=payload,
                     timeout=cfg.llm_timeout,
+                    # 绕过本机系统代理(127.0.0.1:8080)直连网关: 代理MITM证书不被certifi信任
+                    # 会导致 SSLCertVerificationError 假性"网关不可用" (2026-08-13 修复)
+                    proxies={"http": None, "https": None},
                 )
                 resp.raise_for_status()
                 data = resp.json()

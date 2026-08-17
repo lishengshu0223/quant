@@ -1,0 +1,127 @@
+{
+ "round": 47,
+ "hypothesis": "基于多轮失败经验，改用『极端状态内部结构对称化』构造因子：将高活跃/高波/强趋势日与低活跃/低波/弱趋势日的行为指标做标准化对称差，使因子值分布更连续、减少极端值干扰，从而提升分组单调性；核心逻辑是资金在极端交易日的方向性、力度与参与度差异具有持续性，可预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "TurnoverSkewAsymmetry_40D",
+   "expr": "TS_MEAN((CTOP(\"$turnover\",0.2,\"SKEW\",\"$return\",40)-CBOT(\"$turnover\",0.2,\"SKEW\",\"$return\",40))/(ABS(CTOP(\"$turnover\",0.2,\"SKEW\",\"$return\",40))+ABS(CBOT(\"$turnover\",0.2,\"SKEW\",\"$return\",40))+1e-8),10)",
+   "style": "量价背离/短期反转",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VolumeDirectionEfficiencyAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"$volume\",0.2,\"MEAN\",\"ABS($return)/($amp+1e-8)\",40)-CBOT(\"$volume\",0.2,\"MEAN\",\"ABS($return)/($amp+1e-8)\",40))/(ABS(CTOP(\"$volume\",0.2,\"MEAN\",\"ABS($return)/($amp+1e-8)\",40))+ABS(CBOT(\"$volume\",0.2,\"MEAN\",\"ABS($return)/($amp+1e-8)\",40))+1e-8),10)",
+   "style": "量价配合/趋势",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmpOpenMomentumAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"$amp\",0.2,\"MEAN\",\"($close-$open)/$open\",40)-CBOT(\"$amp\",0.2,\"MEAN\",\"($close-$open)/$open\",40))/(ABS(CTOP(\"$amp\",0.2,\"MEAN\",\"($close-$open)/$open\",40))+ABS(CBOT(\"$amp\",0.2,\"MEAN\",\"($close-$open)/$open\",40))+1e-8),10)",
+   "style": "振幅/动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ClosePositionTurnoverAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"($close-$low)/($high-$low+1e-8)\",0.2,\"MEAN\",\"$turnover\",40)-CBOT(\"($close-$low)/($high-$low+1e-8)\",0.2,\"MEAN\",\"$turnover\",40))/(ABS(CTOP(\"($close-$low)/($high-$low+1e-8)\",0.2,\"MEAN\",\"$turnover\",40))+ABS(CBOT(\"($close-$low)/($high-$low+1e-8)\",0.2,\"MEAN\",\"$turnover\",40))+1e-8),10)",
+   "style": "量价配合/趋势",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "VWAPDevAmpAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",0.2,\"MEAN\",\"$amp\",40)-CBOT(\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",0.2,\"MEAN\",\"$amp\",40))/(ABS(CTOP(\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",0.2,\"MEAN\",\"$amp\",40))+ABS(CBOT(\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",0.2,\"MEAN\",\"$amp\",40))+1e-8),10)",
+   "style": "量价背离/趋势",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveBodyAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",40)-CBOT(\"ABS($bret)\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",40))/(ABS(CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",40))+ABS(CBOT(\"ABS($bret)\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",40))+1e-8),10)",
+   "style": "动量/波动率",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverReturnVarianceAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"$turnover\",0.2,\"MEAN\",\"POW($return,2)\",40)-CBOT(\"$turnover\",0.2,\"MEAN\",\"POW($return,2)\",40))/(ABS(CTOP(\"$turnover\",0.2,\"MEAN\",\"POW($return,2)\",40))+ABS(CBOT(\"$turnover\",0.2,\"MEAN\",\"POW($return,2)\",40))+1e-8),10)",
+   "style": "波动率/流动性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveVWAPGapAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",40)-CBOT(\"ABS($bret)\",0.2,\"MEAN\",\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",40))/(ABS(CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",40))+ABS(CBOT(\"ABS($bret)\",0.2,\"MEAN\",\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",40))+1e-8),10)",
+   "style": "量价背离/动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpTurnoverRateAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover/(ABS($return)+1e-8)\",40)-CBOT(\"$amp\",0.2,\"MEAN\",\"$turnover/(ABS($return)+1e-8)\",40))/(ABS(CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover/(ABS($return)+1e-8)\",40))+ABS(CBOT(\"$amp\",0.2,\"MEAN\",\"$turnover/(ABS($return)+1e-8)\",40))+1e-8),10)",
+   "style": "波动率/流动性",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountCloseStrengthAsym_40D",
+   "expr": "TS_MEAN((CTOP(\"$amount\",0.2,\"MEAN\",\"$return/($amount+1e-8)\",40)-CBOT(\"$amount\",0.2,\"MEAN\",\"$return/($amount+1e-8)\",40))/(ABS(CTOP(\"$amount\",0.2,\"MEAN\",\"$return/($amount+1e-8)\",40))+ABS(CBOT(\"$amount\",0.2,\"MEAN\",\"$return/($amount+1e-8)\",40))+1e-8),10)",
+   "style": "量价配合/趋势",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

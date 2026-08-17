@@ -92,7 +92,7 @@ def generate_report(best: dict, data, cfg, png_path: str | None = None,
     ax_title.text(0.5, 0.58, name, ha="center", va="top",
                   fontsize=20, color=COLORS["accent"], fontweight="bold")
     ax_title.text(0.5, 0.30, f"公式: {expr}", ha="center", va="top", fontsize=11,
-                  color=COLORS["primary"],
+                  color=COLORS["primary"], parse_math=False,
                   bbox=dict(boxstyle="round,pad=0.5", facecolor=COLORS["light"],
                             edgecolor=COLORS["info"], alpha=0.8))
     sub = (desc or hypothesis)[:150]

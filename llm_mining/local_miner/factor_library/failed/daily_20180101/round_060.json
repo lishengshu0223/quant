@@ -1,0 +1,152 @@
+{
+ "round": 60,
+ "hypothesis": "极端日的资金行为特征比常规日均值更稳定：本轮转向‘单位波动所需动能/缺口振幅归一化/极端量日收益动量/恐慌量能密度/顶部回流位置’等新维度, 并用日频排名平滑提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "TurnoverPerRangeReturnPersistence_60D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$turnover/($high-$low+1e-8)\",0.2,\"MEAN\",\"$return\",60)),5)",
+   "style": "量价密度/短期动量",
+   "reason": "方向无效",
+   "detail": "IC=+1.02%, 多头=-9.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01023,
+   "long_total": -0.09449,
+   "monthly_pos_ratio": 0.5288,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpOvernightGapNormalized_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"($open*(1+$return)/$close-1)/($high-$low+1e-8)\",60)),10)",
+   "style": "缺口/振幅/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.091, 年度越序峰值=14.1%, 负年=[2024]",
+   "ic_mean": 0.00948,
+   "long_total": 0.54878,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "PanicDayVolumePerLoss_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"$volume/(ABS($bret)+1e-8)\",60)),10)",
+   "style": "恐慌抛压/超跌反弹",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.164, 年度越序峰值=17.9%",
+   "ic_mean": 0.02379,
+   "long_total": 0.51668,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeReturnPeakRecency_20D",
+   "expr": "TS_MEAN(RANK(-TS_ARGMAX(CTOP(\"$volume\",0.2,\"MEAN\",\"$return\",20),20)),5)",
+   "style": "放量动量/时序峰位",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.086, 年度越序峰值=16.8%, 负年=[2021]",
+   "ic_mean": 0.02037,
+   "long_total": 0.2267,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "HighAmpReturnTrendAcceleration_60D",
+   "expr": "TS_MEAN(RANK(DELTA(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",60),5)),10)",
+   "style": "振幅动量/趋势加速度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.100, 年度越序峰值=12.8%, 负年=[2020]",
+   "ic_mean": 0.02738,
+   "long_total": 0.27658,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "ExtremeAmountDayCloseAnchor_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60)),10)",
+   "style": "资金主导/收盘位置",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.119, 年度越序峰值=8.7%, 负年=[2020]",
+   "ic_mean": 0.02137,
+   "long_total": 0.44479,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "LowTurnoverReturnSkew_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"SKEW\",\"$return\",60)),10)",
+   "style": "低流动性吸筹/偏度",
+   "reason": "方向无效",
+   "detail": "IC=+0.21%, 多头=-0.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00212,
+   "long_total": -0.0038,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpUpperWickAbsorption_60D",
+   "expr": "TS_MEAN(RANK(-CTOP(\"$amp\",0.2,\"MEAN\",\"($high-(($close>$open)?$close:$open))/($high-$low+1e-8)\",60)),10)",
+   "style": "振幅/抛压吸收",
+   "reason": "方向无效",
+   "detail": "IC=+1.16%, 多头=-7.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0116,
+   "long_total": -0.07506,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeUpDayRangeEfficiency_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"($high-$low)/(ABS($bret)+1e-8)\",60)),10)",
+   "style": "上涨质量/波动效率",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.083, 年度越序峰值=29.1%, 负年=[2019, 2020]",
+   "ic_mean": 0.01754,
+   "long_total": 0.17873,
+   "monthly_pos_ratio": 0.6058,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020
+   ]
+  },
+  {
+   "name": "HighTurnoverMedianReversal_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.2,\"MEDIAN\",\"$return\",60)),10)",
+   "style": "高换手/中位数方向",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.087, 年度越序峰值=14.4%, 负年=[2020, 2025]",
+   "ic_mean": 0.0422,
+   "long_total": 0.35169,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  }
+ ]
+}

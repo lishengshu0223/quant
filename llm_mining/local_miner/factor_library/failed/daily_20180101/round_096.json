@@ -1,0 +1,146 @@
+{
+ "round": 96,
+ "hypothesis": "A股极端bar行为中，振幅与换手驱动的收益分歧、极端日的跳空方向倾向、换手尖峰日的收益跨度、低振幅bar的噪音占比、活跃资金的方向纯度、振幅缺口扩张趋势、量与振幅不对称、极端日收益的净方向偏斜等微观结构痕迹会在5日内产生惯性或反转，本轮围绕这些单一经济逻辑构造10个相互独立的切割因子。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "AmpTurnoverMotiveSplit_60D",
+   "expr": "TS_MEAN(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",60)-CTOP(\"$turnover\",0.2,\"MEAN\",\"$return\",60),5)",
+   "style": "量价背离/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.101, 年度越序峰值=9.4%",
+   "ic_mean": 0.02331,
+   "long_total": 0.26929,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeDayGapTrendLean_60D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"SIGN($open*(1+$return)/$close-1)*SIGN($return)\",60)",
+   "style": "动量/跳空/短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.13%, 多头=-0.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00125,
+   "long_total": -0.00139,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "TurnoverSpikeReturnSpan_80D",
+   "expr": "CTOP(\"$turnover\",0.1,\"MAX\",\"$return\",80)-CBOT(\"$turnover\",0.1,\"MIN\",\"$return\",80)",
+   "style": "流动性/分歧度/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.098, 年度越序峰值=26.3%, 负年=[2025]",
+   "ic_mean": 0.05005,
+   "long_total": 0.33536,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "CalmBarUncertaintyRatio_60D",
+   "expr": "CBOT(\"$amp\",0.2,\"STD\",\"$return\",60)/(CBOT(\"$amp\",0.2,\"MEAN\",\"ABS($bret)\",60)+1e-8)",
+   "style": "波动率/微观结构/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.03%, 多头=-41.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0003,
+   "long_total": -0.41675,
+   "monthly_pos_ratio": 0.4423,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2025
+   ]
+  },
+  {
+   "name": "ActiveMoneyDirectionPurity_60D",
+   "expr": "TS_MEAN(CTOP(\"$amount\",0.3,\"MEAN\",\"$bret*($close-$open)/($high-$low+1e-8)\",60),5)",
+   "style": "量价配合/资金行为/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.073, 年度越序峰值=21.5%, 负年=[2025]",
+   "ic_mean": 0.0522,
+   "long_total": 0.12461,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "AmpGapExpansionTrend_60D",
+   "expr": "DELTA(CTOP(\"$amp\",0.2,\"MEAN\",\"ABS($open*(1+$return)/$close-1)\",60),10)/(TS_MEAN(CTOP(\"$amp\",0.2,\"MEAN\",\"ABS($open*(1+$return)/$close-1)\",60),60)+1e-8)",
+   "style": "缺口/振幅/趋势",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ActiveQuietLiquidityPremium_60D",
+   "expr": "TS_MEAN(CTOP(\"$amount\",0.2,\"MEAN\",\"$return\",60),5)-TS_MEAN(CBOT(\"$amount\",0.2,\"MEAN\",\"$return\",60),5)",
+   "style": "流动性溢价/截面/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.103, 年度越序峰值=9.4%, 负年=[2020]",
+   "ic_mean": 0.04988,
+   "long_total": 0.34078,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "WideAmpCountDensity_60D",
+   "expr": "CTOP(\"$amp\",0.5,\"COUNT\",\"$amp>0.03\",60)/60",
+   "style": "波动率/极端状态/中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.74%, 多头=+0.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01735,
+   "long_total": 0.0,
+   "monthly_pos_ratio": 0.8214,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietVolumeReturnConcentration_60D",
+   "expr": "CBOT(\"$volume\",0.2,\"STD\",\"$return\",60)/(TS_STD($return,60)+1e-8)",
+   "style": "量价背离/流动性/中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.87%, 多头=-10.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01875,
+   "long_total": -0.10859,
+   "monthly_pos_ratio": 0.7596,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeReturnNetDirection_80D",
+   "expr": "CTOP(\"ABS($bret)\",0.1,\"MEAN\",\"$return\",80)/(CTOP(\"ABS($bret)\",0.1,\"MEAN\",\"ABS($bret)\",80)+1e-8)",
+   "style": "极端收益/动量/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.160, 年度越序峰值=6.8%, 负年=[2020]",
+   "ic_mean": 0.05068,
+   "long_total": 0.6915,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  }
+ ]
+}

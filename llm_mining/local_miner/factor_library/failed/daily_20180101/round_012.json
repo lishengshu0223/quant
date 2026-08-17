@@ -1,0 +1,151 @@
+{
+ "round": 12,
+ "hypothesis": "上轮反馈中唯一达到B级单调性的因子是换手率极端占比类信号，说明“极端bar强度相对自身中枢的比值”比“极端组间价差”更能形成线性排序。本轮进一步把这种“相对强度比值”推广到波动聚集、量价背离、极端日反转与流动性冲击等不同维度，并用LAST/SKEW/KURT等新聚合方式构造差异化结构，避免直接复制换手率峰度。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "VolatilityClimaxConcentration_20D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MEAN\",\"$amp\",20)/(TS_MEAN($amp,20)+1e-8)",
+   "style": "短期波动率聚集",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021', '2022']",
+   "ic_mean": 0.02683,
+   "long_total": 0.36493,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeReturnSkewPenalty_40D",
+   "expr": "-CTOP(\"$volume\",0.3,\"SKEW\",\"$return\",40)",
+   "style": "短期量价背离/博彩偏好",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.061, 年度越序峰值=9.0%, 负年=[2023]",
+   "ic_mean": 0.00937,
+   "long_total": 0.20171,
+   "monthly_pos_ratio": 0.6442,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "QuietDayReturnKurtosisSignal_40D",
+   "expr": "CBOT(\"$turnover\",0.2,\"KURT\",\"$return\",40)/(TS_STD($return,40)+1e-8)",
+   "style": "流动性/尾部风险",
+   "reason": "方向无效",
+   "detail": "IC=-0.65%, 多头=+1.0%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00651,
+   "long_total": 0.01047,
+   "monthly_pos_ratio": 0.2788,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "ClimaxVolumeLastReturnReversal_20D",
+   "expr": "-CTOP(\"$volume\",0.2,\"LAST\",\"$return\",20)",
+   "style": "短期反转/量能高潮",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ClimaxAmplitudeLastReturnStd_20D",
+   "expr": "-CTOP(\"$amp\",0.2,\"LAST\",\"$return\",20)/(TS_STD($return,20)+1e-8)",
+   "style": "短期反转/波动率极端",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "RangeDrivenTurnoverImbalance_20D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover\",20)/(CTOP(\"$volume\",0.2,\"MEAN\",\"$turnover\",20)+1e-8)",
+   "style": "量价背离/价格冲击",
+   "reason": "方向无效",
+   "detail": "IC=+0.44%, 多头=-15.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00435,
+   "long_total": -0.15233,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "HighAmountDayReturnTightness_30D",
+   "expr": "-CTOP(\"$amount\",0.2,\"STD\",\"$return\",30)/(TS_STD($return,30)+1e-8)",
+   "style": "流动性/机构行为",
+   "reason": "方向无效",
+   "detail": "IC=+0.75%, 多头=-27.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00754,
+   "long_total": -0.27037,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "PriceLevelExtremeReturnSpread_30D",
+   "expr": "CTOP(\"$amount/($volume+1e-8)\",0.2,\"MEAN\",\"$return\",30)-CBOT(\"$amount/($volume+1e-8)\",0.2,\"MEAN\",\"$return\",30)",
+   "style": "短期动量/价格位置",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.118, 年度越序峰值=11.7%",
+   "ic_mean": 0.03401,
+   "long_total": 0.13631,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveQuietRangeContrast_25D",
+   "expr": "CTOP(\"ABS($bret)\",0.15,\"MEAN\",\"ABS($close-$open)/($high-$low+1e-8)\",25)-CBOT(\"$amp\",0.15,\"MEAN\",\"ABS($close-$open)/($high-$low+1e-8)\",25)",
+   "style": "价量结构/实体效率",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.039, 年度越序峰值=14.1%, 负年=[2021, 2023, 2024, 2025]",
+   "ic_mean": 0.0035,
+   "long_total": 0.00327,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "TurnoverSurgeVolatilityFade_30D",
+   "expr": "-CTOP(\"$turnover\",0.15,\"MAX\",\"$amp\",30)/(TS_MEAN($amp,30)+1e-8)",
+   "style": "流动性冲击/均值回归",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.144, 年度越序峰值=9.6%, 负年=[2022]",
+   "ic_mean": 0.0141,
+   "long_total": 0.39551,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  }
+ ]
+}

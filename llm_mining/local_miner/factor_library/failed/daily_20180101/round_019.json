@@ -1,0 +1,143 @@
+{
+ "round": 19,
+ "hypothesis": "极端bar的中位数相对全窗口中枢的比值结构已被验证有效，本轮围绕更丰富的价格形态维度展开：低成交日的收盘位置、高成交日的价格区间、强涨日的上影线、恐慌日的下影线、高换手日的开收盘形态等，构造10个独立的高低极端状态因子。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietTurnoverClosePositionAccum_40D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",40)/(TS_MEDIAN(($close-$low)/($high-$low+1e-8),40)+1e-8)",
+   "style": "量价背离/短期吸筹",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.071, 年度越序峰值=6.8%",
+   "ic_mean": 0.01273,
+   "long_total": 0.29464,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmountScaledRangeFade_40D",
+   "expr": "-CTOP(\"$amount\",0.2,\"MEDIAN\",\"($high-$low)/($close+1e-8)\",40)/(TS_MEDIAN(($high-$low)/($close+1e-8),40)+1e-8)",
+   "style": "流动性/高波反转",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.02887,
+   "long_total": 0.53469,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "StrongUpDayUpperWickAbsence_35D",
+   "expr": "CTOP(\"$bret\",0.2,\"MEDIAN\",\"($high-$close)/($high-$low+1e-8)\",35)/(TS_MEDIAN(($high-$close)/($high-$low+1e-8),35)+1e-8)",
+   "style": "动量/上攻质量",
+   "reason": "方向无效",
+   "detail": "IC=+0.10%, 多头=-26.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00104,
+   "long_total": -0.26106,
+   "monthly_pos_ratio": 0.4904,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "PanicDownLowerShadowSupport_30D",
+   "expr": "CBOT(\"$bret\",0.2,\"MEDIAN\",\"($open-$low)/($high-$low+1e-8)\",30)/(TS_MEDIAN(($open-$low)/($high-$low+1e-8),30)+1e-8)",
+   "style": "短期反转/下影支撑",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.066, 年度越序峰值=9.6%, 负年=[2021]",
+   "ic_mean": 0.02795,
+   "long_total": 0.11558,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "LowAmountRangeCompressionAnticipation_50D",
+   "expr": "1/(CBOT(\"$amount\",0.2,\"MEDIAN\",\"$high-$low\",50)/(TS_MEDIAN($high-$low,50)+1e-8)+1e-8)",
+   "style": "波动率压缩/蓄势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.146, 年度越序峰值=5.6%",
+   "ic_mean": 0.03735,
+   "long_total": 0.41458,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeOpenGapInertia_40D",
+   "expr": "CTOP(\"$volume\",0.2,\"MEDIAN\",\"($close-$open)/$open\",40)/(TS_STD(($close-$open)/$open,40)+1e-8)",
+   "style": "量价动量/惯性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.140, 年度越序峰值=11.6%",
+   "ic_mean": 0.03579,
+   "long_total": 0.44649,
+   "monthly_pos_ratio": 0.8654,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverOpeningRangeFade_45D",
+   "expr": "-CTOP(\"$turnover\",0.2,\"MEDIAN\",\"($open-$low)/($high-$low+1e-8)\",45)/(TS_MEDIAN(($open-$low)/($high-$low+1e-8),45)+1e-8)",
+   "style": "换手过热/反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.063, 年度越序峰值=11.0%, 负年=[2020, 2025]",
+   "ic_mean": 0.02033,
+   "long_total": 0.16282,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "QuietTurnoverBodyEfficiency_50D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEDIAN\",\"ABS($close-$open)/($high-$low+1e-8)\",50)/(TS_MEDIAN(ABS($close-$open)/($high-$low+1e-8),50)+1e-8)",
+   "style": "低波方向/趋势预热",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.037, 年度越序峰值=9.5%, 负年=[2018, 2019, 2020, 2024]",
+   "ic_mean": 0.00148,
+   "long_total": 0.09496,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2024
+   ]
+  },
+  {
+   "name": "ExtremeMoveMoneyPerRangeConfirm_60D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEDIAN\",\"$amount/($high-$low+1e-8)\",60)/(TS_MEDIAN($amount/($high-$low+1e-8),60)+1e-8)",
+   "style": "资金效率/趋势质量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.142, 年度越序峰值=11.0%, 负年=[2021]",
+   "ic_mean": 0.03011,
+   "long_total": 0.30984,
+   "monthly_pos_ratio": 0.8654,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "LowAmpTurnoverIntensityRebound_40D",
+   "expr": "CBOT(\"$amp\",0.2,\"MEDIAN\",\"$turnover/($amp+1e-8)\",40)/(TS_MEDIAN($turnover/($amp+1e-8),40)+1e-8)",
+   "style": "振幅压缩/变盘前兆",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=10.4%",
+   "ic_mean": 0.02664,
+   "long_total": 0.08115,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

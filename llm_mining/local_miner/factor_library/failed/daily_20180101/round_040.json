@@ -1,0 +1,152 @@
+{
+ "round": 40,
+ "hypothesis": "极端状态（放量/缩量、高/低振幅、暴涨/暴跌）内部的收益分布与波动形态，和成交额/换手率等流动性变量的时序相关性，能够更稳健地表征资金行为在极端日中的持续性，从而改善分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighVolumeReturnStabilityCorr_20D",
+   "expr": "TS_CORR(CTOP(\"$volume\",0.2,\"STD\",\"$return\",20), $amount,20)",
+   "style": "量价背离/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.25%, 多头=-4.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01253,
+   "long_total": -0.04022,
+   "monthly_pos_ratio": 0.7596,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LowTurnoverReturnMedianCorr_20D",
+   "expr": "TS_CORR(CBOT(\"$turnover\",0.2,\"MEDIAN\",\"$return\",20), $amount,20)",
+   "style": "流动性/缩量",
+   "reason": "方向无效",
+   "detail": "IC=+0.02%, 多头=-31.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00015,
+   "long_total": -0.31795,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "HighAmpTurnoverVolatilityCorr_20D",
+   "expr": "TS_CORR(CTOP(\"$amp\",0.2,\"STD\",\"$turnover\",20), $amount,20)",
+   "style": "波动率/情绪",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.139, 年度越序峰值=10.5%, 负年=[2021, 2023]",
+   "ic_mean": 0.02713,
+   "long_total": 0.21761,
+   "monthly_pos_ratio": 0.9231,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "LowAmpBodyDecisivenessCorr_20D",
+   "expr": "TS_CORR(CBOT(\"$amp\",0.2,\"MEDIAN\",\"ABS($close-$open)/($high-$low+1e-8)\",20), $amount,20)",
+   "style": "振幅/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+0.33%, 多头=-14.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00332,
+   "long_total": -0.14193,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeUpDownVolumeSync_20D",
+   "expr": "TS_CORR(CTOP(\"$bret\",0.2,\"MEAN\",\"$volume\",20), CBOT(\"$bret\",0.2,\"MEAN\",\"$volume\",20),20)",
+   "style": "动量/风险偏好",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.082, 年度越序峰值=6.4%, 负年=[2022]",
+   "ic_mean": 0.01121,
+   "long_total": 0.25071,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  },
+  {
+   "name": "PanicTurnoverDispersionCorr_20D",
+   "expr": "TS_CORR(CBOT(\"$bret\",0.2,\"STD\",\"$turnover\",20), $amp,20)",
+   "style": "恐慌/波动率",
+   "reason": "方向无效",
+   "detail": "IC=+0.86%, 多头=-12.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00856,
+   "long_total": -0.12933,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmountReturnEfficiencyCorr_20D",
+   "expr": "TS_CORR(CTOP(\"$amount\",0.2,\"MEDIAN\",\"$return/($volume+1e-8)\",20), $turnover,20)",
+   "style": "资金效率/量价",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.059, 年度越序峰值=7.2%, 负年=[2020, 2021]",
+   "ic_mean": 0.00974,
+   "long_total": 0.03527,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "LowAmountClosePositionCorr_20D",
+   "expr": "TS_CORR(CBOT(\"$amount\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",20), $return,20)",
+   "style": "缩量/收盘位置",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.039, 年度越序峰值=8.8%, 负年=[2021]",
+   "ic_mean": 0.00894,
+   "long_total": 0.07411,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "ExtremeUpCandleConvictionCorr_20D",
+   "expr": "TS_CORR(CTOP(\"$bret\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",20), $amount,20)",
+   "style": "动量/实体强度",
+   "reason": "方向无效",
+   "detail": "IC=+0.94%, 多头=-26.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00941,
+   "long_total": -0.26036,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "ExtremeDownAmpVolumeCorr_20D",
+   "expr": "TS_CORR(CBOT(\"$bret\",0.2,\"MEAN\",\"$amp\",20), $volume,20)",
+   "style": "恐慌/反转",
+   "reason": "方向无效",
+   "detail": "IC=+0.11%, 多头=-16.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00113,
+   "long_total": -0.15999,
+   "monthly_pos_ratio": 0.5385,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2022
+   ]
+  }
+ ]
+}

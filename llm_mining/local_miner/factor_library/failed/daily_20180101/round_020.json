@@ -1,0 +1,147 @@
+{
+ "round": 20,
+ "hypothesis": "上轮暴露的核心问题是单一切割比值普遍IC尚可但分组秩相关不足，说明极端bar的‘水平’信号排序能力弱。本轮改用两类结构增强单调性：一是用切割特征与量价变量在时序上的相关性/协动（TS_CORR），把极端行为转化为连续稳定的联动状态；二是用切割特征的时序离散度/极值不对称（TS_STD、TS_ZSCORE、MIN/MAX）而非单一中位水平，使因子在全区间上拉开单调梯度，并保持单一经济逻辑。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighAmountVWAPDeviationFade_45D",
+   "expr": "-CTOP(\"$amount\",0.2,\"MEDIAN\",\"($close-$amount/($volume+1e-8))/($high-$low+1e-8)\",45)/(TS_STD($amount/($volume+1e-8),45)+1e-8)",
+   "style": "量价背离/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=-3.61%, 多头=+7.1%(IC与多头矛盾或为负)",
+   "ic_mean": -0.03615,
+   "long_total": 0.0708,
+   "monthly_pos_ratio": 0.3558,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "HighAmpMaxLossReboundSignal_50D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MIN\",\"$return\",50)/(TS_MAX($return,50)+1e-8)",
+   "style": "波动率/恐慌反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.137, 年度越序峰值=6.9%, 负年=[2020]",
+   "ic_mean": 0.03872,
+   "long_total": 0.64033,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "ExtremeVolumeRangeStabilityPremium_60D",
+   "expr": "-TS_STD(CTOP(\"$volume\",0.2,\"MEDIAN\",\"$high-$low\",15),60)/(TS_MEDIAN($high-$low,60)+1e-8)",
+   "style": "流动性/低波动累积",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.120, 年度越序峰值=10.2%",
+   "ic_mean": 0.01762,
+   "long_total": 0.36285,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietTurnoverBodyCorrelationPersist_30D",
+   "expr": "TS_CORR(CBOT(\"$turnover\",0.2,\"MEDIAN\",\"($close-$open)/($high-$low+1e-8)\",10),$return,30)",
+   "style": "量价配合/趋势延续",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.061, 年度越序峰值=9.2%",
+   "ic_mean": 0.00921,
+   "long_total": 0.07499,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumeClimaxClosePositionAmountCorr_40D",
+   "expr": "TS_CORR(CTOP(\"$volume\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",10),$amount,40)",
+   "style": "量价联动/动量确认",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=9.3%",
+   "ic_mean": 0.01335,
+   "long_total": 0.22185,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "PanicDayIntradayRecoveryAnticipation_35D",
+   "expr": "TS_MEAN(CBOT(\"$bret\",0.2,\"MEDIAN\",\"($close-$open)/$open\",10),35)",
+   "style": "恐慌修复/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+2.80%, 多头=-42.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02804,
+   "long_total": -0.42581,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "LowAmountClosePositionZscore_45D",
+   "expr": "TS_ZSCORE(CBOT(\"$amount\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",10),45)",
+   "style": "流动性/筹码锁定",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.062, 年度越序峰值=14.5%, 负年=[2024]",
+   "ic_mean": 0.00473,
+   "long_total": 0.00809,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "HighTurnoverOpenGapAbsorptionFade_40D",
+   "expr": "-CTOP(\"$turnover\",0.2,\"MEDIAN\",\"ABS(($close-$open)/$open)\",40)/(TS_STD(($close-$open)/$open,40)+1e-8)",
+   "style": "情绪透支/开盘反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.062, 年度越序峰值=13.2%, 负年=[2020, 2024]",
+   "ic_mean": 0.00607,
+   "long_total": 0.0387,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2024
+   ]
+  },
+  {
+   "name": "ExtremeAmpReturnAsymmetryPersistence_55D",
+   "expr": "EMA(CTOP(\"$amp\",0.25,\"MEAN\",\"SIGN($return)\",10),55)",
+   "style": "波动率/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.129, 年度越序峰值=10.0%",
+   "ic_mean": 0.04809,
+   "long_total": 0.38109,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietRangeVolumeSupplyDry_50D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MEDIAN\",\"$volume/($high-$low+1e-8)\",10)/(TS_MEDIAN($volume/($high-$low+1e-8),50)+1e-8)",
+   "style": "低波蓄势/波动率压缩",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.135, 年度越序峰值=17.0%, 负年=[2021]",
+   "ic_mean": 0.02922,
+   "long_total": 0.03377,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  }
+ ]
+}

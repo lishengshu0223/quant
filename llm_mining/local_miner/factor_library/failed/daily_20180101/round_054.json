@@ -1,0 +1,159 @@
+{
+ "round": 54,
+ "hypothesis": "连续多轮反馈表明，简单极端日均值/偏度/峰度因子的截面分组单调性普遍不足；本轮转向‘极端日行为结构性占比/状态持续性/风险集中度’三类新逻辑，用极端日总量占常态总量的比例、极端日价格形态的相对强弱、以及极端日与常态的协动来构造更接近线性定价的连续信号，避免二元计数和单一边际均值。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "StrongBodyVolumeConfirmation_60D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"($close-$open)/($high-$low+1e-8)\",0.2,\"MEAN\",\"$turnover\",60)),10)",
+   "style": "动量/量价确认",
+   "reason": "方向无效",
+   "detail": "IC=+4.69%, 多头=-4.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04694,
+   "long_total": -0.04606,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeMoveVolumeAmplification_60D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"$volume\",60)/(TS_MEAN($volume,60)+1e-8)),10)",
+   "style": "波动率/量价确认",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.121, 年度越序峰值=7.4%",
+   "ic_mean": 0.01837,
+   "long_total": 0.14857,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "DownPanicVolumeRatio_60D",
+   "expr": "DECAYLINEAR(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"$turnover\",60)/(TS_MEAN($turnover,60)+1e-8)),10)",
+   "style": "流动性/超跌反转",
+   "reason": "方向无效",
+   "detail": "IC=+0.77%, 多头=-8.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00768,
+   "long_total": -0.08727,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "HighVolumeLowerShadowDominance_60D",
+   "expr": "DECAYLINEAR(RANK((CTOP(\"$volume\",0.2,\"MEAN\",\"(($close>$open?$open:$close)-$low)/($high-$low+1e-8)\",60)-CTOP(\"$volume\",0.2,\"MEAN\",\"($high-($close>$open?$close:$open))/($high-$low+1e-8)\",60))/(CTOP(\"$volume\",0.2,\"MEAN\",\"($high-$low)/($high-$low+1e-8)\",60)+1e-8)),10)",
+   "style": "量价背离/支撑强度",
+   "reason": "方向无效",
+   "detail": "IC=+1.61%, 多头=-6.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01607,
+   "long_total": -0.05992,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "QuietDayAmihudIlliquidity_60D",
+   "expr": "DECAYLINEAR(RANK(CBOT(\"$turnover\",0.2,\"MEAN\",\"($high-$low)/($turnover+1e-8)\",60)),10)",
+   "style": "流动性溢价",
+   "reason": "方向无效",
+   "detail": "IC=+0.26%, 多头=-35.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00259,
+   "long_total": -0.35405,
+   "monthly_pos_ratio": 0.4904,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeReturnConcentration_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"ABS($bret)\",0.3,\"SUM\",\"ABS($bret)\",60)/(TS_SUM(ABS($return),60)+1e-8)),10)",
+   "style": "波动率/尾部风险",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.089, 年度越序峰值=7.6%, 负年=[2022]",
+   "ic_mean": 0.01165,
+   "long_total": 0.22573,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  },
+  {
+   "name": "TurnoverExtremeRangePerReturn_60D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"($high-$low)/(ABS($bret)+1e-8)\",60)),10)",
+   "style": "噪声/波动率",
+   "reason": "方向无效",
+   "detail": "IC=-0.92%, 多头=+5.8%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00915,
+   "long_total": 0.05825,
+   "monthly_pos_ratio": 0.4135,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "AmpRegimeReturnTrendCoherence_40D",
+   "expr": "DECAYLINEAR(TS_CORR(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",40),$return,20)*(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",40))/(ABS(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",40))+1e-8),10)",
+   "style": "趋势/协动",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmountExtremeCloseBias_50D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$amount\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",50)),10)",
+   "style": "资金/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.138, 年度越序峰值=8.1%, 负年=[2020]",
+   "ic_mean": 0.02458,
+   "long_total": 0.59575,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "LowTurnoverOpenGapEfficiency_60D",
+   "expr": "DECAYLINEAR(RANK(CBOT(\"$turnover\",0.2,\"MEAN\",\"($open-$close)/($high-$low+1e-8)\",60)),10)",
+   "style": "流动性/突破",
+   "reason": "方向无效",
+   "detail": "IC=-0.08%, 多头=+12.3%(IC与多头矛盾或为负)",
+   "ic_mean": -0.0008,
+   "long_total": 0.12323,
+   "monthly_pos_ratio": 0.4712,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2022
+   ]
+  }
+ ]
+}

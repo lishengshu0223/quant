@@ -1,0 +1,151 @@
+{
+ "round": 66,
+ "hypothesis": "本轮不再沿用“极端日均值/均值比值”的老路，而是把切割聚焦到‘极端bar对总量信息的集中度、离散度与时间一致性’上：用SUM/STD/MEDIAN等不同聚合函数提取极端行情中的交易行为结构，并通过相对自身历史的分位数和衰减平滑强化横截面排序稳定性，目标是在保住IC与多头收益的同时修复分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighAmpVolumeConcentration_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"SUM\",\"$volume\",60)/(TS_SUM($volume,60)+1e-8),10)",
+   "style": "流动性/波动率/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.141, 年度越序峰值=9.6%, 负年=[2023]",
+   "ic_mean": 0.03078,
+   "long_total": 0.48525,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "ActiveTurnoverRangeEfficiency_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$turnover\",0.2,\"MEAN\",\"ABS($bret)/($high-$low+1e-8)\",60)/(TS_MEAN($turnover,60)+1e-8),10)",
+   "style": "量价效率/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.065, 年度越序峰值=22.4%, 负年=[2019, 2020, 2025]",
+   "ic_mean": 0.04002,
+   "long_total": 0.0754,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "HighVolumeUpperWickStability_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$volume\",0.2,\"STD\",\"($high-$close)/($high-$low+1e-8)\",60)-TS_MEAN(($high-$close)/($high-$low+1e-8),60),10)",
+   "style": "量价背离/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.086, 年度越序峰值=10.4%, 负年=[2023, 2024]",
+   "ic_mean": 0.00848,
+   "long_total": 0.43259,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "PanicDayMedianLossAbsorption_60D",
+   "expr": "DECAYLINEAR(CBOT(\"$bret\",0.2,\"MEDIAN\",\"$amount/(ABS($bret)+1e-8)\",60)/(TS_MEDIAN($amount,60)+1e-8),10)",
+   "style": "流动性/恐慌反转/短期",
+   "reason": "方向无效",
+   "detail": "IC=+3.57%, 多头=-48.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03569,
+   "long_total": -0.48309,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "UpExtremeGainConcentration_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$bret\",0.2,\"SUM\",\"$return\",60)/(TS_SUM(ABS($return),60)+1e-8),10)",
+   "style": "动量/极端收益/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.124, 年度越序峰值=17.0%, 负年=[2020]",
+   "ic_mean": 0.04626,
+   "long_total": 0.61141,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "AmplitudeDensityContractionRank_60D",
+   "expr": "DECAYLINEAR(-TS_RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover/($high-$low+1e-8)\",20)/(TS_MEAN($turnover/($high-$low+1e-8),60)+1e-8),120),10)",
+   "style": "振幅/流动性收缩/短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.77%, 多头=-34.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00772,
+   "long_total": -0.34113,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmountClosePositionMedSpread_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amount\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",60)-TS_MEDIAN(($close-$low)/($high-$low+1e-8),60),10)",
+   "style": "资金定价/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.092, 年度越序峰值=9.0%",
+   "ic_mean": 0.01721,
+   "long_total": 0.18761,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpRangeCaptureRate_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"SUM\",\"ABS($bret)\",60)/(TS_SUM(ABS($bret),60)+1e-8),10)",
+   "style": "波动率/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+0.27%, 多头=-20.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00274,
+   "long_total": -0.20185,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2022
+   ]
+  },
+  {
+   "name": "LowBretDollarDepthRegime_120D",
+   "expr": "TS_RANK(DECAYLINEAR(CTOP(\"ABS($bret)\",0.2,\"MAX\",\"$amount/(ABS($bret)+1e-8)\",60),20),120)",
+   "style": "流动性/筹码/中长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.138, 年度越序峰值=12.2%",
+   "ic_mean": 0.03361,
+   "long_total": 0.03186,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeVolumeImpactAsymmetry_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$volume\",0.2,\"SKEW\",\"ABS($bret)/($amount+1e-8)\",60)-CBOT(\"$volume\",0.2,\"SKEW\",\"ABS($bret)/($amount+1e-8)\",60),10)",
+   "style": "量价冲击/非对称/短期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 因子横截面几乎无变化(所有股票取值相同), 无法分组",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

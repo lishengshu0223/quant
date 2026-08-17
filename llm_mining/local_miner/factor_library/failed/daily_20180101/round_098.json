@@ -1,0 +1,165 @@
+{
+ "round": 98,
+ "hypothesis": "A股极端bar上的行为痕迹会通过微观结构的惯性延续：放量日的噪音/趋势比例、单位范围的高效动量、涨跌极端日的量能不对称、低流动性日的换手干涸与异常冲击、高换手日的收益分布偏移等，都会在未来5日内影响定价修复与方向选择；本轮用绝对截断（按排序切前/后N根极端bar）构造更强极值特征，以提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "AmountNoiseEfficiency_60D",
+   "expr": "CTOP(\"$amount\",10,\"MEAN\",\"($high-$low)/(ABS($bret)+1e-8)\",60)/(TS_STD($return,60)+1e-8)",
+   "style": "量价背离/资金效率",
+   "reason": "单调性C级",
+   "detail": "秩相关=-0.034, 年度越序峰值=26.9%, 负年=[2018, 2021, 2022, 2023, 2024, 2025]",
+   "ic_mean": 0.00608,
+   "long_total": 0.14368,
+   "monthly_pos_ratio": 0.5288,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "CleanTrendCloseStrength_60D",
+   "expr": "CTOP(\"ABS($bret)/($high-$low+1e-8)\",10,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60)",
+   "style": "趋势/动量",
+   "reason": "方向无效",
+   "detail": "IC=+0.41%, 多头=-9.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0041,
+   "long_total": -0.09505,
+   "monthly_pos_ratio": 0.4808,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "UpDownAmountAsymmetry_60D",
+   "expr": "(CTOP(\"$bret\",0.2,\"MEAN\",\"$amount\",60)-CBOT(\"$bret\",0.2,\"MEAN\",\"$amount\",60))/(CTOP(\"$bret\",0.2,\"MEAN\",\"$amount\",60)+CBOT(\"$bret\",0.2,\"MEAN\",\"$amount\",60)+1e-8)",
+   "style": "量价/资金流",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "LowVolumeTurnoverDrought_90D",
+   "expr": "CBOT(\"$volume\",10,\"MEAN\",\"$turnover\",90)/(TS_MEAN($turnover,90)+1e-8)",
+   "style": "流动性/低波",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.126, 年度越序峰值=12.1%",
+   "ic_mean": 0.04234,
+   "long_total": 0.36572,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverDryImpactReversal_60D",
+   "expr": "CBOT(\"$turnover\",10,\"MEAN\",\"ABS($bret)/($turnover+1e-8)\",60)/(TS_MEAN(ABS($bret)/($turnover+1e-8),60)+1e-8)",
+   "style": "量价背离/异常冲击",
+   "reason": "方向无效",
+   "detail": "IC=+1.09%, 多头=-1.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01093,
+   "long_total": -0.01239,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeTurnoverReturnSkewDiff_80D",
+   "expr": "CTOP(\"$turnover\",0.2,\"SKEW\",\"$return\",80)-CBOT(\"$turnover\",0.2,\"SKEW\",\"$return\",80)",
+   "style": "尾部风险/资金情绪",
+   "reason": "方向无效",
+   "detail": "IC=+0.27%, 多头=-7.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00271,
+   "long_total": -0.07242,
+   "monthly_pos_ratio": 0.5673,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023
+   ]
+  },
+  {
+   "name": "QuietVolumeWideRangeDanger_90D",
+   "expr": "CBOT(\"$volume\",10,\"MEAN\",\"($high-$low)/(ABS($bret)+1e-8)\",90)/(TS_MEAN(($high-$low)/(ABS($bret)+1e-8),90)+1e-8)",
+   "style": "低波动/风险",
+   "reason": "方向无效",
+   "detail": "IC=+0.17%, 多头=-2.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00171,
+   "long_total": -0.02107,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmountVWAPCloseBias_60D",
+   "expr": "CTOP(\"$amount\",10,\"MEAN\",\"($amount/($volume+1e-8)-$close)/$close\",60)/(TS_STD($return,60)+1e-8)",
+   "style": "量价/收盘强度",
+   "reason": "方向无效",
+   "detail": "IC=-2.18%, 多头=+22.5%(IC与多头矛盾或为负)",
+   "ic_mean": -0.02178,
+   "long_total": 0.22516,
+   "monthly_pos_ratio": 0.4231,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "AmpExtremeVolumeCoherence_80D",
+   "expr": "TS_CORR(CTOP(\"$amp\",10,\"MEAN\",\"$return\",60),TS_MEAN($return,60),80)",
+   "style": "波动率/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+0.44%, 多头=-13.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00436,
+   "long_total": -0.13366,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "LowAmpBodyEfficiencyStability_60D",
+   "expr": "CBOT(\"$amp\",10,\"MEAN\",\"ABS($close-$open)/($high-$low+1e-8)\",60)",
+   "style": "振幅/突破",
+   "reason": "方向无效",
+   "detail": "IC=+0.06%, 多头=-2.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00056,
+   "long_total": -0.02398,
+   "monthly_pos_ratio": 0.5096,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020
+   ]
+  }
+ ]
+}

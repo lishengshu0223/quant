@@ -58,6 +58,18 @@ def _compute_metrics(factor_series: pd.DataFrame, data, cfg) -> dict:
     long_total = float(long_ret.sum()) if len(long_ret) else np.nan
     long_annual = float(long_ret.mean() * 252) if len(long_ret) else np.nan
 
+    # 收益曲线连续性(入库防线): long_ret 缺失天数与最长连续间断段,
+    # 直接对应"收益曲线间断"现象(截面分组不完整/数据缺失导致最高组收益缺失)
+    n_long_days = int(len(long_ret))
+    n_long_nan = int(long_ret.isna().sum())
+    if n_long_nan:
+        nan_idx = long_ret[long_ret.isna()].index
+        nan_grp = (nan_idx.to_series().diff() > pd.Timedelta(days=4)).cumsum()
+        max_long_nan_run = int(nan_idx.to_series().groupby(nan_grp).size().max())
+    else:
+        max_long_nan_run = 0
+    long_nan_ratio = n_long_nan / n_long_days if n_long_days else 0.0
+
     # 月度IC
     monthly_ic = ic.resample("ME").mean().dropna()
     n_months = int(len(monthly_ic))
@@ -88,6 +100,8 @@ def _compute_metrics(factor_series: pd.DataFrame, data, cfg) -> dict:
         "bad_hist_years": bad_hist_years,
         "group_annual": group_annual,
         "group_monotonicity": group_monotonicity,
+        "n_long_days": n_long_days, "n_long_nan": n_long_nan,
+        "long_nan_ratio": long_nan_ratio, "max_long_nan_run": max_long_nan_run,
     }
 
 
@@ -291,6 +305,50 @@ def classify_group_monotonicity(gm: dict, cfg) -> dict:
     }
 
 
+def _max_consecutive_run(dates) -> int:
+    """计算 DatetimeIndex 的最长连续交易日段(相邻交易日间隔≤4自然日视为连续)"""
+    if len(dates) == 0:
+        return 0
+    s = dates.to_series()
+    grp = (s.diff() > pd.Timedelta(days=4)).cumsum()
+    return int(s.groupby(grp).size().max())
+
+
+def check_coverage_continuity(factor_wide: pd.DataFrame, metrics: dict, cfg,
+                              name: str = "") -> dict:
+    """
+    入库防线-数据覆盖与连续性检查(防"收益曲线间断"因子入库)。
+
+    检查三类问题(任一不达标即拒绝):
+    (A) 全市场无数据: 评价期内存在因子宽表每日有效股票数=0 的日期(特定时间段全市场缺数据);
+    (B) 连续断档: 评价期内连续≥5个交易日有效股票数低于 min_stocks_per_day(大面积数据缺口);
+    (C) 收益曲线间断: 每日分组不完整/数据缺失导致多头收益(long_ret)出现 NaN 面积过大
+        (占比>5% 或 最长连续≥10个交易日), 即用户看到的收益曲线间断。
+    尾部远期收益缺失(最后 ic_period 个交易日)属正常现象, 不影响判定。
+    """
+    f = factor_wide[factor_wide.index >= pd.Timestamp(cfg.eval_start_date)]
+    daily_valid = f.notna().sum(axis=1)
+    min_s = cfg.min_stocks_per_day
+
+    zero_days = int((daily_valid == 0).sum())
+    low_days = daily_valid[daily_valid < min_s]
+    low_run = _max_consecutive_run(low_days.index)
+
+    zero_ok = zero_days == 0
+    low_ok = low_run < 5          # 连续5个交易日以上覆盖不足视为断档
+    long_nan_ratio = float(metrics.get("long_nan_ratio") or 0.0)
+    max_long_nan_run = int(metrics.get("max_long_nan_run") or 0)
+    curve_ok = (long_nan_ratio <= 0.05) and (max_long_nan_run < 10)
+    ok = bool(zero_ok and low_ok and curve_ok)
+
+    return {
+        "zero_days": zero_days, "low_run": low_run,
+        "n_long_nan": int(metrics.get("n_long_nan") or 0),
+        "long_nan_ratio": long_nan_ratio, "max_long_nan_run": max_long_nan_run,
+        "zero_ok": zero_ok, "low_ok": low_ok, "curve_ok": curve_ok, "ok": ok,
+    }
+
+
 def evaluate_factor(factor_wide: pd.DataFrame, data, cfg, name: str = "") -> dict:
     """
     评价单个因子, 返回结构化结果(含各项达标判定)。
@@ -323,7 +381,12 @@ def evaluate_factor(factor_wide: pd.DataFrame, data, cfg, name: str = "") -> dic
         mono_grade = classify_group_monotonicity(metrics["group_monotonicity"], cfg)
         monotonicity_ok = bool(mono_grade["grade"] != "C")
 
-        qualified = bool(direction_ok and monthly_ok and yearly_ok and monotonicity_ok)
+        # 数据覆盖与连续性检查(入库防线): 防止存在"特定时间段全市场无数据"/收益曲线间断的因子入库
+        coverage = check_coverage_continuity(factor_wide, metrics, cfg, name=name)
+        coverage_ok = coverage["ok"]
+
+        qualified = bool(direction_ok and monthly_ok and yearly_ok
+                         and monotonicity_ok and coverage_ok)
 
         result = {
             "name": name, "error": None, "flipped": flipped,
@@ -331,9 +394,11 @@ def evaluate_factor(factor_wide: pd.DataFrame, data, cfg, name: str = "") -> dic
             "monthly_ok": monthly_ok,
             "monthly_require": cfg.monthly_ic_pos_ratio,
             "yearly_ok": yearly_ok,
+            "coverage_ok": coverage_ok,
             "qualified": qualified,
         }
         result.update(metrics)
+        result["coverage"] = coverage
         result["long_stability"] = calc_long_stability(
             metrics["yearly_long"], metrics["latest_year"])
         result["n_neg_months"] = len(metrics["neg_months"])
@@ -350,6 +415,18 @@ def build_feedback_text(round_factors: list, cfg) -> str:
     把一轮所有因子的评价结果组织成给模型的中文反馈文本。
     round_factors: [{"name","desc","expr","eval": {...}}, ...]
     """
+    def _pct(v, nd=2):
+        """百分数格式化(None/非有限 -> 'NA'), 防止异常因子数据拖垮整轮反馈构建"""
+        if v is None or not np.isfinite(v):
+            return "NA"
+        return f"{v*100:+.{nd}f}%"
+
+    def _num(v, nd=3):
+        """数值格式化(None/非有限 -> 'NA')"""
+        if v is None or not np.isfinite(v):
+            return "NA"
+        return f"{v:.{nd}f}"
+
     lines = []
     for i, f in enumerate(round_factors, 1):
         ev = f.get("eval") or {}
@@ -361,8 +438,8 @@ def build_feedback_text(round_factors: list, cfg) -> str:
             lines.append("")
             continue
         lines.append(
-            f"结果: IC均值={ev['ic_mean']*100:+.3f}%, ICIR={ev['icir']:.3f}, "
-            f"多头累计超额={ev['long_total']*100:+.2f}%, 多头年化超额={ev['long_annual']*100:.2f}%"
+            f"结果: IC均值={_pct(ev.get('ic_mean'), 3)}, ICIR={_num(ev.get('icir'))}, "
+            f"多头累计超额={_pct(ev.get('long_total'))}, 多头年化超额={_pct(ev.get('long_annual'))}"
             f" (收益为日度等效口径: {cfg.ic_period}日前向收益÷{cfg.ic_period}, 跨周期可比)"
             + (" [因子已自动取相反数翻转方向]" if ev["flipped"] else "")
         )
@@ -370,23 +447,23 @@ def build_feedback_text(round_factors: list, cfg) -> str:
         if ev["direction_ok"]:
             lines.append(f"[达标] 方向检验: IC均值与多头收益同向为正。")
         else:
-            lines.append(f"[未达标] 方向检验: IC均值={ev['ic_mean']*100:+.3f}% 与多头累计收益="
-                         f"{ev['long_total']*100:+.2f}% 方向矛盾或仍为负, 该因子无效。"
+            lines.append(f"[未达标] 方向检验: IC均值={_pct(ev.get('ic_mean'), 3)} 与多头累计收益="
+                         f"{_pct(ev.get('long_total'))} 方向矛盾或仍为负, 该因子无效。"
                          "说明因子逻辑与预期相反或根本无效, 应彻底更换假设而非微调参数。")
         # 标准b
         if ev["monthly_ok"]:
-            lines.append(f"[达标] 月度IC为正占比: {ev['monthly_pos_ratio']*100:.1f}% "
+            lines.append(f"[达标] 月度IC为正占比: {_pct(ev.get('monthly_pos_ratio'), 1)} "
                          f"(≥{cfg.monthly_ic_pos_ratio*100:.0f}%)。")
         else:
             examples = ", ".join(ev["neg_months"][:5])
-            lines.append(f"[未达标] 月度IC为正占比仅 {ev['monthly_pos_ratio']*100:.1f}% "
-                         f"(要求≥{cfg.monthly_ic_pos_ratio*100:.0f}%), 共{ev['n_neg_months']}个月为负"
+            lines.append(f"[未达标] 月度IC为正占比仅 {_pct(ev.get('monthly_pos_ratio'), 1)} "
+                         f"(要求≥{cfg.monthly_ic_pos_ratio*100:.0f}%), 共{ev.get('n_neg_months')}个月为负"
                          f"(如 {examples})。说明因子稳定性不足, 可考虑更稳健的平滑/标准化或更换信号。")
         # 标准c
         if ev["yearly_ok"]:
             lines.append("[达标] 分年度多头超额: 历史完整年份全部为正。")
         else:
-            bad = ", ".join(f"{y}年({v*100:+.2f}%)" for y, v in sorted(ev["bad_hist_years"].items()))
+            bad = ", ".join(f"{y}年({_pct(v)})" for y, v in sorted(ev["bad_hist_years"].items()))
             lines.append(f"[未达标] 分年度多头超额存在为负的历史完整年份: {bad}。"
                          "说明因子在某些市场风格下失效, 需增强风格适应性或避开该逻辑。")
         # 多头收益年度稳定性(静态判断: 每年为正且分布平均, 不集中于个别年份)
@@ -396,10 +473,10 @@ def build_feedback_text(round_factors: list, cfg) -> str:
             cv_txt = f"{stab['cv']:.2f}" if stab.get("cv") is not None else "NA(年均≤0)"
             hhi_txt = f"{stab['hhi']:.3f}" if stab.get("hhi") is not None else "NA(总收益≤0)"
             lines.append(
-                f"[多头稳定性] 年度信息比率={stab['yearly_ir']:.2f}"
-                f"(年均{stab['mean']*100:+.2f}% / 年标准差{stab['std']*100:.2f}%), "
+                f"[多头稳定性] 年度信息比率={_num(stab.get('yearly_ir'), 2)}"
+                f"(年均{_pct(stab.get('mean'))} / 年标准差{_pct(stab.get('std'))}), "
                 f"变异系数={cv_txt}, 集中度HHI={hhi_txt}, "
-                f"最差年{stab['min_year_year']}({stab['min_year']*100:+.2f}%)。"
+                f"最差年{stab.get('min_year_year')}({_pct(stab.get('min_year'))})。"
                 "该比率越高=每年多头收益越平均稳定(不集中于个别年份), 是判断因子迭代优劣的核心标准, 优先于单纯抬高IC。")
         # 分组收益单调性(每日秩相关均值 + 越序惩罚, 分年度完整展示)
         gm = ev.get("group_monotonicity") or {}
@@ -411,16 +488,16 @@ def build_feedback_text(round_factors: list, cfg) -> str:
             y_oos = gm.get("yearly_out_of_order") or {}
             years = sorted(set(corr_y) | set(oos_y) | set(y_oos))
             lines.append(
-                f"[分组单调性] 每日秩相关均值={drc:+.3f}(1=完全单调递增, 0=无关), "
-                f"越序惩罚日均={doo*100:.4f}%(Σmax(0,R_i-R_(i+1)), 0=完全无越序), "
+                f"[分组单调性] 每日秩相关均值={_num(drc, 3)}(1=完全单调递增, 0=无关), "
+                f"越序惩罚日均={_pct(doo, 4)}(Σmax(0,R_i-R_(i+1)), 0=完全无越序), "
                 f"分组数={gm.get('n_groups')}。分年度值(年: 秩相关 / 越序日均 / 年度聚合越序):")
             for y in years:
                 c = corr_y.get(y)
                 o = oos_y.get(y)
                 v = y_oos.get(y)
-                c_txt = f"{c:+.3f}" if c is not None else "NA"
-                o_txt = f"{o*100:.3f}%" if o is not None else "NA"
-                v_txt = f"{v*100:.2f}%" if v is not None else "NA"
+                c_txt = _num(c, 3) if c is not None else "NA"
+                o_txt = _pct(o, 3) if o is not None else "NA"
+                v_txt = _pct(v) if v is not None else "NA"
                 lines.append(f"    {y}: {c_txt} / {o_txt} / {v_txt}")
             lines.append(
                 "    以上分年度值供针对性挖掘: 找出秩相关偏低(<0.15)或年度聚合越序偏高(>10%)的年份, "
@@ -472,6 +549,16 @@ def build_feedback_text(round_factors: list, cfg) -> str:
                 f"[相关性撞车] 该因子与库内因子截面相关性 max|ρ|="
                 f"{float(ev.get('library_max_corr') or 0):.2f} 超上限({cfg.max_library_corr}), "
                 f"被拒入库——仅换字段/换窗口/换包装构造的'新'因子无法通过此关, 必须换经济逻辑。")
+        # 数据覆盖/连续性拒绝 —— 收益曲线间断的因子必须回传原因, 引导模型降低截面离散程度
+        if ev.get("coverage") and not ev.get("coverage_ok"):
+            cov = ev["coverage"]
+            lines.append(
+                f"[数据覆盖/连续性拒绝] 该因子被拒入库: 评价期内全市场无数据日期="
+                f"{cov['zero_days']}天, 连续覆盖不足断档={cov['low_run']}日, "
+                f"收益曲线缺失={cov['n_long_nan']}天({cov['long_nan_ratio']*100:.1f}%, "
+                f"最长连续{cov['max_long_nan_run']}日)。"
+                "说明因子截面有效值过少/过于离散, 特定时间段分不出完整分组, 收益曲线存在间断, "
+                "无法入库; 应减少时序排名(TS_RANK/TS_QUANTILE)等强离散化运算或改用连续值结构。")
         if ev["qualified"]:
             lines.append("★★ 该因子已通过全部合格标准! 可在此基础上进一步抬高IC或验证稳健性。")
         lines.append("")
@@ -479,7 +566,9 @@ def build_feedback_text(round_factors: list, cfg) -> str:
     lines.append("综合要求: 下一轮因子必须同时满足 (a)IC均值与多头收益同向为正 "
                  f"(b)月度IC为正占比≥{cfg.monthly_ic_pos_ratio*100:.0f}% "
                  "(c)历史完整年份多头超额全部为正 "
-                 "(d)分组单调性评级不得为C级(秩相关为负或年度越序超限直接拒绝)。"
+                 "(d)分组单调性评级不得为C级(秩相关为负或年度越序超限直接拒绝) "
+                 "(e)评价期内收益曲线连续: 无全市场无数据日期、无连续覆盖断档、"
+                 "无长段收益缺失(截面有效值过少/过于离散会被拒)。"
                  "请基于以上反馈进行有针对性的改进, 不要简单重复已失败的公式。")
     return "\n".join(lines)
 
@@ -500,86 +589,3 @@ def to_serializable(obj):
     if isinstance(obj, (np.bool_,)):
         return bool(obj)
     return obj
-
-
-# ====================== Barra 行业/市值中性化 ======================
-
-# Barra v1 暴露数据中的风格/元数据列, 其余中文列即为申万一级行业哑变量
-BARRA_NON_INDUSTRY_COLS = {
-    "beta", "book_to_price", "earnings_yield", "growth", "leverage",
-    "liquidity", "momentum", "non_linear_size", "residual_volatility",
-    "size", "specific_return", "specific_risk",
-}
-
-
-def load_barra_exposure(start_date=None, model: str = "v1"):
-    """
-    通过 local_api 读取 Barra 因子暴露(全市场)。
-
-    Args:
-        start_date: 只保留该日期起的暴露(可选, str 或 Timestamp)
-        model: Barra 模型版本(本地数据目录 barra/{model}/exposure)
-
-    Returns:
-        (exp, ind_cols): exp 为 (date, code) MultiIndex 的暴露 DataFrame(含 size 列);
-        ind_cols 为行业哑变量列名列表(申万一级中文名)。
-    """
-    import local_api as la
-    exp = la.get_factor_exposure([], start_date=start_date, end_date=None, model=model)
-    if exp is None or exp.empty:
-        raise RuntimeError(f"Barra 暴露数据为空, 请检查本地数据目录 barra/{model}/exposure")
-    if start_date is not None:
-        exp = exp.loc[exp.index.get_level_values(0) >= pd.Timestamp(start_date)]
-    ind_cols = [c for c in exp.columns if c not in BARRA_NON_INDUSTRY_COLS]
-    return exp, ind_cols
-
-
-def neutralize_factor(factor_wide: pd.DataFrame, exp: pd.DataFrame,
-                      ind_cols: list) -> pd.DataFrame:
-    """
-    每日截面中性化: factor ~ 行业哑变量 + size, 返回残差宽表(日期×股票)。
-
-    FWL 等价向量化实现: 先在 日期×行业 内对 factor 与 size 各自 demean
-    (等价于对行业哑变量回归取残差), 再无截距回归
-    beta = Σ(f_dm·s_dm)/Σ(s_dm²), resid = f_dm - beta·s_dm。
-
-    Args:
-        factor_wide: 因子宽表(日期×股票)
-        exp: Barra 暴露(需含 size 列与行业哑变量列, MultiIndex=(date, code))
-        ind_cols: 行业哑变量列名列表
-    """
-    f_long = factor_wide.stack(future_stack=True).dropna()
-    f_long.index.names = ["date", "code"]
-    f_long = f_long.rename("factor")
-
-    ind_cols = list(ind_cols)
-    need = exp[["size"] + ind_cols]
-    merged = f_long.to_frame().join(need, how="inner").sort_index()
-    merged = merged.dropna(subset=["size"])
-
-    ind_vals = merged[ind_cols].to_numpy(dtype="float32")
-    has_ind = ind_vals.sum(axis=1) > 0.5        # 行业哑变量全为0(缺失行业)的样本剔除
-    merged = merged[has_ind]
-    ind_vals = ind_vals[has_ind]
-    merged["ind"] = ind_vals.argmax(axis=1)
-
-    # 第一步: 行业内 demean (等价于回归行业哑变量取残差)
-    grp = merged.groupby([merged.index.get_level_values(0), "ind"], observed=True)
-    f_dm = merged["factor"] - grp["factor"].transform("mean")
-    s_dm = merged["size"] - grp["size"].transform("mean")
-
-    # 第二步: 每日无截距回归 f_dm ~ s_dm, 取残差
-    dates = merged.index.get_level_values(0)
-    num = (f_dm * s_dm).groupby(dates).sum()
-    den = (s_dm * s_dm).groupby(dates).sum()
-    beta = num / den.replace(0.0, np.nan)
-    resid = f_dm - beta.loc[dates].to_numpy() * s_dm
-    resid.name = "factor"
-    return resid.unstack("code").astype("float64")
-
-
-def neutralize_barra(factor_wide: pd.DataFrame, start_date=None,
-                     model: str = "v1") -> pd.DataFrame:
-    """一站式 Barra 行业/市值中性化: 加载暴露并每日截面回归, 返回残差宽表(日期×股票)"""
-    exp, ind_cols = load_barra_exposure(start_date=start_date, model=model)
-    return neutralize_factor(factor_wide, exp, ind_cols)

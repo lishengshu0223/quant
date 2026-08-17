@@ -1,0 +1,165 @@
+{
+ "round": 80,
+ "hypothesis": "大量前期反馈表明：单用极端日收益均值排序性差，而带有量/额/换手加权的日内位置指标经截面RANK与5日平滑后单调性较好。本轮针对未覆盖的“高低换手日的时间序列稳定性、涨跌停边界、盘口张力、量价同步质量”等维度构造新切割目标，并通过日频标准化与秩化增强分组持续性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "TurnoverRegimeCloseLocationStability_40D",
+   "expr": "TS_MEAN(RANK(-TS_STD(CTOP(\"$turnover\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",40),10)),5)",
+   "style": "流动性/短期趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.045, 年度越序峰值=26.4%, 负年=[2021, 2022, 2023]",
+   "ic_mean": 0.00601,
+   "long_total": 0.13491,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2023
+   ]
+  },
+  {
+   "name": "AmountSpikeBodyConvictionTrend_60D",
+   "expr": "TS_MEAN(RANK(DELTA(CTOP(\"$amount\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",60),5)),5)",
+   "style": "量价背离/资金流",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.057, 年度越序峰值=7.5%",
+   "ic_mean": 0.01056,
+   "long_total": 0.06323,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeMoveDryRunPersistence_40D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"MEDIAN\",\"ABS($bret)/($volume+1e-8)\",40)/(TS_MEAN(ABS($bret),40)+1e-8)),5)",
+   "style": "量价同步/动量",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.04458,
+   "long_total": 0.48628,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "LowAmpUpperWickPressure_60D",
+   "expr": "TS_MEAN(RANK(-CBOT(\"$amp\",0.2,\"MEAN\",\"($high-$close)/($low+1e-8)\",60)),5)",
+   "style": "振幅/吸筹",
+   "reason": "方向无效",
+   "detail": "IC=+3.60%, 多头=-44.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03602,
+   "long_total": -0.44271,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeBretTurnoverDepthRatio_40D",
+   "expr": "TS_MEAN(RANK(CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"$turnover/($high-$low+1e-8)\",40)/(TS_MEAN($turnover,40)+1e-8)),5)",
+   "style": "波动率/换手",
+   "reason": "方向无效",
+   "detail": "IC=+2.59%, 多头=-40.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02593,
+   "long_total": -0.40528,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "HeavyDollarDayVWAPExcess_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"MEAN\",\"($close-($amount/($volume+1e-8)))/($close+1e-8)\",60)),5)",
+   "style": "量价背离/盘中定价",
+   "reason": "方向无效",
+   "detail": "IC=+0.83%, 多头=-35.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0083,
+   "long_total": -0.34997,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "PanicVolumeCloseRangeRatio_40D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"$volume*($close-$low)/($high-$low+1e-8)\",40)/(TS_MEAN($volume,40)+1e-8)),5)",
+   "style": "短期反转/承接力",
+   "reason": "方向无效",
+   "detail": "IC=+0.17%, 多头=-36.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00166,
+   "long_total": -0.36437,
+   "monthly_pos_ratio": 0.5481,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "AmpExtremeSignedRangeEfficiency_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)*SIGN($bret)\",60)),5)",
+   "style": "趋势/振幅",
+   "reason": "方向无效",
+   "detail": "IC=+0.33%, 多头=-3.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0033,
+   "long_total": -0.03356,
+   "monthly_pos_ratio": 0.5096,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2022
+   ]
+  },
+  {
+   "name": "TopTurnoverDayBodyVolatilityRatio_40D",
+   "expr": "TS_MEAN(RANK(-CTOP(\"$turnover\",0.2,\"STD\",\"($close-$open)/($high-$low+1e-8)\",40)),5)",
+   "style": "波动率/主力行为",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.062, 年度越序峰值=9.4%, 负年=[2025]",
+   "ic_mean": 0.0122,
+   "long_total": 0.07999,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "UpDayVolumePerRangeAbsorption_40D",
+   "expr": "TS_MEAN(RANK(-CTOP(\"$bret\",0.2,\"MEAN\",\"$volume/($high-$low+1e-8)\",40)/(TS_MEAN($volume,40)+1e-8)),5)",
+   "style": "价量关系/吸筹",
+   "reason": "方向无效",
+   "detail": "IC=+2.97%, 多头=-34.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02966,
+   "long_total": -0.34546,
+   "monthly_pos_ratio": 0.6442,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  }
+ ]
+}

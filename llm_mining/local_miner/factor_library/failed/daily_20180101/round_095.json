@@ -1,0 +1,19 @@
+{
+ "round": 95,
+ "hypothesis": "一句话描述因子背后的市场假设与经济逻辑",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "因子的英文名称(如 ShortTermReversal_5D)",
+   "expr": "基于上述函数库和变量的公式字符串",
+   "style": "因子大类风格标签, 如: 短期反转/量价背离/动量/波动率/流动性/趋势/振幅 等, 可叠加周期(短期/长期)",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 公式含非法字符: '基'",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

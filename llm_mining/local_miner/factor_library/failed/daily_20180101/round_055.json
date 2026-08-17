@@ -1,0 +1,160 @@
+{
+ "round": 55,
+ "hypothesis": "A股中极端波动日的K线结构包含定价信息：高振幅日的下影线代表恐慌中的承接力量，若承接持续出现则后续收益偏强；上影线则相反。本轮围绕极端日的影线结构、开盘缺口回补、极端涨跌日动量、量能确认等新逻辑构造因子，并尽量避免直接使用已失败的均值/偏度结构。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighAmpLowerShadowSupport_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"MEAN\",\"((($close>$open)?$open:$close)-$low)/($high-$low+1e-8)\",60),10)",
+   "style": "振幅/价格结构/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.053, 年度越序峰值=13.0%, 负年=[2019, 2021]",
+   "ic_mean": 0.02242,
+   "long_total": 0.06556,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021
+   ]
+  },
+  {
+   "name": "OpenGapUpClosePersistence_30D",
+   "expr": "DECAYLINEAR(CTOP(\"$open*(1+$return)/$close-1\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",30),5)",
+   "style": "缺口/动量/日内延续",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.064, 年度越序峰值=11.3%, 负年=[2020, 2023, 2024]",
+   "ic_mean": 0.00486,
+   "long_total": 0.1448,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "GapDownRecoveryStrength_40D",
+   "expr": "DECAYLINEAR(CBOT(\"$open*(1+$return)/$close-1\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",40),5)",
+   "style": "缺口/恐惧修复/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+0.35%, 多头=-24.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00348,
+   "long_total": -0.24501,
+   "monthly_pos_ratio": 0.6154,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeUpDayTailReversal_20D",
+   "expr": "DECAYLINEAR(-CTOP(\"$bret\",0.2,\"MEAN\",\"$return\",20),5)",
+   "style": "动量/短期反转/极端收益",
+   "reason": "方向无效",
+   "detail": "IC=+7.33%, 多头=-2.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.07331,
+   "long_total": -0.02851,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeDownDayPanicRebound_20D",
+   "expr": "DECAYLINEAR(-CBOT(\"$bret\",0.2,\"MEAN\",\"$return\",20),5)",
+   "style": "短期反转/恐慌/超跌反弹",
+   "reason": "方向无效",
+   "detail": "IC=+4.14%, 多头=-35.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04144,
+   "long_total": -0.3572,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "HighTurnoverQuietBodyStability_50D",
+   "expr": "DECAYLINEAR(CTOP(\"$turnover\",0.2,\"STD\",\"($close-$open)/($high-$low+1e-8)\",50),10)",
+   "style": "换手率/波动结构/稳定性",
+   "reason": "方向无效",
+   "detail": "IC=+1.16%, 多头=-3.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01162,
+   "long_total": -0.03255,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpUpperShadowKurtosis_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"KURT\",\"($high-(($close>$open)?$close:$open))/($high-$low+1e-8)\",60),10)",
+   "style": "振幅/影线风险/尾部集中",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.066, 年度越序峰值=7.3%",
+   "ic_mean": 0.01174,
+   "long_total": 0.17563,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "AmountAvgPriceIntradayPosition_50D",
+   "expr": "DECAYLINEAR(CTOP(\"$amount\",0.2,\"MEAN\",\"($amount/($volume+1e-8)-$low)/($high-$low+1e-8)\",50),10)",
+   "style": "金额/量价位置/资金行为",
+   "reason": "方向无效",
+   "detail": "IC=+2.35%, 多头=-34.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02353,
+   "long_total": -0.34774,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "VolSurgeReturnTrendCoherence_40D",
+   "expr": "DECAYLINEAR(TS_ZSCORE(CTOP(\"$volume\",0.2,\"MEAN\",\"$return\",40),20),10)",
+   "style": "量价协同/趋势确认/放量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.068, 年度越序峰值=13.1%, 负年=[2021, 2025]",
+   "ic_mean": 0.02112,
+   "long_total": 0.24578,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeAmplitudeReturnClustering_60D",
+   "expr": "DECAYLINEAR((CTOP(\"$amp\",0.2,\"MEDIAN\",\"$return\",60)+1e-8)/(CTOP(\"$amp\",0.2,\"STD\",\"$return\",60)+1e-8),10)",
+   "style": "振幅/收益一致性/噪声过滤",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.139, 年度越序峰值=8.2%",
+   "ic_mean": 0.04466,
+   "long_total": 0.54887,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

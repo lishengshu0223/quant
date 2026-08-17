@@ -1,0 +1,143 @@
+{
+ "round": 26,
+ "hypothesis": "上轮反馈显示，尾部极端bar的‘水平类’信号单调性普遍不足，而低/高活跃极端bar的原始比值结构（如LowTurnoverQuietRangePremium）表现相对更好。本轮放弃RANK平滑和简单差值，改用‘极端上涨日与极端下跌日的量能/资金强度比’、‘高活跃日收益方向经振幅标准化’、‘极端波动日成交占比’等原始比值/占比结构，以尾部条件分布的相对强度代替绝对水平，期望提升分组排序质量。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "UpDownVolumeImbalance_50D",
+   "expr": "CTOP(\"$bret\",0.2,\"MEAN\",\"$volume\",50)/(CBOT(\"$bret\",0.2,\"MEAN\",\"$volume\",50)+1e-8)",
+   "style": "量价背离/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.131, 年度越序峰值=16.1%, 负年=[2025]",
+   "ic_mean": 0.0354,
+   "long_total": 0.23911,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "HighVolumeReturnRangeEfficiency_45D",
+   "expr": "CTOP(\"$volume\",0.2,\"MEAN\",\"$return\",45)/(CTOP(\"$volume\",0.2,\"MEAN\",\"$high-$low\",45)+1e-8)",
+   "style": "量价动量/资金效率",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.067, 年度越序峰值=13.9%, 负年=[2023]",
+   "ic_mean": 0.0299,
+   "long_total": 0.54559,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "ShockTurnoverShare_60D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"SUM\",\"$turnover\",60)/(TS_SUM($turnover,60)+1e-8)",
+   "style": "流动性/波动率尾部",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.158, 年度越序峰值=10.2%",
+   "ic_mean": 0.02499,
+   "long_total": 0.24647,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LowAmountAmplitudePremium_40D",
+   "expr": "CBOT(\"$amount\",0.2,\"MEDIAN\",\"$amp\",40)/(CTOP(\"$amount\",0.2,\"MEDIAN\",\"$amp\",40)+1e-8)",
+   "style": "波动率压缩/蓄势",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.04263,
+   "long_total": 0.66574,
+   "monthly_pos_ratio": 0.8942,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeUpDownShadowBalance_35D",
+   "expr": "CBOT(\"$bret\",0.2,\"MEDIAN\",\"($high-$close)/($high-$low+1e-8)\",35)/(CTOP(\"$bret\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",35)+1e-8)",
+   "style": "日内形态/多空力量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.053, 年度越序峰值=11.5%, 负年=[2020, 2023, 2024]",
+   "ic_mean": 0.00274,
+   "long_total": 0.01016,
+   "monthly_pos_ratio": 0.4519,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "QuietVolumeDirectionRatio_50D",
+   "expr": "CBOT(\"$volume\",0.2,\"MEAN\",\"$return\",50)/(CBOT(\"$volume\",0.2,\"MEAN\",\"ABS($return)\",50)+1e-8)",
+   "style": "缩量趋势/弱量漂移",
+   "reason": "方向无效",
+   "detail": "IC=+0.37%, 多头=-18.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00365,
+   "long_total": -0.18772,
+   "monthly_pos_ratio": 0.6154,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "AmpTurnoverSensitivity_55D",
+   "expr": "CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover\",55)/(CBOT(\"$amp\",0.2,\"MEAN\",\"$turnover\",55)+1e-8)",
+   "style": "波动率/情绪敏感度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.170, 年度越序峰值=14.2%",
+   "ic_mean": 0.0443,
+   "long_total": 0.60814,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ShockDayAmountElevation_45D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"$amount\",45)/(TS_MEAN($amount,45)+1e-8)",
+   "style": "极端资金/流动性冲击",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.158, 年度越序峰值=12.7%",
+   "ic_mean": 0.02485,
+   "long_total": 0.12128,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ActiveTurnoverCloseDispersionGap_50D",
+   "expr": "CTOP(\"$turnover\",0.2,\"STD\",\"($close-$low)/($high-$low+1e-8)\",50)/(CBOT(\"$turnover\",0.2,\"STD\",\"($close-$low)/($high-$low+1e-8)\",50)+1e-8)",
+   "style": "多空分歧/换手结构",
+   "reason": "方向无效",
+   "detail": "IC=+0.32%, 多头=-4.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00315,
+   "long_total": -0.04806,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "PanicUpDownAmplitudeAsymmetry_40D",
+   "expr": "CBOT(\"SIGN($bret)\",0.5,\"MEAN\",\"$amp\",40)/(CTOP(\"SIGN($bret)\",0.5,\"MEAN\",\"$amp\",40)+1e-8)",
+   "style": "涨跌波动不对称/恐慌修复",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2025']",
+   "ic_mean": 0.04119,
+   "long_total": 0.28686,
+   "monthly_pos_ratio": 0.9038,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

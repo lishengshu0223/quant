@@ -1,0 +1,157 @@
+{
+ "round": 68,
+ "hypothesis": "本轮聚焦隔夜信息冲击、日内路径效率、量价冲击敏感性与极值时间结构，用状态门控和协方差类结构构造定价偏差锚定信号，避免前轮简单条件计数与无条件反转。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "OvernightAmihudIlliquidity_10D",
+   "expr": "TS_MEAN(ABS(($open-DELAY($close,1))/(DELAY($close,1)+1e-8))/(DELAY($volume,1)+1e-8),10)",
+   "style": "流动性/隔夜冲击",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.131, 年度越序峰值=17.2%, 负年=[2024]",
+   "ic_mean": 0.01987,
+   "long_total": 0.13656,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "GapCompressionContinuation_10D",
+   "expr": "-TS_MEAN(($high-$low)/(ABS($open-DELAY($close,1))+1e-8),10)",
+   "style": "隔夜跳空/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+0.74%, 多头=-47.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00743,
+   "long_total": -0.47163,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "VolumeReturnImpactReversal_20D",
+   "expr": "-TS_COV($return,$volume,20)/(TS_COV($volume,$volume,20)+1e-8)",
+   "style": "量价背离/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=-0.053, 年度越序峰值=33.3%, 负年=[2019, 2020, 2021, 2025]",
+   "ic_mean": 0.01052,
+   "long_total": 0.38227,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "RescaledRangeTrendPersistence_20D",
+   "expr": "(TS_MAX($close,20)-TS_MIN($close,20))/(TS_STD($close,20)*SQRT(20)+1e-8)",
+   "style": "趋势/长期动量",
+   "reason": "方向无效",
+   "detail": "IC=+0.79%, 多头=-0.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00791,
+   "long_total": -0.00042,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "OvernightIntradayContinuation_10D",
+   "expr": "TS_CORR($open-DELAY($close,1), $close-$open, 10)",
+   "style": "信息持续/动量",
+   "reason": "方向无效",
+   "detail": "IC=+0.56%, 多头=-15.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00559,
+   "long_total": -0.15582,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2024
+   ]
+  },
+  {
+   "name": "HighLowRecencyBalance_20D",
+   "expr": "(LOWDAY($low,20)-HIGHDAY($high,20))/(HIGHDAY($high,20)+LOWDAY($low,20)+1e-8)",
+   "style": "相对强弱/趋势",
+   "reason": "方向无效",
+   "detail": "IC=+3.97%, 多头=-18.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03974,
+   "long_total": -0.18641,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "RangeVolumeBetaReversal_20D",
+   "expr": "-TS_COV($high-$low,$volume,20)/(TS_COV($high-$low,$high-$low,20)+1e-8)",
+   "style": "流动性/量价敏感",
+   "reason": "方向无效",
+   "detail": "IC=+1.60%, 多头=-4.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01602,
+   "long_total": -0.04034,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "ReturnSignAutocorrelationReversal_10D",
+   "expr": "-TS_MEAN(SIGN($return)*SIGN(DELAY($return,1)),10)",
+   "style": "短期反转/微观结构",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.014, 年度越序峰值=12.0%, 负年=[2020, 2024, 2025]",
+   "ic_mean": 0.00557,
+   "long_total": 0.00408,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "AmountRangeCorrelation_20D",
+   "expr": "TS_CORR($amount,$high-$low,20)",
+   "style": "流动性/量价同步",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03297,
+   "long_total": 0.48431,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "GapUpHoldStrength_10D",
+   "expr": "TS_MEAN(($open>DELAY($close,1))?($close-$open)/($high-$open+1e-8):0,10)",
+   "style": "状态门控/日内动能",
+   "reason": "方向无效",
+   "detail": "IC=+1.66%, 多头=-19.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0166,
+   "long_total": -0.1946,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  }
+ ]
+}

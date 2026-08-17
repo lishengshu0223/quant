@@ -1,0 +1,147 @@
+{
+ "round": 53,
+ "hypothesis": "上轮失败主要因分组单调性不足(秩相关低/坏年存在)。本轮放弃同质化的方向均值与量能均值，改用三组新结构：(1)高波日开盘位置/上影线/实体方向的分布形态(SKEW/KURT/LAST)捕捉极端日多空结构的非对称形态；(2)高低换手/量能波动差刻画分歧-一致状态切换；(3)单位成交额资金冲击效率与大单活跃度。期望以连续分布形态和尾部极端态而非简单均值来提升逐年排序稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighAmpOpenPositionSkew_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"SKEW\",\"($open-$low)/($high-$low+1e-8)\",60),10)",
+   "style": "波动率/开盘结构/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.149, 年度越序峰值=7.6%",
+   "ic_mean": 0.0482,
+   "long_total": 0.52815,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietAmpUpperShadowPressure_60D",
+   "expr": "DECAYLINEAR(CBOT(\"$amp\",0.2,\"MEAN\",\"($high-$close)/($high-$low+1e-8)\",60),10)",
+   "style": "波动率/影线/风险积累/中长期",
+   "reason": "方向无效",
+   "detail": "IC=-0.56%, 多头=+3.9%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00562,
+   "long_total": 0.03869,
+   "monthly_pos_ratio": 0.4327,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "HighTurnoverOpenPosition_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$turnover\",0.2,\"MEAN\",\"($open-$low)/($high-$low+1e-8)\",60),10)",
+   "style": "流动性/开盘结构/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.096, 年度越序峰值=10.3%, 负年=[2020]",
+   "ic_mean": 0.0356,
+   "long_total": 0.32273,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HighAmountUnitRangeImpact_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amount\",0.2,\"MEAN\",\"($high-$low)/($amount+1e-8)\",60),10)",
+   "style": "量价冲击/价格效率/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.149, 年度越序峰值=12.6%",
+   "ic_mean": 0.02454,
+   "long_total": 0.35024,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAvgPriceReturn_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amount/($volume+1e-8)\",0.2,\"MEAN\",\"$return\",60),10)",
+   "style": "资金行为/大单活跃/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.056, 年度越序峰值=12.9%, 负年=[2020, 2025]",
+   "ic_mean": 0.03824,
+   "long_total": 0.06111,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "LowAvgPriceEntityDirection_60D",
+   "expr": "DECAYLINEAR(CBOT(\"$amount/($volume+1e-8)\",0.2,\"MEAN\",\"($close-$open)/($open+1e-8)\",60),10)",
+   "style": "散户情绪/弱势/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.050, 年度越序峰值=17.9%, 负年=[2020, 2022]",
+   "ic_mean": 0.01863,
+   "long_total": 0.29279,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2022
+   ]
+  },
+  {
+   "name": "TurnoverVolatilitySpread_60D",
+   "expr": "DECAYLINEAR((CTOP(\"$turnover\",0.2,\"STD\",\"$return\",60)-CBOT(\"$turnover\",0.2,\"STD\",\"$return\",60))/(TS_STD($return,60)+1e-8),10)",
+   "style": "波动率/分歧度/状态切换/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.03%, 多头=-27.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00033,
+   "long_total": -0.27509,
+   "monthly_pos_ratio": 0.4615,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpLastMovePersistence_50D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"LAST\",\"($close-$open)/($high-$low+1e-8)\",50),10)",
+   "style": "振幅/极端日惯性/短期动量",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeLastDownRelief_50D",
+   "expr": "DECAYLINEAR(CTOP(\"$volume\",0.2,\"LAST\",\"($close-$low)/($close+1e-8)\",50),10)",
+   "style": "量价关系/承接力/短期反转",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpEntityKurtosis_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"KURT\",\"($close-$open)/($high-$low+1e-8)\",60),10)",
+   "style": "振幅/尾部风险/多空分歧/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.125, 年度越序峰值=7.6%",
+   "ic_mean": 0.02536,
+   "long_total": 0.19777,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

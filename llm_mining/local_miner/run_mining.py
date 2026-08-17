@@ -1,12 +1,12 @@
 """
-本地化因子挖掘项目 - 主程序(双模式)
+本地化因子挖掘项目 - 主程序(双模式) 薄入口
 
 两种模式(对应需求三):
   --mode new      新因子挖掘: 注入因子库摘要防撞车, 合格因子做库相关性检查,
-                  通过则分配新系列ID(F00x)入库; 入库后不提前结束, 连续挖掘到最大轮数。
+                  通过则分配新系列ID(D00x)入库; 入库后不提前结束, 连续挖掘到最大轮数。
                   每轮为每个因子生成评价图(公式数学化渲染), 入库后更新全库相关性矩阵,
                   每轮末尾刷新静态HTML进度报告(output/<YYYYMMDD>_<任务名>/ 下)。
-  --mode optimize --series F001  现有因子迭代优化: 注入当前因子全况(评价+诊断+整条路径)
+  --mode optimize --series D001  现有因子迭代优化: 注入当前因子全况(评价+诊断+整条路径)
                   与条件判断式优化建议, 每轮把改进因子追加进该系列路径,
                   若合格且优于当前最佳则更新系列最佳; 跑满轮数持续迭代。
 
@@ -17,104 +17,39 @@
 
 用法:
   python -m llm_mining.local_miner.run_mining --mode new
-  python -m llm_mining.local_miner.run_mining --mode optimize --series F001
+  python -m llm_mining.local_miner.run_mining --mode optimize --series D001
   中断后再次运行同样命令即可断点续传; 加 --fresh 强制重新开始。
+
+模块拆分(2026-08 重构):
+  cli.py         命令行参数解析 parse_args
+  workers.py     多进程并行评价 worker(_init_worker/_eval_factor_worker)
+  new_mode.py    new 模式合格因子入库处理 handle_new_mode_qualified
+  optimize_mode.py  optimize 模式路径追加与最佳更新 handle_optimize_mode_qualified
+  finalize.py    最终评价与图片报告 finalize
 """
 
-import argparse
 import concurrent.futures
 import datetime
 import os
 import re
 import sys
 import time
-import traceback
 
 import pandas as pd
 
-from . import (checkpoint, combo, console, diagnostics, factor_archive, factor_eval,
-               factor_library, factor_plot, failed_library, prompts, review)
+from . import (checkpoint, combo, console, diagnostics, factor_eval,
+               factor_library, factor_plot, failed_library, html_report, prompts)
+from .cli import parse_args
 from .config import (
     MiningConfig, WORKSPACE_DIR, QUANT_ROOT, ensure_workspace, checkpoint_path, mining_log_path,
-    report_png_path,
 )
 from .data_loader import MarketData
 from .expr_engine import ExprError, compute_factor
+from .finalize import finalize
 from .llm_client import LLMError, call_llm, extract_json
-
-# ---- 多进程并行评价: worker 进程内的全局数据/配置(由 initializer 注入) ----
-_WORKER_DATA = None
-_WORKER_CFG = None
-
-
-def _init_worker(data, cfg):
-    """进程池 worker 初始化: 注入全市场数据副本与配置"""
-    global _WORKER_DATA, _WORKER_CFG
-    _WORKER_DATA = data
-    _WORKER_CFG = cfg
-
-
-def _eval_factor_worker(meta: dict) -> dict:
-    """worker 进程内执行: 计算因子宽表并评价, 返回带 eval 的 entry(多核并行, 互不影响)"""
-    data = _WORKER_DATA
-    cfg = _WORKER_CFG
-    name = str(meta.get("名称", "factor"))
-    desc = str(meta.get("描述", ""))
-    expr = str(meta.get("公式", "")).strip()
-    style = str(meta.get("风格", ""))
-    entry = {"name": name, "desc": desc, "expr": expr, "style": style, "eval": None}
-    t0 = time.time()
-    try:
-        factor_wide = compute_factor(expr, data, cfg)
-        ev = factor_eval.evaluate_factor(factor_wide, data, cfg, name=name)
-        entry["eval"] = factor_eval.to_serializable(ev)
-        entry["_t_calc"] = round(time.time() - t0, 1)
-    except ExprError as e:
-        entry["eval"] = {"name": name, "error": f"公式校验失败: {e}", "qualified": False}
-    except Exception as e:
-        entry["eval"] = {"name": name, "error": f"{type(e).__name__}: {e}", "qualified": False}
-    return entry
-
-
-def parse_args():
-    p = argparse.ArgumentParser(description="本地化LLM因子挖掘(双模式)")
-    p.add_argument("--mode", type=str, default="new", choices=["new", "optimize"],
-                   help="new=挖掘新因子; optimize=迭代优化已有因子系列")
-    p.add_argument("--series", type=str, default="", help="optimize模式绑定的因子系列ID(如 F001)")
-    p.add_argument("--max-rounds", type=int, default=12, help="最大迭代轮数")
-    p.add_argument("--min-library-target", type=int, default=0,
-                   help="new模式: 库中对应前缀系列数达到该值即提前结束挖掘(0=不启用; 分钟挖掘建议10)")
-    p.add_argument("--max-depth", type=int, default=7, help="公式语法树最大嵌套深度")
-    p.add_argument("--factors-per-round", type=int, default=2, help="每轮输出因子个数")
-    p.add_argument("--direction", type=str, default=None, help="初始挖掘方向(new模式)")
-    p.add_argument("--eval-start", type=str, default="2018-01-01", help="因子评价起始日期")
-    p.add_argument("--thinking-budget", type=int, default=4096, help="模型思考token预算")
-    p.add_argument("--workers", type=int, default=2,
-                   help="因子评价并行进程数(1=串行; 每进程一份全市场数据副本, 注意内存)")
-    p.add_argument("--fresh", action="store_true", help="忽略检查点, 重新开始")
-    p.add_argument("--frequency", type=str, default="daily", choices=["daily", "minute"],
-                   help="数据频率: daily=日频挖掘(默认); minute=分钟频率挖掘(最终因子仍为日频, 分钟算子聚合出日频特征)")
-    p.add_argument("--minute-frequency", type=str, default="1m", choices=["1m", "5m", "15m", "30m", "60m"],
-                   help="分钟基础频率(本地数据为1分钟线, 预留更高频率)")
-    p.add_argument("--minute-batch-size", type=int, default=300,
-                   help="分钟模式: 分批处理的股票数(内存控制; 移除冗余排序后批次峰值≈股票数×6MB×字段数, 96GB内存可调到500-1000)")
-    p.add_argument("--minute-memory-fields", type=str, default="close,volume,amount",
-                   help="分钟模式: 常驻内存的分钟字段(逗号分隔; 每字段稠密矩阵约13.7GB, 其余字段用时读盘)")
-    p.add_argument("--minute-dense-batch", type=int, default=1000,
-                   help="分钟稠密路径: 无截面聚合按股票分批的窗口大小(中间内存≈天数×240×批数×4B)")
-    p.add_argument("--minute-dense-chunk-days", type=int, default=200,
-                   help="分钟稠密路径: 含截面聚合按日期分块的块天数(每块加载全部股票使截面等价全市场)")
-    p.add_argument("--minute-max-depth", type=int, default=14,
-                   help="分钟模式允许的公式嵌套深度(相对日频上限翻倍, 分钟因子构成更复杂)")
-    p.add_argument("--llm-provider", type=str, default="auto", choices=["auto", "opencode", "deepseek", "dashscope"],
-                   help="LLM路由: opencode=主模型走OpenCode Go网关(含deepseek-v4-flash); auto=按模型名前缀")
-    p.add_argument("--model", type=str, default="",
-                   help="主模型名(如 deepseek-v4-flash; 留空使用配置默认)")
-    p.add_argument("--model-fallback", type=str, default="",
-                   help="备用模型名(留空使用配置默认)")
-    p.add_argument("--output-dir", type=str, default="",
-                   help="评价图/相关性/HTML报告输出目录(默认 output/<YYYYMMDD>_<任务名>)")
-    return p.parse_args()
+from .new_mode import handle_new_mode_qualified
+from .optimize_mode import handle_optimize_mode_qualified
+from .workers import FactorTask, _eval_factor_worker, _init_worker
 
 
 def call_model_with_retry(system_prompt: str, user_prompt: str, cfg, max_parse_retry: int = 2):
@@ -160,7 +95,8 @@ def run_round_factors(factors_meta: list, data, cfg, round_no: int,
             console.show_factor_eval_header(
                 round_no, idx, str(meta.get("名称", f"factor_{round_no}_{idx}")),
                 str(meta.get("公式", "")), str(meta.get("描述", "")))
-        futures = {executor.submit(_eval_factor_worker, meta): idx
+        futures = {executor.submit(_eval_factor_worker,
+                                   FactorTask(meta=meta, round_no=round_no, idx=idx)): idx
                    for idx, meta in enumerate(factors_meta, 1)}
         done = {}
         for fut in concurrent.futures.as_completed(futures):
@@ -247,15 +183,20 @@ def save_adopted_report(factor: dict, data, cfg, series_id: str, round_no: int) 
 def main():
     args = parse_args()
     if args.mode == "optimize" and not args.series:
-        print("错误: optimize 模式必须通过 --series 指定因子系列ID(如 --series F001)")
+        print("错误: optimize 模式必须通过 --series 指定因子系列ID(如 --series D001)")
         sys.exit(2)
     ensure_workspace()
 
     mode = args.mode
     series_id = args.series
     freq = args.frequency
-    ckpt_path = checkpoint_path(mode, series_id, freq)
-    log_path = mining_log_path(mode, series_id, freq)
+    # 切割模式(因子切割论): 独立检查点/日志, 与常规日频/分钟挖掘互不影响;
+    # ckpt_freq 仅用于检查点/日志隔离, cfg.data_frequency 始终保持 daily/minute 语义
+    ckpt_freq = freq
+    if args.mining_theme == "cut":
+        ckpt_freq = "cut" if freq == "daily" else "cut_minute"
+    ckpt_path = checkpoint_path(mode, series_id, ckpt_freq)
+    log_path = mining_log_path(mode, series_id, ckpt_freq)
     console.init_console(log_path)
 
     # ---------------- 阶段1: 配置初始化 ----------------
@@ -270,6 +211,14 @@ def main():
         minute_batch_size=args.minute_batch_size,
         minute_max_depth=args.minute_max_depth,
     )
+    # 切割模式(因子切割论): 主题与复杂度上限透传
+    cfg.mining_theme = args.mining_theme
+    if args.cut_max_depth:
+        cfg.cut_max_depth = args.cut_max_depth
+    if args.cut_max_window:
+        cfg.cut_max_window = args.cut_max_window
+    if args.minute_cut_max_window:
+        cfg.minute_cut_max_window = args.minute_cut_max_window
     cfg.min_library_target = args.min_library_target
     if args.model:
         cfg.model_primary = args.model
@@ -298,7 +247,10 @@ def main():
     if args.output_dir:
         out_dir = args.output_dir
     else:
-        task_name = "分钟因子挖掘" if is_minute else "因子挖掘"
+        if cfg.is_cut:
+            task_name = "因子切割论分钟挖掘" if is_minute else "因子切割论日频挖掘"
+        else:
+            task_name = "分钟因子挖掘" if is_minute else "因子挖掘"
         out_dir = os.path.join(QUANT_ROOT, "output",
                                f"{datetime.date.today().strftime('%Y%m%d')}_{task_name}")
     os.makedirs(out_dir, exist_ok=True)
@@ -309,6 +261,7 @@ def main():
         "主模型": cfg.model_primary,
         "备用模型": cfg.model_fallback,
         "深度思考": f"开启, 预算 {cfg.thinking_budget} tokens",
+        "挖掘主题": "因子切割论(强制 CTOP/CBOT 切割)" if cfg.is_cut else "常规挖掘",
         "数据频率": "日频(原始逻辑)" if not is_minute else f"分钟挖掘(基础频率 {cfg.minute_frequency}, 聚合出日频因子)",
         "最大迭代轮数": cfg.max_rounds,
         "每轮因子个数": cfg.factors_per_round,
@@ -319,6 +272,11 @@ def main():
         "库相关性上限": f"|ρ|≤{cfg.max_library_corr}(new模式防撞车)",
         "挖掘方向": cfg.direction,
     }
+    if cfg.is_cut:
+        show_kv["切割公式最大字符数"] = cfg.formula_max_symbol_length
+        show_kv["切割公式基础变量上限"] = cfg.formula_max_base_features
+        show_kv["切割滚动窗口上限"] = (f"{cfg.minute_cut_max_window}根bar(分钟)"
+                                    if is_minute else f"{cfg.cut_max_window}个交易日(日频)")
     if is_minute:
         show_kv["分钟分批股票数"] = f"{cfg.minute_batch_size}(全市场分钟数据约51GB, 按批次流式计算)"
         show_kv["分钟常驻内存字段"] = cfg.minute_memory_fields
@@ -358,7 +316,7 @@ def main():
         if _mem.get("items"):
             console.log(f"    [黑名单] 已回填历史 {len(state['history'])} 轮被拒教训, "
                         f"累计 {len(_mem['items'])} 条。")
-    campaign_summary_text = prompts.load_campaign_summaries()
+    campaign_summary_text = failed_library.load_campaign_summaries()
     if campaign_summary_text:
         console.log("    [战役记忆] 已加载历史战役信息压缩摘要, 将注入首轮提示词。")
 
@@ -382,7 +340,8 @@ def main():
     eval_executor = None
     if cfg.n_eval_workers > 1:
         eval_executor = concurrent.futures.ProcessPoolExecutor(
-            max_workers=cfg.n_eval_workers, initializer=_init_worker, initargs=(data, cfg))
+            max_workers=cfg.n_eval_workers, initializer=_init_worker,
+            initargs=(data, cfg, out_dir))
         console.log(f"    [并行] 因子评价启用 {cfg.n_eval_workers} 个进程并行"
                     f"(每进程一份全市场数据副本, 注意内存占用)。")
 
@@ -433,10 +392,9 @@ def main():
                         cfg, library_text, campaign_summary_text, failed_text)
                     prompt_title = "首轮新因子生成提示词(含因子库避让+战役压缩摘要+失败经验)"
                 else:
-                    # 仅注入最近 max_history_rounds 轮历史摘要, 控制请求体积
-                    # (DeepSeek 长请求易触发空内容故障, 短请求稳定)
-                    max_history_rounds = 3
-                    history_summary = prompts.summarize_history(state["history"][-max_history_rounds:])
+                    # 仅注入最近 cfg.history_rounds 轮历史摘要, 控制请求体积
+                    # (默认5轮; DeepSeek 长请求易触发空内容故障, 依赖 max_tokens 30000 保障)
+                    history_summary = prompts.summarize_history(state["history"][-cfg.history_rounds:])
                     feedback = factor_eval.build_feedback_text(
                         state["history"][-1]["factors"], cfg)
                     blacklist_text = prompts.format_rejection_memory(
@@ -606,14 +564,15 @@ def main():
             plot_rounds.append({"round": round_no, "hypothesis": hypothesis,
                                 "reflection": reflection, "factors": round_factors})
             try:
-                factor_plot.build_html_report(out_dir, plot_rounds, cfg, corr_res=corr_res)
+                html_report.build_html_report(out_dir, plot_rounds, cfg, corr_res=corr_res)
                 console.log(f"    [HTML报告] 已刷新: {os.path.join(out_dir, 'index.html')}")
             except Exception as e:
                 console.log(f"    [HTML报告失败] {type(e).__name__}: {e}")
 
             # ---- 步骤F: 入库目标检查(new模式, 达到目标即提前结束) ----
             if mode == "new" and cfg.min_library_target > 0:
-                prefix = "M" if is_minute else "F"
+                # 入库前缀按数据频率: 分钟→M, 日频(含切割日频)→D, 与入库分配保持一致
+                prefix = "M" if is_minute else "D"
                 n_in = factor_library.count_series(prefix)
                 if n_in >= cfg.min_library_target:
                     console.banner(
@@ -640,8 +599,8 @@ def main():
     if state["round"] >= cfg.max_rounds and state.get("campaign_adopted"):
         try:
             lib_now = factor_library.load_library()
-            summary = prompts.summarize_campaign(state, cfg, lib_now)
-            if prompts.save_campaign_summary(summary):
+            summary = failed_library.summarize_campaign(state, cfg, lib_now)
+            if failed_library.save_campaign_summary(summary):
                 console.log(f"    [战役压缩] 战役完成, 已生成信息压缩摘要"
                             f"(入库 {len(state['campaign_adopted'])} 个系列, "
                             f"供下次挖掘首轮注入)。")
@@ -662,206 +621,6 @@ def main():
     # ---------------- 阶段6: 最终评价与图片 ----------------
     console.stage("6/6", "最终因子全面评价与图片报告")
     finalize(mode, series_id, opt_series, qualified_factor, state, data, cfg, ckpt_path)
-
-
-def handle_new_mode_qualified(round_factors, round_no, hypothesis, data, cfg, state):
-    """new模式: 对合格因子做库相关性检查, 通过则分配新系列ID入库。返回入库因子或None"""
-    for f in round_factors:
-        ev = f.get("eval") or {}
-        if not ev.get("qualified"):
-            continue
-        style = f.get("style", "")
-        console.log(f"    [库相关性检查] 因子 {f['name']} 合格, 检查是否与库内因子撞车...")
-
-        # 第一道关: LLM语义相关性评审(独立对话窗口, 防"换皮造因子")
-        library = factor_library.load_library()
-        if library:
-            rev = review.review_factor(cfg, f, library)
-            if rev.get("error"):
-                console.log(f"    [警告] {rev['reason']}")
-            elif rev.get("reject"):
-                console.log(f"    [×] 语义评审拒绝: 与 {rev.get('match_series')} 语义"
-                            f"{'重复' if rev.get('similarity') is not None and rev.get('similarity') >= 0.999 else '高度相似'}"
-                            f"(相似度={rev.get('similarity')}), 理由: {rev.get('reason')}。"
-                            "该因子不入库, 继续挖掘。")
-                f["eval"]["review_rejected"] = True
-                f["eval"]["review_reason"] = rev.get("reason")
-                continue
-            console.log(f"    [√] 语义评审通过(相似度={rev.get('similarity')}, "
-                        f"最相似: {rev.get('match_series') or '无'}, {rev.get('reason')})")
-        else:
-            console.log("    因子库为空, 跳过语义评审。")
-
-        # 第二道关: 数值截面相关性检验
-        try:
-            factor_wide, series = recompute_series(f["expr"], ev.get("flipped"), data, cfg)
-            corr_res = factor_library.check_library_correlation(factor_wide, data, cfg,
-                                                                exclude_id="")
-        except Exception as e:
-            console.log(f"    [警告] 相关性检查异常({e}), 跳过该因子入库。")
-            continue
-        if corr_res["n_compared"] > 0:
-            detail = ", ".join(f"{d['series_id']}|ρ|={abs(d['corr']):.2f}"
-                               for d in corr_res["details"] if d.get("corr") is not None)
-            console.log(f"    与库内因子截面相关: {detail} (上限{cfg.max_library_corr})")
-        if corr_res["flag"]:
-            console.log(f"    [×] 撞车拒绝: 与库内因子最大|ρ|={corr_res['max_abs_corr']:.2f} "
-                        f"> {cfg.max_library_corr}, 该因子不入库, 继续挖掘。")
-            f["eval"]["library_rejected"] = True
-            f["eval"]["library_max_corr"] = corr_res["max_abs_corr"]
-            continue
-
-        # 通过 -> 计算诊断并入库(分钟因子用 M 系列编号, 与日频 F 系列独立计数)
-        console.log(f"    [√] 相关性检查通过, 计算诊断并入库...")
-        diag = diagnostics.compute_diagnostics(series, data, cfg)
-        prefix = "M" if cfg.data_frequency == "minute" else "F"
-        new_id = factor_library.next_series_id(prefix)
-        f_entry = {**f, "round": round_no}
-        series_obj = factor_library.create_series_from_history(
-            new_id, state["history"], f_entry, hypothesis, style, diag)
-        factor_library.save_series(series_obj)
-        # 战役入库追踪(供战役结束信息压缩摘要使用)
-        state.setdefault("campaign_adopted", []).append(new_id)
-        console.log(f"    [入库] 新因子系列 {new_id} 已保存: "
-                    f"{factor_library.series_path(new_id, f['name'])}")
-        console.log("    诊断摘要:")
-        for line in factor_library._diagnostics_brief(diag).splitlines():
-            console.log(f"        {line}")
-        # 采纳合格因子即时出图(带轮次与因子名, 不覆盖历史; 失败不中断)
-        save_adopted_report({**f_entry, "hypothesis": hypothesis}, data, cfg, new_id, round_no)
-        # 成功因子库归档: h5完整回测数据 + 集中评价图(与json系列文件构成三件套; 失败不中断)
-        try:
-            arch = factor_archive.archive_success_series(series_obj, factor_wide, data,
-                                                         cfg, round_no)
-            console.log(f"    [归档] 成功因子 {new_id} 回测数据已归档: "
-                        f"{os.path.basename(arch['h5'])}"
-                        + (f", 评价图: {os.path.basename(arch['png'])}" if arch.get("png") else ""))
-        except Exception as e:
-            console.log(f"    [归档失败] {type(e).__name__}: {e}, 不中断挖掘。")
-        return {**f_entry, "hypothesis": hypothesis, "series_id": new_id}
-    return None
-
-
-def stability_better(new_stab: dict, cur_stab: dict, tol: float = 1e-6) -> bool:
-    """
-    判断新因子的多头收益年度稳定性是否优于当前最佳(优化模式采纳标准)。
-    主比较量: 年度多头收益信息比率(score=yearly_ir, 越高=每年收益越平均稳定);
-    平手时以最差完整年份收益(min_year, 越高=底部越稳)决胜。
-    缺失值按最差(-inf)处理。
-    """
-    ns = new_stab.get("score")
-    cs = cur_stab.get("score")
-    ns = ns if ns is not None else float("-inf")
-    cs = cs if cs is not None else float("-inf")
-    if ns > cs + tol:
-        return True
-    if abs(ns - cs) <= tol:
-        nm = new_stab.get("min_year")
-        cm = cur_stab.get("min_year")
-        nm = nm if nm is not None else float("-inf")
-        cm = cm if cm is not None else float("-inf")
-        return nm > cm + tol
-    return False
-
-
-def handle_optimize_mode_qualified(round_factors, round_no, hypothesis, opt_series,
-                                   series_id, data, cfg, state):
-    """optimize模式: 把本轮所有因子追加进系列路径; 合格且多头收益年度稳定性优于
-    当前最佳则更新最佳(采纳标准是稳定性而非IC, 因IC常由空头贡献, 我们只要多头)。
-    返回更新后的最佳因子(若本轮有采纳)或None"""
-    # 本轮风格优先取首个因子的风格
-    round_style = next((f.get("style", "") for f in round_factors if f.get("style")), "")
-    factor_library.append_round(opt_series, round_no, round_factors, hypothesis, round_style)
-
-    cur_best_ev = (opt_series.get("best") or {}).get("eval") or {}
-    cur_stab = cur_best_ev.get("long_stability") or {}
-    adopted = None
-    for f in round_factors:
-        ev = f.get("eval") or {}
-        if not ev.get("qualified"):
-            continue
-        new_stab = ev.get("long_stability") or {}
-        if stability_better(new_stab, cur_stab):
-            cur_ir = cur_stab.get("score")
-            new_ir = new_stab.get("score")
-            console.log(
-                f"    [√] 优化采纳: {f['name']} 合格且多头收益更稳定 "
-                f"(年度信息比率 {cur_ir if cur_ir is not None else float('nan'):.2f}"
-                f" -> {new_ir if new_ir is not None else float('nan'):.2f}, "
-                f"最差年 {new_stab.get('min_year', 0)*100:+.2f}%), 重算诊断并更新系列最佳。")
-            try:
-                _, series = recompute_series(f["expr"], ev.get("flipped"), data, cfg)
-                diag = diagnostics.compute_diagnostics(series, data, cfg)
-            except Exception as e:
-                console.log(f"    [警告] 诊断计算失败({e}), 仍更新最佳但不附诊断。")
-                diag = None
-            f_entry = {**f, "round": round_no}
-            factor_library.update_best(opt_series, f_entry, hypothesis,
-                                       f.get("style", "") or round_style, diag)
-            cur_stab = new_stab
-            adopted = {**f_entry, "hypothesis": hypothesis, "series_id": series_id}
-            # 采纳新最佳即出图(带轮次命名, 不覆盖历史图片, 供随时观看)
-            save_adopted_report(adopted, data, cfg, series_id, round_no)
-        else:
-            console.log(
-                f"    [·] {f['name']} 合格但多头收益稳定性未超越当前最佳 "
-                f"(年度信息比率 {new_stab.get('score')} vs {cur_stab.get('score')}), "
-                "记录路径不更新最佳。")
-
-    factor_library.save_series(opt_series)
-    if adopted:
-        state["best"] = adopted
-    return adopted
-
-
-def finalize(mode, series_id, opt_series, qualified_factor, state, data, cfg, ckpt_path):
-    """最终评价与图片报告(按系列隔离路径)"""
-    # 组合枯竭提示
-    if state.get("combo_exhausted"):
-        console.banner(
-            "⚠ 本次运行已判定该系列'组合=穷途末路': 模型多次产出组合类因子, "
-            "且期间没有更好的单逻辑因子超越此前组合。"
-            "建议重新审视该系列的经济逻辑方向, 或开启新因子系列。", "!")
-    # 确定用于报告的因子
-    report_factor = qualified_factor
-    final_series_id = series_id
-    if report_factor is None and mode == "optimize" and opt_series:
-        # optimize 未产生改进: 用系列当前最佳做报告
-        best = opt_series.get("best") or {}
-        report_factor = {**best, "series_id": series_id}
-        final_series_id = series_id
-    if report_factor is None:
-        # new 模式未挖到入库因子: 选方向正确的最佳候选(标注未达标)
-        candidates = []
-        for rec in state["history"]:
-            for f in rec["factors"]:
-                ev = f.get("eval") or {}
-                if ev.get("direction_ok"):
-                    candidates.append({**f, "round": rec["round"],
-                                       "hypothesis": rec.get("hypothesis", "")})
-        if candidates:
-            candidates.sort(key=lambda x: x["eval"].get("ic_mean") or -1, reverse=True)
-            report_factor = candidates[0]
-            console.log(f"    未挖到入库因子, 选取方向正确的最佳候选 "
-                        f"{report_factor['name']} 做全面评价(标注未完全达标)。")
-        else:
-            console.log("    没有任何方向正确的因子, 无法生成报告。请增加轮数或调整方向后重试。")
-            sys.exit(1)
-
-    if not final_series_id:
-        final_series_id = report_factor.get("series_id") or "candidate"
-    # 最终图片带因子名, 保留历史(同系列多次运行不互相覆盖)
-    safe = re.sub(r"[^0-9A-Za-z_]", "", report_factor.get("name", "factor"))[:40] or "factor"
-    png_path = report_png_path(f"{final_series_id}_{safe}")
-
-    from .report import generate_report
-    try:
-        png = generate_report(report_factor, data, cfg, png_path=png_path)
-        console.banner(f"挖掘结束! 因子报告图片已生成: {png}", "=")
-    except Exception as e:
-        console.log(f"    [错误] 报告生成失败: {e}")
-        traceback.print_exc()
-        sys.exit(1)
 
 
 if __name__ == "__main__":

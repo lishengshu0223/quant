@@ -1,0 +1,154 @@
+{
+ "round": 84,
+ "hypothesis": "机构与知情资金在低成交额/低换手的平静日逐步吸筹，导致这类安静日的价格行为与成交活跃日出现系统性结构差异，通过比较极端平静日与极端活跃日在一段窗口内的分散度、极值差与方向不对称性，可捕捉主力资金留下的可预测痕迹。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LowAmountCloseStabilityRatio_80D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$amount\",0.2,\"STD\",\"($close-$low)/($high-$low+1e-8)\",80)/(CTOP(\"$amount\",0.2,\"STD\",\"($close-$low)/($high-$low+1e-8)\",80)+1e-8)),5)",
+   "style": "流动性/安静吸筹/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.030, 年度越序峰值=10.9%, 负年=[2018]",
+   "ic_mean": 0.00193,
+   "long_total": 0.00996,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2018
+   ]
+  },
+  {
+   "name": "UpBodyAmountConviction_80D",
+   "expr": "TS_MEAN(RANK(CTOP(\"($close-$open)/($open+1e-8)\",0.2,\"SUM\",\"$amount\",80)/(CBOT(\"($close-$open)/($open+1e-8)\",0.2,\"SUM\",\"$amount\",80)+1e-8)),5)",
+   "style": "量价背离/资金主动/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.133, 年度越序峰值=8.5%",
+   "ic_mean": 0.03127,
+   "long_total": 0.34555,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ActiveUpIntensityToQuietDown_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"MAX\",\"$return\",60)-CBOT(\"$amount\",0.2,\"MIN\",\"$return\",60)),5)",
+   "style": "动量/资金强度/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.080, 年度越序峰值=33.9%, 负年=[2025]",
+   "ic_mean": 0.05363,
+   "long_total": 0.16952,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "LowTurnoverOvernightCalmRatio_90D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MEAN\",\"$open*(1+$return)/$close-1\",90)/(CTOP(\"$turnover\",0.2,\"MEAN\",\"$open*(1+$return)/$close-1\",90)+1e-8)),5)",
+   "style": "隔夜缺口/筹码稳定/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=-0.013, 年度越序峰值=12.3%, 负年=[2018, 2022, 2024, 2025]",
+   "ic_mean": 0.00019,
+   "long_total": 0.14113,
+   "monthly_pos_ratio": 0.4808,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2022,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "QuietDayEfficiencyPremium_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$volume\",0.2,\"MEAN\",\"ABS($return)/($high-$low+1e-8)\",60)/(CTOP(\"$volume\",0.2,\"MEAN\",\"ABS($return)/($high-$low+1e-8)\",60)+1e-8)),5)",
+   "style": "量价效率/趋势阻力/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.055, 年度越序峰值=11.6%, 负年=[2021, 2023, 2025]",
+   "ic_mean": 0.01708,
+   "long_total": 0.03783,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HeavyDayPositiveIntensity_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"SUM\",\"($return>0?$return:0)\",60)/(CTOP(\"$amount\",0.2,\"SUM\",\"ABS($return)\",60)+1e-8)),5)",
+   "style": "量价同步/主动买盘/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.100, 年度越序峰值=11.9%, 负年=[2020]",
+   "ic_mean": 0.0362,
+   "long_total": 0.449,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "VolumeRangeAmplitudeAsym_100D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"STD\",\"$amp\",100)/(CBOT(\"$volume\",0.2,\"STD\",\"$amp\",100)+1e-8)),5)",
+   "style": "波动率/筹码沉淀/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.101, 年度越序峰值=10.5%, 负年=[2024]",
+   "ic_mean": 0.00777,
+   "long_total": 0.18812,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "DownSideVolumeDryness_70D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.2,\"MEDIAN\",\"$amount\",70)/(CTOP(\"$bret\",0.2,\"MEDIAN\",\"$amount\",70)+1e-8)),5)",
+   "style": "反转/抛压枯竭/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.088, 年度越序峰值=13.9%, 负年=[2020]",
+   "ic_mean": 0.0319,
+   "long_total": 0.14412,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "TurnoverExtremeAmountRangeClarity_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"$amount/($high-$low+1e-8)\",60)/(CBOT(\"$turnover\",0.2,\"MEAN\",\"$amount/($high-$low+1e-8)\",60)+1e-8)),5)",
+   "style": "流动性/资金深度/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.81%, 多头=-30.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0081,
+   "long_total": -0.30151,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "WideRangeBullishBodyStability_50D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",50)/(TS_MEAN(($close-$open)/($high-$low+1e-8),50)+1e-8)),5)",
+   "style": "振幅/突破确认/短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.69%, 多头=-4.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00688,
+   "long_total": -0.04124,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020
+   ]
+  }
+ ]
+}

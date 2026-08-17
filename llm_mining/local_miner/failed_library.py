@@ -18,6 +18,8 @@ import datetime
 import glob
 import json
 import os
+import time
+from collections import Counter
 
 from .config import FACTOR_LIBRARY_DIR, ensure_workspace
 
@@ -156,7 +158,6 @@ def append_round(campaign_key: str, round_no: int, hypothesis: str,
 
 def _rule_statistics(cdir: str, adopted: list = None) -> dict:
     """扫描战役目录内全部轮次文件, 统计失败模式/高频结构/有效方向"""
-    from collections import Counter
     reason_cnt = Counter()
     struct_cnt = Counter()
     valid_dirs = []           # IC>0.02 且多头>0.15 但未合格的探索方向
@@ -220,7 +221,6 @@ def _rule_summary_text(stats: dict, frequency: str, rounds: int) -> str:
 
 def _collect_samples(cdir: str, per_reason: int = LLM_SAMPLE_PER_REASON) -> list:
     """从战役目录抽样代表失败因子(每类失败原因取前 N 条), 供 LLM 概括。"""
-    from collections import Counter
     samples = []   # [(expr, reason, detail)]
     seen = Counter()
     for path in sorted(glob.glob(os.path.join(cdir, "round_*.json"))):
@@ -332,3 +332,106 @@ def injection_text(max_campaigns: int = MAX_INDEX_CAMPAIGNS) -> str:
         blocks.append(f"━━ 战役@{c.get('ts', '')[:16]} ({c.get('frequency', '')}) ━━")
         blocks.append(c.get("summary_text", ""))
     return "\n\n".join(blocks)
+
+
+# =============================================================================
+# 战役信息压缩 —— 每100轮战役结束且有因子入库后, 将整体历史压缩为概括性摘要,
+# 供下一个战役首轮注入(避免长期逐轮记忆导致上下文过长、稀释模型注意力)。
+# 原属 prompts.py, 2026-08 重构时并入本模块(与 finalize_campaign/injection_text 同为战役级记忆)。
+# =============================================================================
+
+CAMPAIGN_SUMMARY_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "workspace", "campaign_summaries.json")
+
+
+def summarize_campaign(state: dict, cfg, library: list) -> str:
+    """把已完成战役(history 全部轮次 + 黑名单)压缩为概括性摘要文本。
+    library: factor_library.load_library() 结果, 用于列出本次战役入库成果。"""
+    history = state.get("history") or []
+    adopted = state.get("campaign_adopted") or []
+    rounds = len(history)
+    # 1) 入库成果
+    adopted_lines = []
+    for sid in adopted:
+        s = next((x for x in library if x.get("series_id") == sid), None)
+        if s:
+            best = s.get("best") or {}
+            adopted_lines.append(
+                f"  - {sid} {s.get('name')}: {str(best.get('expr') or '')[:80]}")
+    adopted_txt = "\n".join(adopted_lines) if adopted_lines else "  (本战役无入库因子)"
+    # 2) 失败模式统计(从 history 全量 eval 统计)
+    reason_cnt = Counter()          # 失败原因分类计数
+    struct_cnt = Counter()          # 被拒因子核心结构(公式)高频重复
+    for rec in history:
+        for f in rec.get("factors", []):
+            ev = f.get("eval") or {}
+            if not ev:
+                continue
+            if ev.get("error"):
+                reason_cnt["计算失败"] += 1
+            elif ev.get("review_rejected"):
+                reason_cnt["语义评审拒绝"] += 1
+            elif ev.get("library_rejected"):
+                reason_cnt["相关性撞车"] += 1
+            else:
+                mg = ev.get("monotonicity_grade") or {}
+                if mg.get("grade") == "C":
+                    reason_cnt["单调性C级"] += 1
+                elif not ev.get("qualified"):
+                    reason_cnt["其他未达标"] += 1
+            # 公式核心结构: 去掉参数与窗口, 近似去重
+            expr = str(f.get("expr") or "")
+            core = expr.split(",")[0].replace("(", "").replace(")", "").strip()
+            struct_cnt[core] += 1
+    top_struct = "、".join(f"{k}({v}次)" for k, v in struct_cnt.most_common(8))
+    # 3) 有效方向: IC>0 且多头为正 但未达合格的探索
+    ok_dir = []
+    for rec in history:
+        for f in rec.get("factors", []):
+            ev = f.get("eval") or {}
+            if ev and not ev.get("qualified") and not ev.get("error") \
+                    and (ev.get("ic_mean") or 0) > 0.02 and (ev.get("long_total") or 0) > 0.15:
+                ok_dir.append(f"{f.get('name')}(IC{(ev['ic_mean']*100):+.1f}% 多头{(ev['long_total']*100):+.0f}%)")
+    ok_dir_txt = "、".join(ok_dir[:12]) or "无"
+    summary = (
+        f"【战役信息压缩摘要·频率={cfg.data_frequency}】本轮战役共 {rounds} 轮, "
+        f"入库 {len(adopted)} 个新因子系列。\n"
+        f"1. 入库成果:\n{adopted_txt}\n"
+        f"2. 失败模式分布(累计): {', '.join(f'{k}{v}次' for k, v in reason_cnt.items()) or '无'}。\n"
+        f"   其中高频被拒结构(勿再探索): {top_struct}。\n"
+        f"3. 已探索但未达合格的有效方向(IC与多头为正, 卡在单调性/年度): {ok_dir_txt}。\n"
+        f"4. 经验教训: 换字段/换窗口的包装会被语义评审与相关性检验拦截, 新因子必须来自不同的经济逻辑; "
+        f"最新不完整年份不参与单调性负年判定, 历史完整年份秩相关为负仍会直接判C级。"
+    )
+    return summary
+
+
+def save_campaign_summary(summary_text: str):
+    """把战役压缩摘要追加保存(供下个战役首轮注入)"""
+    try:
+        recs = []
+        if os.path.exists(CAMPAIGN_SUMMARY_FILE):
+            with open(CAMPAIGN_SUMMARY_FILE, "r", encoding="utf-8") as f:
+                recs = json.load(f)
+        recs.append({"ts": time.strftime("%Y-%m-%d %H:%M"), "summary": summary_text})
+        # 只保留最近 3 次战役摘要, 防止无限增长
+        recs = recs[-3:]
+        os.makedirs(os.path.dirname(CAMPAIGN_SUMMARY_FILE), exist_ok=True)
+        with open(CAMPAIGN_SUMMARY_FILE, "w", encoding="utf-8") as f:
+            json.dump(recs, f, ensure_ascii=False, indent=1)
+        return True
+    except Exception:
+        return False
+
+
+def load_campaign_summaries() -> str:
+    """读取历史战役压缩摘要(最近3次), 拼接为注入文本"""
+    if not os.path.exists(CAMPAIGN_SUMMARY_FILE):
+        return ""
+    try:
+        with open(CAMPAIGN_SUMMARY_FILE, "r", encoding="utf-8") as f:
+            recs = json.load(f)
+        blocks = [f"── 战役@{r.get('ts')} ──\n{r.get('summary')}" for r in recs if r.get("summary")]
+        return "\n\n".join(blocks)
+    except Exception:
+        return ""

@@ -1,0 +1,149 @@
+{
+ "round": 36,
+ "hypothesis": "第36轮反思：上轮唯一B级因子QuietActiveAmpPremium的核心优势在于『两个正MEDIAN比值 + RANK + TS_MEAN』的结构——此结构能压制噪声、保持截面区分度。但其语义因与库内D013重复被拒，说明该比值结构本身是有效的，关键是要找到新的经济维度。观察所有已否决因子，单边MEAN/MAX/SKEW、差值结构、不同窗口加速类大多单调性失败；而振幅/量能比值类（低活跃组对",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietActivePriceLevelPremium_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MEAN\",\"$amount/($volume+1e-8)\",60)/(CTOP(\"$turnover\",0.2,\"MEAN\",\"$amount/($volume+1e-8)\",60)+1e-8)),10)",
+   "style": "量价背离/缩量控盘/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.056, 年度越序峰值=17.6%, 负年=[2021, 2023, 2025]",
+   "ic_mean": 0.0341,
+   "long_total": 0.10003,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "AmplitudeVolumeCooperationRatio_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"MEDIAN\",\"$turnover\",60)/(CBOT(\"$amp\",0.2,\"MEDIAN\",\"$turnover\",60)+1e-8)),10)",
+   "style": "波动-量能配合/趋势质量/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.135, 年度越序峰值=12.2%, 负年=[2021]",
+   "ic_mean": 0.03768,
+   "long_total": 0.48063,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "QuietActiveDirectionalRange_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MEDIAN\",\"$amp*SIGN($return)\",60)/(CTOP(\"$turnover\",0.2,\"MEDIAN\",\"$amp*SIGN($return)\",60)+1e-8)),10)",
+   "style": "量价背离/吸筹信号/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.005, 年度越序峰值=12.5%, 负年=[2019, 2025]",
+   "ic_mean": 0.00194,
+   "long_total": 0.44698,
+   "monthly_pos_ratio": 0.5385,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeUpDownTurnoverAsymmetry_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$bret\",0.2,\"MEDIAN\",\"$turnover\",60)/(CBOT(\"$bret\",0.2,\"MEDIAN\",\"$turnover\",60)+1e-8)),10)",
+   "style": "资金行为不对称/动量/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.081, 年度越序峰值=11.6%, 负年=[2020]",
+   "ic_mean": 0.03116,
+   "long_total": 0.18436,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "BigRangeClosePositionPersistence_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",60)/(CBOT(\"$amp\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",60)+1e-8)),10)",
+   "style": "多空力量对比/反转/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.139, 年度越序峰值=9.4%",
+   "ic_mean": 0.03264,
+   "long_total": 0.51288,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietTurnoverUpperWickRatio_60D",
+   "expr": "TS_MEAN(RANK((CTOP(\"$turnover\",0.2,\"MEDIAN\",\"($high-$close)/($high-$low+1e-8)\",60)+1e-8)/(CBOT(\"$turnover\",0.2,\"MEDIAN\",\"($high-$close)/($high-$low+1e-8)\",60)+1e-8)),10)",
+   "style": "抛压结构/量价关系/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.076, 年度越序峰值=7.1%",
+   "ic_mean": 0.01729,
+   "long_total": 0.03942,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverReturnTightness_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.2,\"KURT\",\"$return\",60)),10)",
+   "style": "换手率结构/波动形态/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.046, 年度越序峰值=10.7%",
+   "ic_mean": 0.01158,
+   "long_total": 0.24825,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LowTurnoverTailLossAbsence_55D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"SKEW\",\"$return\",55)),10)",
+   "style": "缩量筹码/流动性/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=-0.005, 年度越序峰值=13.1%, 负年=[2018, 2019, 2023, 2025]",
+   "ic_mean": 0.00176,
+   "long_total": 0.00332,
+   "monthly_pos_ratio": 0.4904,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "PanicDayAmountEncumbrance_50D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"$amount/((($high-$low)/($high+$low+1e-8))**2+1e-8)\",50)),10)",
+   "style": "极端行情承接力/反转/中期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 语法错误: 意外的符号 '*'",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighAmountRangeEfficiencyTrend_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"MEDIAN\",\"ABS($close-$open)/($high-$low+1e-8)\",60)/(TS_MEDIAN(ABS($close-$open)/($high-$low+1e-8),60)+1e-8)),10)",
+   "style": "大单方向/趋势/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.009, 年度越序峰值=12.4%, 负年=[2021, 2022, 2023, 2024, 2025]",
+   "ic_mean": 0.00547,
+   "long_total": 0.05475,
+   "monthly_pos_ratio": 0.5481,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  }
+ ]
+}

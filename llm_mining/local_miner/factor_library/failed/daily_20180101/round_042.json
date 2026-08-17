@@ -1,0 +1,151 @@
+{
+ "round": 42,
+ "hypothesis": "A股短线错误定价来自状态依赖的过度反应：高量能状态下的收益与振幅放大、隔夜跳空与日内路径极端化、恐慌/贪婪量能结构失稳后未来5日向均值回复，因此用非线性条件门控与全新分布维度构造因子。",
+ "reflection": "上一轮因子中 DSTD/CV 类和单调相关类虽 IC 与多头顶部收益尚可，但分组单调性几乎全部落入 C 级，核心原因是简单均值/相关/极值在横截面上压缩了状态差异，且对不同市场风格年份的秩相关极不稳定（尤其 2020 小票剧烈分化、2021 核心资产切换）。本轮放弃对同一结构的微调，改用状态门控与非线性变换：将量能状态作为条件门，考察高量区间的收益/振幅形成不对称性；同时新增隔夜跳空、日内收益偏度",
+ "factors": [
+  {
+   "name": "DownsideVolumeStabilityReversal_20D",
+   "expr": "-TS_STD(($return<0)?$volume:0,20)/(TS_MEAN(($return<0)?$volume:0,20)+1e-8)",
+   "style": "流动性/状态门控/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.110, 年度越序峰值=11.7%, 负年=[2021]",
+   "ic_mean": 0.02887,
+   "long_total": 0.22367,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "HighVolumeReturnSpreadReversal_20D",
+   "expr": "-(TS_SUM(($volume>TS_MEAN($volume,20))?$return:0,20)/(COUNT($volume>TS_MEAN($volume,20),20)+1e-8)-TS_SUM(($volume<=TS_MEAN($volume,20))?$return:0,20)/(COUNT($volume<=TS_MEAN($volume,20),20)+1e-8))",
+   "style": "量价背离/状态门控/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.134, 年度越序峰值=10.2%",
+   "ic_mean": 0.04979,
+   "long_total": 0.31726,
+   "monthly_pos_ratio": 0.875,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeRangeAsymmetryReversal_20D",
+   "expr": "-TS_MEAN(($volume>TS_MEAN($volume,20))?($high-$low):0,20)/(TS_MEAN(($volume<=TS_MEAN($volume,20))?($high-$low):0,20)+1e-8)",
+   "style": "振幅/量能耦合/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.129, 年度越序峰值=14.6%, 负年=[2021]",
+   "ic_mean": 0.04365,
+   "long_total": 0.48386,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "OvernightGapReversal_20D",
+   "expr": "-TS_MEAN($open/(DELAY($close,1)+1e-8)-1,20)",
+   "style": "隔夜跳空/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+2.00%, 多头=-45.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02001,
+   "long_total": -0.45056,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "IntradaySkewnessPremium_20D",
+   "expr": "-TS_MEAN(TS_ZSCORE($close/($open+1e-8)-1,20)*TS_ZSCORE($close/($open+1e-8)-1,20)*TS_ZSCORE($close/($open+1e-8)-1,20),20)",
+   "style": "收益偏度/博彩溢价/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.130, 年度越序峰值=12.6%, 负年=[2021]",
+   "ic_mean": 0.03848,
+   "long_total": 0.04968,
+   "monthly_pos_ratio": 0.8654,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "UpDayFrequencyMomentum_20D",
+   "expr": "TS_MEAN(($return>0)?1:0,20)-0.5",
+   "style": "趋势/动量/状态频率",
+   "reason": "方向无效",
+   "detail": "IC=-2.23%, 多头=+0.4%(IC与多头矛盾或为负)",
+   "ic_mean": -0.02234,
+   "long_total": 0.00392,
+   "monthly_pos_ratio": 0.25,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "PricePathEfficiencyTrend_20D",
+   "expr": "-TS_MEAN(ABS(DELTA($close,1)),20)/(TS_MAX($high,20)-TS_MIN($low,20)+1e-8)",
+   "style": "价格路径效率/趋势质量",
+   "reason": "方向无效",
+   "detail": "IC=+0.42%, 多头=-40.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00423,
+   "long_total": -0.40438,
+   "monthly_pos_ratio": 0.5288,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "HighVolumeDownRangeShareRebound_20D",
+   "expr": "TS_SUM((($volume>TS_MEAN($volume,20))&&($return<0))?($high-$low):0,20)/(TS_SUM(($volume>TS_MEAN($volume,20))?($high-$low):0,20)+1e-8)",
+   "style": "抛压集中/状态门控/超跌反弹",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.091, 年度越序峰值=10.9%, 负年=[2021]",
+   "ic_mean": 0.02779,
+   "long_total": 0.29475,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "GapVolumeAsymmetryReversal_20D",
+   "expr": "-TS_MEAN(($open>DELAY($close,1))?$volume:0,20)/(TS_MEAN(($open<DELAY($close,1))?$volume:0,20)+1e-8)",
+   "style": "跳空/情绪量能/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.172, 年度越序峰值=10.2%",
+   "ic_mean": 0.02195,
+   "long_total": 0.21144,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumePriceLevelCorrReversal_20D",
+   "expr": "-TS_CORR($volume,$amount/($volume+1e-8),20)",
+   "style": "量价水平背离/流动性/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.185, 年度越序峰值=9.8%, 负年=[2021]",
+   "ic_mean": 0.05019,
+   "long_total": 0.52388,
+   "monthly_pos_ratio": 0.9038,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  }
+ ]
+}

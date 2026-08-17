@@ -1,0 +1,158 @@
+{
+ "round": 6,
+ "hypothesis": "前六轮反馈表明：单纯对极端bar做均值/偏度聚合，分组单调性常被风格切换破坏；本轮回合改用‘极端bar的分布形态、相对贡献、与常态的偏差、以及切割结果的时序稳定性’等结构性特征，并统一使用RANK中间步骤+较长平滑窗口来增强横截面排序的稳定性，期望提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietVolumeReturnContribution_20D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$volume\",0.2,\"SUM\",\"$return\",20)/(TS_SUM($return,20)+1e-8)),10)",
+   "style": "量价分歧/低流动性异象_短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.049, 年度越序峰值=11.0%, 负年=[2021, 2025]",
+   "ic_mean": 0.01143,
+   "long_total": 0.09988,
+   "monthly_pos_ratio": 0.6154,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "LowAmpReturnKurtosis_40D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$amp\",0.2,\"KURT\",\"$return\",40)),10)",
+   "style": "波动率/尾部行为_中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.06%, 多头=-6.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00063,
+   "long_total": -0.0622,
+   "monthly_pos_ratio": 0.4808,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "AmountVolatilityGradient_20D",
+   "expr": "-TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"STD\",\"$return\",20)/(CBOT(\"$amount\",0.2,\"STD\",\"$return\",20)+1e-8)),10)",
+   "style": "波动率/流动性_短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.39%, 多头=-1.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00386,
+   "long_total": -0.01223,
+   "monthly_pos_ratio": 0.5096,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2022
+   ]
+  },
+  {
+   "name": "TurnoverPositionSpread_20D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20)-CBOT(\"$turnover\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20)),10)",
+   "style": "量价背离/资金行为_短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.097, 年度越序峰值=9.5%, 负年=[2025]",
+   "ic_mean": 0.01882,
+   "long_total": 0.20131,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "BretClimaxPositionReversal_20D",
+   "expr": "-TS_MEAN(RANK(CTOP(\"$bret\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20)-CBOT(\"$bret\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20)),10)",
+   "style": "短期反转/极端行情_短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.43%, 多头=-20.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00432,
+   "long_total": -0.20291,
+   "monthly_pos_ratio": 0.5288,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "QuietTurnoverReturnStability_20D",
+   "expr": "TS_MEAN(RANK(-TS_STD(CBOT(\"$turnover\",0.2,\"MEAN\",\"$return\",20),20)),10)",
+   "style": "低波动异象/稳定性_中期",
+   "reason": "方向无效",
+   "detail": "IC=+2.91%, 多头=-15.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02906,
+   "long_total": -0.15934,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpCostDeviation_20D",
+   "expr": "TS_MEAN(RANK((CTOP(\"$amp\",0.2,\"MEAN\",\"$amount/($volume+1e-8)\",20)-$close)/($close+1e-8)),10)",
+   "style": "筹码成本/支撑压力_短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.080, 年度越序峰值=13.4%, 负年=[2024]",
+   "ic_mean": 0.00252,
+   "long_total": 0.29565,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "SharpDropFrictionResistance_20D",
+   "expr": "-TS_MEAN(RANK(CBOT(\"$bret\",0.1,\"MEAN\",\"$amp/(ABS($bret)+1e-8)\",20)),10)",
+   "style": "超跌反弹/恐慌释放_短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.92%, 多头=-6.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00924,
+   "long_total": -0.06006,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2024
+   ]
+  },
+  {
+   "name": "HighVolumeAmplitudeEfficiency_20D",
+   "expr": "-TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"$amp/(ABS($bret)+1e-8)\",20)/(TS_MEAN($amp,20)+1e-8)),10)",
+   "style": "量价背离/放量滞涨_短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.029, 年度越序峰值=9.6%, 负年=[2019, 2020, 2025]",
+   "ic_mean": 0.03277,
+   "long_total": 0.04758,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpReturnAmountCorr_20D",
+   "expr": "TS_MEAN(RANK(TS_CORR(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",20),$amount,20)),10)",
+   "style": "量价联动/资金确认_中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.112, 年度越序峰值=10.7%, 负年=[2020]",
+   "ic_mean": 0.02413,
+   "long_total": 0.20607,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  }
+ ]
+}

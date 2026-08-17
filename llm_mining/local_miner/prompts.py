@@ -1,229 +1,45 @@
 """
-本地化因子挖掘项目 - 中文提示词
+本地化因子挖掘项目 - 中文提示词(构造逻辑)
 
 流程: 系统提示词(角色+函数库+约束+评价口径+输出格式)
       -> 首轮: 初始因子生成提示词(外部变量: 挖掘方向)
       -> 迭代: 反馈优化提示词(外部变量: 轮次/历史摘要/上轮评价反馈)
+
+模块拆分(2026-08 重构):
+  prompts_templates.py  所有提示词模板常量(纯数据, 无逻辑)
+  failed_library.py     战役信息压缩摘要(summarize_campaign/save_campaign_summary/load_campaign_summaries)
 """
 
-import json
-import os
-from collections import Counter
+from .prompts_templates import (
+    SYSTEM_ROLE, MINUTE_SYSTEM_ROLE,
+    SYSTEM_VARIABLES, MINUTE_SYSTEM_VARIABLES,
+    FUNCTION_LIB, MINUTE_FUNCTION_LIB_DAILY, MINUTE_FUNCTION_LIB_AGG, MINUTE_FUNCTION_LIB_KEEP,
+    OUTPUT_FORMAT_INITIAL, OUTPUT_FORMAT_ITERATION, OUTPUT_FORMAT_OPTIMIZE,
+    CUT_SYSTEM_ROLE, CUT_MINUTE_SYSTEM_ROLE,
+    CUT_SYSTEM_VARIABLES, CUT_MINUTE_SYSTEM_VARIABLES,
+    CUT_TOOL_LIB, CUT_FUNCTION_LIB, CUT_MINUTE_FUNCTION_LIB,
+)
 
-# =============================================================================
-# 固定部分
-# =============================================================================
+__all__ = [
+    "SYSTEM_ROLE", "MINUTE_SYSTEM_ROLE",
+    "SYSTEM_VARIABLES", "MINUTE_SYSTEM_VARIABLES",
+    "FUNCTION_LIB", "MINUTE_FUNCTION_LIB_DAILY", "MINUTE_FUNCTION_LIB_AGG", "MINUTE_FUNCTION_LIB_KEEP",
+    "OUTPUT_FORMAT_INITIAL", "OUTPUT_FORMAT_ITERATION", "OUTPUT_FORMAT_OPTIMIZE",
+    "build_system_prompt", "build_initial_user_prompt", "build_iteration_user_prompt",
+    "build_new_initial_user_prompt", "build_optimize_user_prompt", "summarize_history",
+    "extract_rejection_memory", "append_rejection_memory", "format_rejection_memory",
+]
 
-SYSTEM_ROLE = """你是一位资深的量化金融研究员, 专注于中国A股市场的日频量价因子挖掘。
-你的任务是: 提出有经济逻辑的因子假设, 并用规定的公式语法构造出可计算的量价因子。
-我会把你构造的因子在全部A股上进行严格的因子评价, 并把详细的评价结果反馈给你, 你需要基于反馈不断反思和迭代优化, 直到因子通过全部合格标准。"""
-
-# ---------------- 分钟模式(数据频率=minute 时启用) ----------------
-
-MINUTE_SYSTEM_ROLE = """你是一位资深的量化金融研究员, 专注于中国A股市场的日内分钟级量价行为因子挖掘。
-你的任务: 提出有经济逻辑的因子假设, 并用规定的公式语法构造出可计算的量价因子。
-分钟频率的特征是 股票|日期|分钟 三维数据, 必须通过"聚合算子"降维成 股票|日期 的日频特征,
-再与日频算子组合, 最终生成【日频因子】。系统会在全部A股上对该日频因子做严格评价并反馈给你,
-你需要基于反馈不断反思和迭代优化, 直到因子通过全部合格标准。"""
-
-SYSTEM_VARIABLES = """可用的数据变量(全部A股, 日频, 后复权):
-- $open: 当日开盘价
-- $close: 当日收盘价
-- $high: 当日最高价
-- $low: 当日最低价
-- $volume: 当日成交量
-- $amount: 当日成交额
-- $return: 当日收益率(收盘价日涨跌幅)"""
-
-MINUTE_SYSTEM_VARIABLES = """可用的数据变量:
-【日频变量】(全部A股, 后复权, 仅在日频算子的参数中使用):
-- $open/$close/$high/$low: 当日开/收/高/低价
-- $volume: 当日成交量; $amount: 当日成交额
-- $return: 当日收益率(收盘价日涨跌幅)
-
-【分钟变量】(1分钟频率K线, 后复权, 仅在分钟算子的参数中使用):
-- $open/$close/$high/$low: 该分钟的开/收/高/低价
-- $volume: 该分钟成交量; $amount: 该分钟成交额
-- $return: 该分钟收益率(每分钟收盘价环比, 当日第一根为NaN)
-- $minute: 当日时间戳(自0点起的秒数, 如09:31→34260, 15:00→54000), 常与 REGRESSION_SLOPE/INTERCEPT 配合度量"价格随时间的变化"
-
-【分钟数据组织】每只股票每个交易日约240根1分钟K线
-(上午09:31~11:30, 下午13:01~15:00, 均含端点)。分钟字段除 code 与 datetime 索引外,
-还带有 date(交易日) 索引, 因此可对"股票+交易日"做按天聚合。"""
-
-FUNCTION_LIB = """可用的函数库(严格区分大小写不敏感, 但建议大写):
-
-【时序函数】对每只股票沿时间轴滚动计算, n 为正整数时间窗口:
-- DELAY(x, n): n日前的值
-- DELTA(x, n): x 减去 n日前的值
-- TS_MEAN(x, n): n日滚动均值
-- TS_SUM(x, n): n日滚动求和
-- TS_STD(x, n): n日滚动标准差
-- TS_MAX(x, n): n日滚动最大值
-- TS_MIN(x, n): n日滚动最小值
-- TS_MEDIAN(x, n): n日滚动中位数
-- TS_RANK(x, n): 当前值在过去n日中的百分位排名(0~1)
-- TS_ARGMAX(x, n): 距离过去n日内最大值已过去的天数
-- TS_ARGMIN(x, n): 距离过去n日内最小值已过去的天数
-- HIGHDAY(x, n): 同 TS_ARGMAX
-- LOWDAY(x, n): 同 TS_ARGMIN
-- TS_CORR(x, y, n): x与y的n日滚动相关系数
-- TS_COV(x, y, n): x与y的n日滚动协方差
-- TS_ZSCORE(x, n): (x - n日均值) / n日标准差
-- TS_QUANTILE(x, n, q): 过去n日的q分位数, q为0~1小数
-- EMA(x, n): 指数移动平均
-- DECAYLINEAR(x, n): 线性衰减加权移动平均(近期权重大)
-- COUNT(cond, n): 过去n日中条件cond成立的天数
-- PROD(x, n): n日滚动连乘
-
-【截面函数】对每个交易日的所有股票横截面计算:
-- RANK(x): 横截面百分位排名(0~1)
-- ZSCORE(x): 横截面标准化(减均值除标准差)
-- SCALE(x): 横截面归一化(绝对值之和为1)
-- MEAN(x): 横截面均值(广播到所有股票)
-
-【元素级数学函数】
-- ABS(x): 绝对值
-- SIGN(x): 符号函数
-- EXP(x): 指数
-- SQRT(x): 平方根(负数按0处理)
-- LOG(x): log(x+1)
-- INV(x): 1/x
-- POW(x, n): x的n次幂
-
-【运算符】
-- 四则运算: + - * /
-- 比较运算: > < >= <= == !=
-- 逻辑运算: && (与), || (或)
-- 条件运算: cond ? a : b  等价于 WHERE(cond, a, b)
-
-公式示例:
-- -TS_CORR($close, $volume, 10)
-- TS_MEAN(RANK($return), 5) * -1
-- ($close - TS_MIN($low, 20)) / (TS_MAX($high, 20) - TS_MIN($low, 20) + 1e-8)
-- TS_ZSCORE($amount, 20) * TS_MEAN($return, 5)"""
-
-MINUTE_FUNCTION_LIB_DAILY = """可用的函数库(严格区分大小写不敏感, 但建议大写):
-
-【日频算子】(与日频挖掘完全相同, 全部可用; 作用于"股票|日期"二维数据, 即聚合后的分钟特征或原始日频字段):
-- 时序: DELAY(x,n) / DELTA(x,n) / TS_MEAN(x,n) / TS_SUM(x,n) / TS_STD(x,n) / TS_MAX(x,n) / TS_MIN(x,n)
-  / TS_MEDIAN(x,n) / TS_RANK(x,n) / TS_ARGMAX(x,n) / TS_ARGMIN(x,n) / HIGHDAY(x,n) / LOWDAY(x,n)
-  / TS_CORR(x,y,n) / TS_COV(x,y,n) / TS_ZSCORE(x,n) / TS_QUANTILE(x,n,q) / EMA(x,n) / DECAYLINEAR(x,n)
-  / COUNT(cond,n) / PROD(x,n)
-- 截面: RANK(x) / ZSCORE(x) / SCALE(x) / MEAN(x)
-- 元素: ABS / SIGN / EXP / SQRT / LOG / INV / POW(x,n)
-- 运算符: + - * / ; 比较 > < >= <= == != ; 逻辑 && || ; 条件 cond ? a : b
-
-【日频算子示例】TS_MEAN(MEAN($close), 5) 表示"每日分钟均价的5日均值"。"""
-
-MINUTE_FUNCTION_LIB_AGG = """【分钟聚合算子(降维)】把 股票|日期|分钟(3维) 压成 股票|日期(2维), 即按股票、按天 groupby 聚合:
-- SUM(x)/MEAN(x)/STD(x)/MAX(x)/MIN(x)/MEDIAN(x): 当日分钟序列的和/均值/标准差/最大/最小/中位数
-- SKEW(x)/KURT(x): 当日分钟序列的偏度/峰度(须≥3根有效分钟, 否则为NaN)
-- LAST(x)/FIRST(x): 当日最后/第一根有效分钟的值
-- COUNT(x): 当日有效分钟数
-- QUANTILE(x, q): 当日分钟序列的q分位数, q为0~1小数(如0.8=当日80%分位)
-- CORR(x, y): 当日两分钟序列的Pearson相关系数(如量价相关性 CORR($return, $volume))
-- TS_AUTOCORR(x, lag): 当日分钟序列的lag阶自相关系数(lag为正整数, 如1=相邻分钟)
-- TS_ARGMAX(x)/TS_ARGMIN(x): 当日最大值/最小值出现的分钟位置, 归一化到[0,1](0=当天第一根, 1=当天最后一根)
-- REGRESSION_SLOPE(x, y)/REGRESSION_INTERCEPT(x, y): 当日用分钟序列对y做线性回归 x~y 的斜率/截距
-  (y常用 $minute, 度量日内价格随时间的趋势; 也可用另一个分钟特征)
-聚合后的结果即为日频值, 可被日频算子继续调用, 例如 TS_MEAN(MEAN($close), 5)。"""
-
-MINUTE_FUNCTION_LIB_KEEP = """【分钟维持维度算子】仍然是按股票按天处理, 但计算前后都是三维(分钟序列):
-- SLICE(x, "HH:MM", "HH:MM"): 只保留该时段的分钟, 如 SLICE($volume,"09:31","10:00") 取开盘30分钟,
-  SLICE($close,"14:00","15:00") 取尾盘60分钟(闭区间含端点)
-- MASK(x, 比较符, 阈值): 只保留满足"该分钟的值 比较符 阈值"的分钟; 阈值为当日标量(由聚合得到),
-  如 MASK($close, ">", QUANTILE($close, 0.8)) 只保留价格最高的20%分钟;
-  MASK($volume, ">", MEAN($volume)) 只保留成交量高于当日均值的分钟;
-  阈值也支持分钟表达式(逐分钟比较), 如 MASK($close, ">", $open) 只保留收高于开的阳线分钟
-
-【分钟截面算子(3D->3D)】对"当日该分钟的全部股票"做截面变换, 不减少每天分钟数(仍为240根):
-- RANK(x): 该分钟 x 值在全市场股票中的百分位排名(0~1)
-- ZSCORE(x): 该分钟 x 值在全市场股票中的标准化(减均值除标准差)
-- SCALE(x): 该分钟 x 值除以全市场股票绝对值之和
-- CS_MEAN(x) / CS_STD(x): 该分钟 x 值在全市场股票中的均值/标准差(广播)
-  例: MEAN(SLICE(RANK($return), "09:31", "10:00")) = 开盘30分钟每根K线收益在全市场中的相对排名的日均值。
-  (系统检测到这些算子时会自动按"日期分块、每块加载全市场"计算, 保证截面是全市场的)
-
-【日内滚动算子(3D->3D)】按股票、按天在分钟序列上滚动 n 分钟窗口, 不减少每天分钟数(仍为240根):
-- INTRADAY_MEAN(x, n) / INTRADAY_STD(x, n) / INTRADAY_SUM(x, n)
-- INTRADAY_MAX(x, n) / INTRADAY_MIN(x, n) / INTRADAY_MEDIAN(x, n)
-  n 为正整数窗口(1~240); 每天前 n-1 根为 NaN(窗口不足)。
-  例: MEAN(SLICE(INTRADAY_STD($return, 5), "09:31", "10:00")) = 开盘30分钟内5分钟滚动收益波动率的日均值。
-
-【运算顺序(必须遵守)】先分时(slice) -> 再切割(mask) -> 最后降维(聚合):
-  若先切割, 分时出的时段很可能全是被切割掉的NaN; 若先降维, 每天只剩一个数无法再做掩码。
-  例: MEAN(MASK(SLICE($volume,"09:31","10:00"), ">", MEAN($volume)))
-      = 开盘30分钟内、成交量高于全日均值的分钟的平均成交量。
-  掩码阈值的判断基准可自由选择: 用全天的数据算(如 MEAN($volume)), 也可用切割后的数据算
-  (如 MASK($close, ">", QUANTILE(SLICE($close,"09:31","10:00"), 0.8)))。
-
-【分钟模式命名约定】
-- 在分钟模式下, 单参数的 mean/max/min/ts_argmax/ts_argmin 均指【分钟聚合】(对当日分钟序列聚合);
-  若要对日频数据做截面变换, 请使用 RANK/ZSCORE/SCALE, 不要使用单参数 MEAN/MAX/MIN。
-- RANK/ZSCORE/SCALE 的参数为分钟序列时表示"分钟截面"(对当日该分钟的全部股票), 参数为日频值时表示日频截面。
-- 日频的 MEAN/MAX/MIN 仅在参数已经是日频值(宽表)时按日频函数解析(如 MEAN(TS_MEAN($close,5)))。
-
-【分钟公式示例】
-- MEAN(SLICE($return, "09:31", "10:00")): 开盘30分钟平均收益率
-- STD(SLICE($return, "13:01", "15:00")): 尾盘分钟收益率波动率
-- TS_ARGMAX(SLICE($volume, "09:31", "10:30")): 早盘成交量峰值出现的分钟位置
-- REGRESSION_SLOPE($close, $minute): 当日收盘价随时间的回归斜率(日内趋势强度)
-- MEAN(MASK($volume, ">", MEAN($volume))): 高于日均量分钟的平均成交量(放量分钟强度)
-- MEAN(SLICE(RANK($return), "09:31", "10:00")): 开盘30分钟每根K线收益的全市场相对排名(分钟截面)
-- MEAN(INTRADAY_STD($return, 5)): 当日5分钟滚动收益波动率的日均值(日内微观波动结构)"""
-
-OUTPUT_FORMAT_INITIAL = """输出格式要求: 只输出一个JSON对象, 不要输出任何解释性文字, 不要用代码块包裹。结构如下:
-{
-  "因子假设": "一句话描述因子背后的市场假设与经济逻辑",
-  "因子列表": [
-    {
-      "名称": "因子的英文名称(如 ShortTermReversal_5D)",
-      "描述": "因子的经济含义与构造思路",
-      "风格": "因子大类风格标签, 如: 短期反转/量价背离/动量/波动率/流动性/趋势/振幅 等, 可叠加周期(短期/长期)",
-      "公式": "基于上述函数库和变量的公式字符串"
-    }
-  ]
-}"""
-
-OUTPUT_FORMAT_ITERATION = """输出格式要求: 只输出一个JSON对象, 不要输出任何解释性文字, 不要用代码块包裹。结构如下:
-{
-  "上轮反思": "结合上一轮的评价反馈, 分析失败原因或成功经验的思考",
-  "新假设": "本轮改进后的因子假设",
-  "因子列表": [
-    {
-      "名称": "因子的英文名称",
-      "描述": "因子的经济含义与构造思路",
-      "风格": "因子大类风格标签(短期反转/动量/波动率/流动性/量价背离等)",
-      "公式": "公式字符串"
-    }
-  ]
-}"""
-
-OUTPUT_FORMAT_OPTIMIZE = """输出格式要求: 只输出一个JSON对象, 不要输出任何解释性文字, 不要用代码块包裹。结构如下:
-{
-  "优化思路": "针对当前因子的诊断问题, 说明本轮改进的着力点与预期效果",
-  "新假设": "改进后的因子假设",
-  "因子列表": [
-    {
-      "名称": "因子的英文名称",
-      "描述": "改进了什么、保留了什么核心逻辑",
-      "风格": "因子大类风格标签(应与原因子同族)",
-      "公式": "公式字符串"
-    }
-  ]
-}"""
-
-# =============================================================================
-# 构造函数
-# =============================================================================
 
 def build_system_prompt(cfg, output_format: str | None = None):
     """返回 (完整系统提示词, 固定部分dict, 外部变量dict)
     output_format: 指定输出格式块, 默认首轮格式; 迭代/优化模式传入对应格式。
+    cfg.mining_theme == "cut" 时使用因子切割论模式的角色/变量/函数库与约束;
     cfg.data_frequency == "minute" 时使用分钟模式的角色/变量/函数库与约束。"""
     if output_format is None:
         output_format = OUTPUT_FORMAT_INITIAL
+    if getattr(cfg, "mining_theme", "") == "cut":
+        return _build_cut_system_prompt(cfg, output_format)
     is_minute = getattr(cfg, "data_frequency", "daily") == "minute"
     if is_minute:
         return _build_minute_system_prompt(cfg, output_format)
@@ -347,6 +163,90 @@ def _build_minute_system_prompt(cfg, output_format):
     fixed_parts = {
         "角色与任务": MINUTE_SYSTEM_ROLE,
         "数据变量说明": MINUTE_SYSTEM_VARIABLES,
+        "函数库": func_lib,
+        "输出格式": output_format,
+    }
+    variables = {
+        "公式约束": constraints,
+        "评价口径与合格标准": criteria,
+        "数量要求": n_factors,
+    }
+    return full, fixed_parts, variables
+
+
+def _build_cut_system_prompt(cfg, output_format):
+    """因子切割论模式系统提示词(分日频/分钟): 角色/变量/切割工具/函数库/约束全部切换为切割论"""
+    is_minute = cfg.data_frequency == "minute"
+    if is_minute:
+        role = CUT_MINUTE_SYSTEM_ROLE
+        variables = CUT_MINUTE_SYSTEM_VARIABLES
+        func_lib = CUT_MINUTE_FUNCTION_LIB
+        window_hint = (f"切割窗口上限: 分钟bar数≤{cfg.minute_cut_max_window}"
+                       f"(240=日内1天, 2400=10日滚动, 4800=20日滚动); 日频算子窗口≤{cfg.max_window}")
+    else:
+        role = CUT_SYSTEM_ROLE
+        variables = CUT_SYSTEM_VARIABLES
+        func_lib = f"{CUT_TOOL_LIB}\n\n{CUT_FUNCTION_LIB}"
+        window_hint = f"切割窗口上限: 交易日数≤{cfg.cut_max_window}; 日频算子窗口≤{cfg.max_window}"
+    constraints = (
+        f"1. 【硬性要求】每个因子的公式必须至少使用一个切割算子 CTOP 或 CBOT, "
+        "否则该因子不符合因子切割论, 系统直接拒绝;\n"
+        f"2. 公式的括号嵌套深度不得超过 {cfg.formula_max_depth} 层(切割模式已放宽上限, 允许更高复杂度); "
+        f"公式长度不超过 {cfg.formula_max_symbol_length} 个字符, 基础变量个数"
+        f"(含切割工具/目标内部的变量)不超过 {cfg.formula_max_base_features} 个;\n"
+        f"3. {window_hint};\n"
+        "4. 切割算子的\"工具\"与\"目标\"必须是引号包裹的元素级表达式(逐bar计算), "
+        "内部禁止嵌套 CTOP/CBOT, 禁止使用时间窗口函数与聚合算子;\n"
+        "5. 只能使用上面列出的函数和变量, 禁止使用任何未声明的标识符;\n"
+        "6. 每个因子必须独立, 公式中不得引用其他因子;\n"
+        "7. 除法必须加小量防止除零, 例如除以 (x + 1e-8);\n"
+        "8. 因子要有清晰的经济学假设, 避免无逻辑的随机数学堆砌, 避免过拟合;\n"
+        "9. 【严格禁止】公式最外层不得是截面RANK, 包括 RANK(...)、-RANK(...)、RANK(...)*常数 等一切仿射变体。"
+        "原因: 因子后续要做行业/市值中性化和标准化, 最外层rank会把因子值压缩成均匀分布, 彻底破坏这些线性操作的有效性。"
+        "RANK只允许作为公式的中间步骤(例如 TS_MEAN(RANK(CTOP(...)), 5))。系统会在代码端强制校验, 违反者直接拒绝。\n"
+        "10. 【严格禁止·换皮造因子】仅更换切割工具/目标字段($amp 换 $volume、$return 换 $close 等)、"
+        "仅微调切割比例(0.2 改 0.3)或窗口(20 改 30)、或对已有切割项做平滑/取反包装, "
+        "均视为与原来同一个因子, 不得当作新因子提交。要出新因子必须换经济逻辑或核心结构。\n"
+        "11. 【组合=最后手段】将两个及以上切割项(或与日频项)相加、平均或加权组合是最后手段: "
+        "仅当你已连续多轮尝试结构创新仍无法改进时才允许使用。系统会将这类因子隐藏评估、不向你展示结果。"
+        "请优先产出基于单一经济逻辑的结构创新(新的切割工具/聚合方式/窗口设计/与日频算子的新组合方式)。"
+    )
+    criteria = (
+        f"1. 因子IC为 {cfg.ic_period}日 RankIC(因子值与未来{cfg.ic_period}个交易日收益的截面Spearman相关);\n"
+        f"2. 按因子值分成 {cfg.n_quantiles} 组, 因子值最高的一组为多头组; 多头收益 = 多头组收益相对全市场收益均值的超额收益;\n"
+        f"   (收益统计采用日度等效口径: {cfg.ic_period}日前向收益÷{cfg.ic_period}, 消除重叠收益的放大效应, 反馈中的累计/年化收益均为日度等效值);\n"
+        "3. 合格标准(必须全部满足):\n"
+        "   (a) 因子IC均值与多头累计收益必须同向且为正(若两者均为负, 系统会自动将因子取相反数翻转方向; 若一正一负则直接判定为差因子剔除);\n"
+        f"   (b) IC按月度取均值后, 必须有超过 {cfg.monthly_ic_pos_ratio*100:.0f}% 的月份月均IC为正;\n"
+        "   (c) 多头超额收益分年度看, 除最新的不完整年份外, 每一个历史完整年份都必须为正;\n"
+        "   (d) 分组单调性评级不得为C级(定义见第5条);\n"
+        "4. 在满足合格标准的前提下, IC均值和多头收益越高越好;\n"
+        "5. 分组单调性评级(衡量'因子值越高→当日未来收益越高'的排序质量):\n"
+        f"   三项指标——①每日秩相关: 每个交易日把'分组编号1..{cfg.n_quantiles}'与'当日各组收益'做Spearman秩相关, "
+        "取其日度序列的总均值(1=完全单调递增, 0=无关);\n"
+        "   ②越序惩罚日均: Σmax(0, R_i-R_(i+1)) 的日度均值, 度量更低组收益高于更高组的程度(0=完全无越序);\n"
+        "   ③年度聚合越序峰值: 每年对各组年内累计收益算一次越序惩罚, 取各年最大值;\n"
+        f"   四级标准(取三项最低档判定)——S优秀: 秩相关≥{cfg.mono_rank_s:.2f} 且 越序日均<{cfg.mono_oos_s*100:.2f}% 且 峰值<{cfg.mono_peak_s*100:.0f}%;\n"
+        f"   A良好: 秩相关≥{cfg.mono_rank_a:.2f} 且 越序日均<{cfg.mono_oos_a*100:.2f}% 且 峰值<{cfg.mono_peak_a*100:.0f}%;\n"
+        f"   B可入库但需优化: 秩相关≥{cfg.mono_rank_b:.2f} 且 越序日均<{cfg.mono_oos_b*100:.2f}% 且 峰值<{cfg.mono_peak_b*100:.0f}%;\n"
+        "   C丢弃: 任何一项达不到B档, 或存在秩相关为负的年份;\n"
+        "   处置: C级直接判为不合格(不入库不采纳, 必须更换核心逻辑重新设计); B级可入库但须针对性优化; "
+        "A级可接受; S级应保持结构。评价反馈中会给出每项指标的分年度明细, "
+        "请据此找出秩相关偏低或越序偏高的年份, 诊断其市场风格共性并针对性修正。"
+    )
+    n_factors = f"每轮请输出 {cfg.factors_per_round} 个相互独立的因子(全部必须含 CTOP/CBOT 切割算子)。"
+
+    full = (
+        f"{role}\n\n【可用数据变量】\n{variables}\n\n"
+        f"【可用函数库】\n{func_lib}\n\n"
+        f"【公式约束】\n{constraints}\n\n"
+        f"【因子评价口径与合格标准】\n{criteria}\n\n"
+        f"【数量要求】\n{n_factors}\n\n"
+        f"【输出格式】\n{output_format}"
+    )
+    fixed_parts = {
+        "角色与任务": role,
+        "数据变量说明": variables,
         "函数库": func_lib,
         "输出格式": output_format,
     }
@@ -571,105 +471,3 @@ def format_rejection_memory(mem: dict) -> str:
     head = (f"【已否决公式黑名单(共{len(items)}条, 累计精简丢弃{dropped}条)】"
             "以下公式结构均已被评价失败或判定与库内重复, 严禁再次提交同结构/同逻辑因子, 必须换经济逻辑:")
     return head + "\n" + "\n".join(f"- {it}" for it in items)
-
-
-# =============================================================================
-# 战役信息压缩 —— 每100轮战役结束且有因子入库后, 将整体历史压缩为概括性摘要,
-# 供下一个战役首轮注入(避免长期逐轮记忆导致上下文过长、稀释模型注意力)
-# =============================================================================
-
-CAMPAIGN_SUMMARY_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "workspace", "campaign_summaries.json")
-
-
-def summarize_campaign(state: dict, cfg, library: list) -> str:
-    """把已完成战役(history 全部轮次 + 黑名单)压缩为概括性摘要文本。
-    library: factor_library.load_library() 结果, 用于列出本次战役入库成果。"""
-    history = state.get("history") or []
-    adopted = state.get("campaign_adopted") or []
-    rounds = len(history)
-    # 1) 入库成果
-    adopted_lines = []
-    for sid in adopted:
-        s = next((x for x in library if x.get("series_id") == sid), None)
-        if s:
-            best = s.get("best") or {}
-            adopted_lines.append(
-                f"  - {sid} {s.get('name')}: {str(best.get('expr') or '')[:80]}")
-    adopted_txt = "\n".join(adopted_lines) if adopted_lines else "  (本战役无入库因子)"
-    # 2) 失败模式统计(从 history 全量 eval 统计)
-    reason_cnt = Counter()          # 失败原因分类计数
-    struct_cnt = Counter()          # 被拒因子核心结构(公式)高频重复
-    for rec in history:
-        for f in rec.get("factors", []):
-            ev = f.get("eval") or {}
-            if not ev:
-                continue
-            if ev.get("error"):
-                reason_cnt["计算失败"] += 1
-            elif ev.get("review_rejected"):
-                reason_cnt["语义评审拒绝"] += 1
-            elif ev.get("library_rejected"):
-                reason_cnt["相关性撞车"] += 1
-            else:
-                mg = ev.get("monotonicity_grade") or {}
-                if mg.get("grade") == "C":
-                    reason_cnt["单调性C级"] += 1
-                elif not ev.get("qualified"):
-                    reason_cnt["其他未达标"] += 1
-            # 公式核心结构: 去掉参数与窗口, 近似去重
-            expr = str(f.get("expr") or "")
-            core = expr.split(",")[0].replace("(", "").replace(")", "").strip()
-            struct_cnt[core] += 1
-    top_struct = "、".join(f"{k}({v}次)" for k, v in struct_cnt.most_common(8))
-    # 3) 有效方向: IC>0 且多头为正 但未达合格的探索
-    ok_dir = []
-    for rec in history:
-        for f in rec.get("factors", []):
-            ev = f.get("eval") or {}
-            if ev and not ev.get("qualified") and not ev.get("error") \
-                    and (ev.get("ic_mean") or 0) > 0.02 and (ev.get("long_total") or 0) > 0.15:
-                ok_dir.append(f"{f.get('name')}(IC{(ev['ic_mean']*100):+.1f}% 多头{(ev['long_total']*100):+.0f}%)")
-    ok_dir_txt = "、".join(ok_dir[:12]) or "无"
-    summary = (
-        f"【战役信息压缩摘要·频率={cfg.data_frequency}】本轮战役共 {rounds} 轮, "
-        f"入库 {len(adopted)} 个新因子系列。\n"
-        f"1. 入库成果:\n{adopted_txt}\n"
-        f"2. 失败模式分布(累计): {', '.join(f'{k}{v}次' for k, v in reason_cnt.items()) or '无'}。\n"
-        f"   其中高频被拒结构(勿再探索): {top_struct}。\n"
-        f"3. 已探索但未达合格的有效方向(IC与多头为正, 卡在单调性/年度): {ok_dir_txt}。\n"
-        f"4. 经验教训: 换字段/换窗口的包装会被语义评审与相关性检验拦截, 新因子必须来自不同的经济逻辑; "
-        f"最新不完整年份不参与单调性负年判定, 历史完整年份秩相关为负仍会直接判C级。"
-    )
-    return summary
-
-
-def save_campaign_summary(summary_text: str):
-    """把战役压缩摘要追加保存(供下个战役首轮注入)"""
-    try:
-        recs = []
-        if os.path.exists(CAMPAIGN_SUMMARY_FILE):
-            with open(CAMPAIGN_SUMMARY_FILE, "r", encoding="utf-8") as f:
-                recs = json.load(f)
-        recs.append({"ts": __import__("time").strftime("%Y-%m-%d %H:%M"), "summary": summary_text})
-        # 只保留最近 3 次战役摘要, 防止无限增长
-        recs = recs[-3:]
-        os.makedirs(os.path.dirname(CAMPAIGN_SUMMARY_FILE), exist_ok=True)
-        with open(CAMPAIGN_SUMMARY_FILE, "w", encoding="utf-8") as f:
-            json.dump(recs, f, ensure_ascii=False, indent=1)
-        return True
-    except Exception:
-        return False
-
-
-def load_campaign_summaries() -> str:
-    """读取历史战役压缩摘要(最近3次), 拼接为注入文本"""
-    if not os.path.exists(CAMPAIGN_SUMMARY_FILE):
-        return ""
-    try:
-        with open(CAMPAIGN_SUMMARY_FILE, "r", encoding="utf-8") as f:
-            recs = json.load(f)
-        blocks = [f"── 战役@{r.get('ts')} ──\n{r.get('summary')}" for r in recs if r.get("summary")]
-        return "\n\n".join(blocks)
-    except Exception:
-        return ""

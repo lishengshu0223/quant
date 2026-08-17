@@ -1,0 +1,149 @@
+{
+ "round": 87,
+ "hypothesis": "A股定价中普遍存在短期极端状态反转：高波动、极端上涨、高换手/高量能日形成的“情绪溢价”与“彩票偏好”会在未来5日回落，而低关注度安静日的资金行为和低风险状态则形成正向补偿；本轮用不同切割工具与聚合目标刻画各维度极端状态，并以时间序列标准化提高跨期可比性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "TopReturnLotteryReversal_20D",
+   "expr": "-TS_ZSCORE(CTOP(\"$bret\",0.2,\"MEAN\",\"$bret\",20),60)",
+   "style": "短期反转/彩票偏好",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.073, 年度越序峰值=20.1%, 负年=[2020, 2021]",
+   "ic_mean": 0.03704,
+   "long_total": 0.04545,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "CrashTailRebound_30D",
+   "expr": "TS_ZSCORE((0-CBOT(\"$bret\",0.2,\"MEAN\",\"$bret\",30)),60)",
+   "style": "超跌反弹/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+1.11%, 多头=-47.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01114,
+   "long_total": -0.47372,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2022
+   ]
+  },
+  {
+   "name": "HighAmplitudeRiskPremium_20D",
+   "expr": "-TS_ZSCORE(CTOP(\"$amp\",0.2,\"MEAN\",\"$amp\",20),60)",
+   "style": "波动率/风险溢价",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.111, 年度越序峰值=10.5%",
+   "ic_mean": 0.03932,
+   "long_total": 0.17831,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ActiveTurnoverReturnOverheat_20D",
+   "expr": "-TS_ZSCORE(CTOP(\"$turnover\",0.2,\"MEAN\",\"$return\",20),60)",
+   "style": "流动性/情绪反转",
+   "reason": "方向无效",
+   "detail": "IC=+2.52%, 多头=-4.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02518,
+   "long_total": -0.04586,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "HighVolumeClosePositionReversal_20D",
+   "expr": "-TS_ZSCORE(CTOP(\"$volume\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20),60)",
+   "style": "量价背离/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.053, 年度越序峰值=12.9%, 负年=[2021, 2025]",
+   "ic_mean": 0.01078,
+   "long_total": 0.04629,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "HeavyAmountReturnSkewLottery_40D",
+   "expr": "-TS_ZSCORE(CTOP(\"$amount\",0.2,\"SKEW\",\"$return\",40),60)",
+   "style": "彩票偏好/极端收益",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.026, 年度越序峰值=8.8%, 负年=[2023, 2025]",
+   "ic_mean": 0.00221,
+   "long_total": 0.14962,
+   "monthly_pos_ratio": 0.5096,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "TrendDayEfficiencyExhaustion_20D",
+   "expr": "-TS_ZSCORE(CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",20),60)",
+   "style": "趋势耗竭/短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+2.09%, 多头=-9.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02095,
+   "long_total": -0.09809,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "QuietDayPositiveDrift_20D",
+   "expr": "TS_ZSCORE(CBOT(\"$volume\",0.2,\"MEAN\",\"$return\",20),60)",
+   "style": "低量吸筹/慢牛动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.044, 年度越序峰值=9.0%, 负年=[2021, 2024]",
+   "ic_mean": 0.0053,
+   "long_total": 0.11857,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2024
+   ]
+  },
+  {
+   "name": "LowAmountStableAccumulation_30D",
+   "expr": "-TS_ZSCORE(CTOP(\"$amount\",0.2,\"STD\",\"$turnover\",30),60)",
+   "style": "筹码锁定/低关注溢价",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.197, 年度越序峰值=10.1%",
+   "ic_mean": 0.03379,
+   "long_total": 0.40405,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremePullbackVolumeDrying_25D",
+   "expr": "-TS_ZSCORE(CBOT(\"$bret\",0.2,\"MEDIAN\",\"$amount\",25),60)",
+   "style": "抛压衰竭/底部反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.107, 年度越序峰值=11.3%",
+   "ic_mean": 0.03745,
+   "long_total": 0.36721,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

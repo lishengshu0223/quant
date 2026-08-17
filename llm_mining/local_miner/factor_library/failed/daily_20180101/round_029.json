@@ -1,0 +1,143 @@
+{
+ "round": 29,
+ "hypothesis": "上轮反馈显示简单尾部比值单调性普遍不足；本轮转向‘极端单日行为’与‘活跃/沉寂状态差异’的复合切割：用不同工具切出最极端bar，并以LAST、STD、比值、时序秩等结构刻画主导资金方向、状态离散度和量价耦合，期望在保持IC为正的同时提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "DominantVolumeDayReturnPersistence_40D",
+   "expr": "TS_MEAN(CTOP(\"$volume\",0.05,\"LAST\",\"$return\",40),5)",
+   "style": "量价动量/短期趋势",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "QuietVolumeWideRangePremium_50D",
+   "expr": "CBOT(\"$volume\",0.2,\"MEDIAN\",\"$amp\",50)/(CTOP(\"$volume\",0.2,\"MEDIAN\",\"$amp\",50)+1e-8)",
+   "style": "量价背离/流动性",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03973,
+   "long_total": 0.56018,
+   "monthly_pos_ratio": 0.8942,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "ChurnAmplitudePremium_40D",
+   "expr": "CTOP(\"$amp/($turnover+1e-8)\",0.2,\"MEDIAN\",\"$amp\",40)/(CBOT(\"$amp/($turnover+1e-8)\",0.2,\"MEDIAN\",\"$amp\",40)+1e-8)",
+   "style": "波动率/换手率",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.107, 年度越序峰值=11.4%",
+   "ic_mean": 0.03208,
+   "long_total": 0.01164,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "AmplitudeWeightedUpDownAmountAsymmetry_50D",
+   "expr": "CTOP(\"SIGN($bret)*($high-$low)\",0.2,\"MEAN\",\"$amount\",50)/(ABS(CBOT(\"SIGN($bret)*($high-$low)\",0.2,\"MEAN\",\"$amount\",50))+1e-8)",
+   "style": "量价动能/多空不平衡",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.115, 年度越序峰值=12.2%, 负年=[2025]",
+   "ic_mean": 0.0323,
+   "long_total": 0.28719,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "ActiveDayReturnSkewTimeRank_60D",
+   "expr": "TS_RANK(CTOP(\"$turnover\",0.2,\"SKEW\",\"$return\",60),60)/(TS_RANK(CBOT(\"$turnover\",0.2,\"SKEW\",\"$return\",60),60)+1e-8)",
+   "style": "换手率/收益形态",
+   "reason": "方向无效",
+   "detail": "IC=+0.02%, 多头=-3.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00015,
+   "long_total": -0.03074,
+   "monthly_pos_ratio": 0.5481,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "BigBodyVolumeSpeedPersistence_55D",
+   "expr": "TS_MEAN(CTOP(\"ABS($close/$open-1)\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",55),5)",
+   "style": "实体动量/短线趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.129, 年度越序峰值=10.8%, 负年=[2020]",
+   "ic_mean": 0.0404,
+   "long_total": 0.54643,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "RangePerDollarActivityDivergence_45D",
+   "expr": "CBOT(\"$amp/($amount+1e-8)\",0.2,\"MEDIAN\",\"$turnover\",45)/(CTOP(\"$amp/($amount+1e-8)\",0.2,\"MEDIAN\",\"$turnover\",45)+1e-8)",
+   "style": "资金效率/振幅",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.091, 年度越序峰值=13.2%, 负年=[2021, 2025]",
+   "ic_mean": 0.03471,
+   "long_total": 0.23887,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeDownDayCloseStability_35D",
+   "expr": "TS_ZSCORE(CBOT(\"$return\",0.05,\"LAST\",\"($close-$low)/($high-$low+1e-8)\",35),20)",
+   "style": "恐慌反转/下影线",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverBodyConsistencyGap_60D",
+   "expr": "CBOT(\"$turnover\",0.2,\"STD\",\"($close-$open)/($high-$low+1e-8)\",60)/(CTOP(\"$turnover\",0.2,\"STD\",\"($close-$open)/($high-$low+1e-8)\",60)+1e-8)",
+   "style": "换手率/实体一致性",
+   "reason": "方向无效",
+   "detail": "IC=+0.90%, 多头=-5.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00895,
+   "long_total": -0.05233,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "VolatilityEfficiencyTrendAcceleration_50D",
+   "expr": "DELTA(CTOP(\"$amp\",0.2,\"MEAN\",\"$return/($amp+1e-8)\",50),20)/(TS_STD(CTOP(\"$amp\",0.2,\"MEAN\",\"$return/($amp+1e-8)\",50),20)+1e-8)",
+   "style": "波动率/趋势加速",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

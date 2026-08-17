@@ -1,0 +1,147 @@
+{
+ "round": 3,
+ "hypothesis": "上轮失败的主因是单调性C级：简单对切割子集做均值聚合，分组排序常被极端值或风格切换破坏。本轮换用事件型/占比型/分布型切割特征，并用截面RANK做中间平滑来提升单调稳定性；经济逻辑聚焦放量确认、量价背离、极端日形态与噪音交易反转，避免重复已否决结构。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietDayReturnReversal_10D",
+   "expr": "-TS_MEAN(RANK(CBOT(\"$volume\",0.2,\"MEAN\",\"$return\",10)),5)",
+   "style": "短期反转/缩量",
+   "reason": "方向无效",
+   "detail": "IC=+0.91%, 多头=-32.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00906,
+   "long_total": -0.31952,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "TurnoverClimaxClosePosition_20D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",1,\"LAST\",\"($close-$low)/($high-$low+1e-8)\",20)),5)",
+   "style": "量价确认/事件效应",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeBodyEfficiency_20D",
+   "expr": "CTOP(\"$amount\",0.2,\"MEAN\",\"ABS($close-$open)/($high-$low+1e-8)\",20)",
+   "style": "动量/量价质量",
+   "reason": "方向无效",
+   "detail": "IC=+0.27%, 多头=-13.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00265,
+   "long_total": -0.13217,
+   "monthly_pos_ratio": 0.5096,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "PriceHighTurnoverConfirmation_20D",
+   "expr": "CTOP(\"$close\",0.2,\"MEAN\",\"$turnover\",20)/(TS_MEAN($turnover,20)+1e-8)",
+   "style": "趋势/量价背离",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.04996,
+   "long_total": 0.65099,
+   "monthly_pos_ratio": 0.9519,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeVolumeBodyDirection_20D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.1,\"MEAN\",\"($close-$open)/($open+1e-8)\",20)),5)",
+   "style": "量价背离/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.108, 年度越序峰值=9.2%, 负年=[2025]",
+   "ic_mean": 0.03932,
+   "long_total": 0.23523,
+   "monthly_pos_ratio": 0.875,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "LowTurnoverPositionStability_20D",
+   "expr": "TS_MEAN(CBOT(\"$turnover\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20),5)",
+   "style": "筹码稳定/低波",
+   "reason": "方向无效",
+   "detail": "IC=+0.40%, 多头=-17.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00401,
+   "long_total": -0.17423,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpVolumeTurnoverRatio_20D",
+   "expr": "CTOP(\"$amp\",0.2,\"MEAN\",\"$amount/($turnover+1e-8)\",20)",
+   "style": "波动率/聪明钱",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.153, 年度越序峰值=18.0%, 负年=[2020]",
+   "ic_mean": 0.02245,
+   "long_total": 1.02322,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "ExtremeDownDayRecovery_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.1,\"MEAN\",\"$close\",60)),5)/($close+1e-8)",
+   "style": "超跌/均值回归",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.161, 年度越序峰值=26.6%",
+   "ic_mean": 0.02347,
+   "long_total": 0.75395,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietLowAmpVolumeMean_20D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$amp\",0.2,\"MEAN\",\"$amount\",20)),5)",
+   "style": "波动率/变盘",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.175, 年度越序峰值=13.7%, 负年=[2020]",
+   "ic_mean": 0.05311,
+   "long_total": 0.93376,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HighReturnDayVolumeCloseness_20D",
+   "expr": "-TS_MEAN(RANK(CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"$volume\",20)/(TS_MEAN($volume,20)+1e-8)),5)",
+   "style": "情绪宣泄/反转",
+   "reason": "方向无效",
+   "detail": "IC=+1.46%, 多头=-11.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01456,
+   "long_total": -0.11296,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

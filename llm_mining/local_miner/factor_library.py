@@ -76,7 +76,7 @@ def load_library() -> list:
     """加载全部成功因子系列(F日频 + M分钟), 按 series_id 排序"""
     ensure_workspace()
     series_list = []
-    for path in sorted(glob.glob(os.path.join(SUCCESS_DIR, "*", "[FM]*.json"))):
+    for path in sorted(glob.glob(os.path.join(SUCCESS_DIR, "*", "[DM]*.json"))):
         try:
             with open(path, "r", encoding="utf-8") as f:
                 series_list.append(json.load(f))
@@ -105,10 +105,10 @@ def save_series(series: dict):
                 pass
 
 
-def next_series_id(prefix: str = "F") -> str:
+def next_series_id(prefix: str = "D") -> str:
     """扫描因子库, 返回下一个可用的系列ID。
-    prefix: F=日频因子(F001/F002/...), M=分钟因子(M001/M002/...)。两个前缀独立计数、互不冲突。
-    库文件同时含 F/M 时, 相关性检查统一对全库计算(见 load_library/check_library_correlation)。"""
+    prefix: D=日频因子(D001/D002/...), M=分钟因子(M001/M002/...)。两个前缀独立计数、互不冲突。
+    库文件同时含 D/M 时, 相关性检查统一对全库计算(见 load_library/check_library_correlation)。"""
     ids = []
     for path in glob.glob(os.path.join(SUCCESS_DIR, "*", f"{prefix}*.json")):
         m = re.match(prefix + r"(\d+)", os.path.basename(path))

@@ -1,0 +1,163 @@
+{
+ "round": 100,
+ "hypothesis": "A股极值bar上的资金行为痕迹（活跃成交日的实体方向、高振幅日的均价偏离、极端量的波动聚集、波动与资金的共振强度、低换手日的非流动性冲击等）会通过微观结构惯性在未来5日内延续；本轮采用与以往不同的切割对象/聚合维度，并用归一化、相关性和差分结构提高稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ActiveAmountBodyBias_90D",
+   "expr": "CTOP(\"$amount\",10,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",90)/(TS_STD($return,90)+1e-8)",
+   "style": "流动性/资金行为-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.075, 年度越序峰值=9.7%, 负年=[2020]",
+   "ic_mean": 0.01145,
+   "long_total": 0.39586,
+   "monthly_pos_ratio": 0.6154,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "ExtremeAmpVWAPClosePressure_90D",
+   "expr": "CTOP(\"$amp\",10,\"MEAN\",\"($close-$amount/($volume+1e-8))/($high-$low+1e-8)\",90)",
+   "style": "振幅/量价背离-中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.67%, 多头=-21.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01669,
+   "long_total": -0.2161,
+   "monthly_pos_ratio": 0.5385,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "VolumeConcentratedVolatility_90D",
+   "expr": "CTOP(\"$volume\",0.2,\"STD\",\"$return\",90)/(TS_STD($return,90)+1e-8)",
+   "style": "波动率/流动性-中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.92%, 多头=-26.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00922,
+   "long_total": -0.26731,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "AmpAmountReturnCoherence_60D",
+   "expr": "TS_CORR(CTOP(\"$amp\",10,\"MEAN\",\"$return\",90),CTOP(\"$amount\",10,\"MEAN\",\"$return\",90),60)",
+   "style": "共振/趋势-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=-0.022, 年度越序峰值=19.0%, 负年=[2019, 2020, 2021, 2023, 2024]",
+   "ic_mean": 0.00112,
+   "long_total": 0.01076,
+   "monthly_pos_ratio": 0.5096,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "QuietTurnoverShockImpact_90D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEAN\",\"ABS($bret)/($turnover+1e-8)\",90)/(TS_MEAN(ABS($bret)/($turnover+1e-8),90)+1e-8)",
+   "style": "流动性/非流动性冲击-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.043, 年度越序峰值=17.4%, 负年=[2021, 2023, 2025]",
+   "ic_mean": 0.0156,
+   "long_total": 0.09924,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeMoveNetVolumeLean_80D",
+   "expr": "CTOP(\"ABS($bret)\",0.1,\"MEAN\",\"SIGN($bret)*($volume/(TS_MEAN($volume,20)+1e-8))\",80)",
+   "style": "量价背离/动量-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.147, 年度越序峰值=9.9%",
+   "ic_mean": 0.04637,
+   "long_total": 0.63247,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpBodyWidthStability_90D",
+   "expr": "CTOP(\"$amp\",10,\"MEAN\",\"ABS($close-$open)/($high-$low+1e-8)\",90)-TS_MEAN(ABS($close-$open)/($high-$low+1e-8),90)",
+   "style": "振幅/趋势质量-中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.12%, 多头=-14.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00122,
+   "long_total": -0.14103,
+   "monthly_pos_ratio": 0.5,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2024
+   ]
+  },
+  {
+   "name": "ActiveVolumeRangeSlope_90D",
+   "expr": "CTOP(\"$volume\",0.2,\"MEAN\",\"($high-$low)/($volume+1e-8)\",90)/(TS_MEAN(($high-$low)/($volume+1e-8),90)+1e-8)",
+   "style": "流动性/效率-中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.79%, 多头=-1.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00785,
+   "long_total": -0.01744,
+   "monthly_pos_ratio": 0.5481,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "TurnoverExtremeCloseRangeBias_90D",
+   "expr": "CTOP(\"$turnover\",10,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",90)-TS_MEAN(($close-$low)/($high-$low+1e-8),90)",
+   "style": "流动性/动量-中期",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.0248,
+   "long_total": 0.47696,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "LowAmountQuietDriftRisk_80D",
+   "expr": "CBOT(\"$amount\",0.1,\"MEAN\",\"ABS($close-$open)/($high-$low+1e-8)\",80)/(TS_MEAN(ABS($close-$open)/($high-$low+1e-8),80)+1e-8)",
+   "style": "流动性/噪声-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.035, 年度越序峰值=9.3%, 负年=[2018, 2024]",
+   "ic_mean": 0.0019,
+   "long_total": 0.06204,
+   "monthly_pos_ratio": 0.5673,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2024
+   ]
+  }
+ ]
+}

@@ -1,0 +1,149 @@
+{
+ "round": 11,
+ "hypothesis": "极端bar本身包含的短期反转与流动性溢价信息，比均值类平滑信号更容易形成单调的分组收益结构；本轮改用极端bar的直接收益冲击、放量方向、安静日吸筹、换手高潮折价等更贴近交易行为的切割特征，并统一去掉外层截面RANK，改用原始量纲配合波动率归一化来提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "PanicReversal_5D",
+   "expr": "-CBOT(\"$return\",0.2,\"SUM\",\"$return\",5)/(TS_STD($return,20)+1e-8)",
+   "style": "短期反转",
+   "reason": "方向无效",
+   "detail": "IC=+1.40%, 多头=-20.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01401,
+   "long_total": -0.20063,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LotteryMaxReturnPenalty_20D",
+   "expr": "-CTOP(\"$return\",0.1,\"MAX\",\"$return\",20)/(TS_STD($return,20)+1e-8)",
+   "style": "彩票效应/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.099, 年度越序峰值=23.7%, 负年=[2020, 2021]",
+   "ic_mean": 0.03021,
+   "long_total": 0.15472,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "PanicVolumeSurgeReversal_10D",
+   "expr": "CBOT(\"$return\",0.2,\"MEAN\",\"$volume\",10)/(TS_MEAN($volume,20)+1e-8)",
+   "style": "量价背离/恐慌反转",
+   "reason": "方向无效",
+   "detail": "IC=+0.56%, 多头=-45.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00556,
+   "long_total": -0.45548,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "QuietDayInformedAccumulation_20D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20)",
+   "style": "吸筹/流动性",
+   "reason": "方向无效",
+   "detail": "IC=+0.13%, 多头=-26.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00126,
+   "long_total": -0.26369,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2022,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighVolumeBreadthNet_20D",
+   "expr": "(CTOP(\"$volume\",0.2,\"COUNT\",\"$bret>0?1:0\",20)-CTOP(\"$volume\",0.2,\"COUNT\",\"$bret<0?1:0\",20))/4",
+   "style": "量价结构/资金流向",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 因子横截面几乎无变化(所有股票取值相同), 无法分组",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverClimaxPremium_20D",
+   "expr": "-CTOP(\"$turnover\",0.2,\"MEAN\",\"$turnover\",20)/(TS_MEAN($turnover,20)+1e-8)",
+   "style": "流动性溢价",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.04392,
+   "long_total": 0.55755,
+   "monthly_pos_ratio": 0.9135,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeClimaxExhaustion_20D",
+   "expr": "-CTOP(\"$return\",0.2,\"MEAN\",\"$volume\",20)/(TS_MEAN($volume,20)+1e-8)",
+   "style": "量价背离/上涨透支",
+   "reason": "方向无效",
+   "detail": "IC=+3.57%, 多头=-9.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03571,
+   "long_total": -0.09327,
+   "monthly_pos_ratio": 0.8942,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "StrongUpDayConviction_20D",
+   "expr": "CTOP(\"$return\",0.2,\"MEAN\",\"ABS($close-$open)/($high-$low+1e-8)\",20)",
+   "style": "动量/趋势确认",
+   "reason": "方向无效",
+   "detail": "IC=+1.16%, 多头=-17.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01157,
+   "long_total": -0.17494,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "ExtremeDownDaySupport_20D",
+   "expr": "CBOT(\"$return\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20)",
+   "style": "短期反转/支撑确认",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.065, 年度越序峰值=13.1%, 负年=[2020, 2025]",
+   "ic_mean": 0.00721,
+   "long_total": 0.16321,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "RangeContractionReversal_20D",
+   "expr": "CBOT(\"$amp\",0.1,\"MEAN\",\"$return\",20)*SIGN(CTOP(\"$amp\",0.1,\"MEAN\",\"$amount\",20)-TS_MEAN($amount,20))",
+   "style": "波动率压缩/突破",
+   "reason": "方向无效",
+   "detail": "IC=+0.74%, 多头=-44.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0074,
+   "long_total": -0.44495,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2019
+   ]
+  }
+ ]
+}

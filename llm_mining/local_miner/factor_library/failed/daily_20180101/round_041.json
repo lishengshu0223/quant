@@ -1,0 +1,147 @@
+{
+ "round": 41,
+ "hypothesis": "极端状态下的行为特征往往比全样本更稳定：活跃日的资金流向与收益方向、安静日的流动性收缩、极端涨跌日的承接位置等，若在时序上形成持续的一致性或极端尾部形态，会预示未来5日收益。本轮重点引入“双切割序列的时序协动”与“切割特征在自身历史中的分位趋势”，以改善分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ActiveTurnoverReturnAmountSync_30D",
+   "expr": "TS_CORR(CTOP(\"$turnover\",0.2,\"MEAN\",\"$return\",30), $amount,30)",
+   "style": "流动性/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.097, 年度越序峰值=11.6%, 负年=[2023]",
+   "ic_mean": 0.02447,
+   "long_total": 0.12966,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "VolExtremeReturnDivergenceSync_20D",
+   "expr": "TS_CORR(CTOP(\"$volume\",0.2,\"MEAN\",\"$return\",20), CBOT(\"$volume\",0.2,\"MEAN\",\"$return\",20),20)",
+   "style": "量价背离/有序性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.008, 年度越序峰值=8.5%, 负年=[2019, 2022, 2023, 2025]",
+   "ic_mean": 0.00028,
+   "long_total": 0.01249,
+   "monthly_pos_ratio": 0.4808,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2022,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "AmountAmpLiquiditySync_20D",
+   "expr": "TS_CORR(CTOP(\"$amount\",0.2,\"MEAN\",\"$amp\",20), $volume,20)",
+   "style": "流动性/振幅",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.02812,
+   "long_total": 0.37303,
+   "monthly_pos_ratio": 0.9135,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "PanicDownCloseAbsorptionCorr_20D",
+   "expr": "TS_CORR(CBOT(\"$bret\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",20), $amp,20)",
+   "style": "恐慌承接/反转",
+   "reason": "方向无效",
+   "detail": "IC=+0.88%, 多头=-24.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00876,
+   "long_total": -0.24393,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021
+   ]
+  },
+  {
+   "name": "SurgeUpTurnoverAmountSync_20D",
+   "expr": "TS_CORR(CTOP(\"$bret\",0.2,\"MEAN\",\"$turnover\",20), $amount,20)",
+   "style": "资金流/趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.126, 年度越序峰值=7.3%",
+   "ic_mean": 0.02392,
+   "long_total": 0.23422,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpPriceLevelVolumeCorr_20D",
+   "expr": "TS_CORR(CTOP(\"$amp\",0.2,\"MEAN\",\"$amount/($volume+1e-8)\",20), $volume,20)",
+   "style": "量价结构/振幅",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.090, 年度越序峰值=14.1%, 负年=[2021]",
+   "ic_mean": 0.01631,
+   "long_total": 0.1159,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "ActiveVolumeReturnSkewTrend_120D",
+   "expr": "TS_MEAN(TS_RANK(CTOP(\"$volume\",0.2,\"SKEW\",\"$return\",60),120),10)",
+   "style": "偏度/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.031, 年度越序峰值=11.5%, 负年=[2021, 2023, 2024]",
+   "ic_mean": 0.00284,
+   "long_total": 0.2274,
+   "monthly_pos_ratio": 0.5,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "QuietAmpTurnoverDispersionTrend_120D",
+   "expr": "TS_MEAN(TS_RANK(CBOT(\"$amp\",0.2,\"STD\",\"$turnover\",60),120),10)",
+   "style": "低波动/变盘",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.102, 年度越序峰值=10.5%",
+   "ic_mean": 0.01953,
+   "long_total": 0.21921,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LowVolumeRangeNarrowReturnSync_20D",
+   "expr": "TS_CORR(CBOT(\"$volume\",0.2,\"MEAN\",\"$amp\",20), $return,20)",
+   "style": "缩量整理/趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.022, 年度越序峰值=10.3%, 负年=[2021, 2023, 2025]",
+   "ic_mean": 0.00648,
+   "long_total": 0.00821,
+   "monthly_pos_ratio": 0.6154,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeMoveAmountConcentrationTrend_90D",
+   "expr": "TS_MEAN(TS_RANK(CTOP(\"ABS($bret)\",0.2,\"SUM\",\"$amount\",60)/(TS_SUM($amount,60)+1e-8),90),10)",
+   "style": "极端量能/反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.115, 年度越序峰值=11.2%",
+   "ic_mean": 0.01356,
+   "long_total": 0.14495,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

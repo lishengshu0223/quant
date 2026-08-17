@@ -1,0 +1,131 @@
+{
+ "round": 97,
+ "hypothesis": "上一轮最接近达标的是极端日净方向类因子（IC=+5.07%、多头+69%），但败在2020/2026年秩相关为负。本轮换用更稳健的切割细节：①引入LAST聚合捕捉‘最近一次极端状态’的锚定效应；②用COUNT/MAX/MIN聚合离散信号的占比与极值，避免均值被极端值支配；③用涨跌日振幅差、VWAP-价格相对位置、单位资金价格冲击等新工具，构造方向有经济含义且分布更连续的信号；④所有因子外层加SIG",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LastGapDayReturnAnchor_20D",
+   "expr": "TS_MEAN(CTOP(\"ABS($open*(1+$return)/$close-1)\",1,\"LAST\",\"$return\",20),5)",
+   "style": "短期动量/跳空锚定",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighAmountVWAPOpenPremium_60D",
+   "expr": "SIGN(CTOP(\"$amount\",5,\"MAX\",\"($amount/($volume+1e-8)-$open)/$open\",60))*SQRT(ABS(CTOP(\"$amount\",5,\"MAX\",\"($amount/($volume+1e-8)-$open)/$open\",60)))",
+   "style": "量价配合/资金强度",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "LowVolumeAbsReturnShare_60D",
+   "expr": "TS_MEAN(CBOT(\"$volume\",0.2,\"SUM\",\"ABS($bret)\",60)/(TS_SUM(ABS($bret),60)+1e-8),5)",
+   "style": "流动性/噪音占比",
+   "reason": "方向无效",
+   "detail": "IC=+1.62%, 多头=-0.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01619,
+   "long_total": -0.00554,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2018
+   ]
+  },
+  {
+   "name": "ActiveAmpReturnDispersion_60D",
+   "expr": "-(CTOP(\"$amp\",5,\"MAX\",\"$return\",60)-CTOP(\"$amp\",5,\"MIN\",\"$return\",60))/(TS_STD($return,60)+1e-8)",
+   "style": "波动率/分歧反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.084, 年度越序峰值=15.7%, 负年=[2020]",
+   "ic_mean": 0.02521,
+   "long_total": 0.12292,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "ActiveAmountVWAPMidPriceLean_60D",
+   "expr": "CTOP(\"$amount\",0.2,\"COUNT\",\"($amount/($volume+1e-8))>($close/($high+$low+1e-8))?1:0\",60)/12",
+   "style": "量价立面/买方力量",
+   "reason": "方向无效",
+   "detail": "IC=+2.05%, 多头=+0.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02047,
+   "long_total": 0.0,
+   "monthly_pos_ratio": 0.8333,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ActiveReturnMomentumRegime_60D",
+   "expr": "TS_MEAN(CTOP(\"$amount\",0.2,\"MEAN\",\"$return\",60),5)/(TS_MEAN(CTOP(\"$amount\",0.2,\"MEAN\",\"$return\",60),30)+1e-8)",
+   "style": "量能情绪动量",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "UpDownDayAmpAsymmetry_60D",
+   "expr": "(CTOP(\"SIGN($bret)\",0.5,\"MEAN\",\"$amp\",60)-CBOT(\"SIGN($bret)\",0.5,\"MEAN\",\"$amp\",60))/(CTOP(\"SIGN($bret)\",0.5,\"MEAN\",\"$amp\",60)+CBOT(\"SIGN($bret)\",0.5,\"MEAN\",\"$amp\",60)+1e-8)",
+   "style": "涨跌结构/多空力度",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "LastLowTurnoverDaySealed_60D",
+   "expr": "TS_MEAN(CBOT(\"$turnover\",1,\"LAST\",\"$return\",60),5)",
+   "style": "地量信号/抛压枯竭",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighImpactTurnoverDayLean_60D",
+   "expr": "SIGN(CTOP(\"ABS($bret)/($amount+1e-8)\",0.2,\"MEAN\",\"$return\",60)/(CTOP(\"ABS($bret)/($amount+1e-8)\",0.2,\"MEAN\",\"ABS($bret)\",60)+1e-8))*SQRT(ABS(CTOP(\"ABS($bret)/($amount+1e-8)\",0.2,\"MEAN\",\"$return\",60)/(CTOP(\"ABS($bret)/($amount+1e-8)\",0.2,\"MEAN\",\"ABS($bret)\",60)+1e-8)))",
+   "style": "价格冲击/资金方向",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeRangeIntensityLean_90D",
+   "expr": "CTOP(\"$amp\",10,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",90)",
+   "style": "极端博弈/收盘胜负",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.04546,
+   "long_total": 0.86483,
+   "monthly_pos_ratio": 0.8654,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

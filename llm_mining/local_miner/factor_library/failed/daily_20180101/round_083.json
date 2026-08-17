@@ -1,0 +1,142 @@
+{
+ "round": 83,
+ "hypothesis": "A股中，主力资金的建仓行为常发生在低振幅（平静）日：价格波动收窄而换手/成交额暗中放大，形成“静默吸筹”。反之，若量能集中在高振幅日，则多为分歧派发或情绪交易。本轮以振幅为切割工具，构建低/高振幅日的量能集中度、量能弹性与资金占比等结构因子，捕捉静默建仓信号及其时序延续性，力求在分组单调性上取得稳定改善。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietVolumeAccumulationRatio_120D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$amp\",0.2,\"SUM\",\"$turnover\",120)/(CTOP(\"$amp\",0.2,\"SUM\",\"$turnover\",120)+1e-8)),5)",
+   "style": "量价背离/吸筹/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.110, 年度越序峰值=12.6%",
+   "ic_mean": 0.03576,
+   "long_total": 0.32554,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverAmplitudeLogSkew_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"LOG($turnover+1)\",60)-CBOT(\"$amp\",0.2,\"MEAN\",\"LOG($turnover+1)\",60)),5)",
+   "style": "量价背离/分布偏度/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.101, 年度越序峰值=19.1%",
+   "ic_mean": 0.05207,
+   "long_total": 0.08963,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumeAmplitudeSpreadLong_180D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"$amp\",180)-CBOT(\"$volume\",0.2,\"MEAN\",\"$amp\",180)),5)",
+   "style": "量价关系/振幅/长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.078, 年度越序峰值=25.7%, 负年=[2021, 2025]",
+   "ic_mean": 0.05049,
+   "long_total": 0.06611,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "QuietDayMoneyFlowShare_90D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$amp\",0.2,\"SUM\",\"$amount\",90)/(TS_SUM($amount,90)+1e-8)),5)",
+   "style": "资金流/吸筹/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.136, 年度越序峰值=12.4%",
+   "ic_mean": 0.04424,
+   "long_total": 0.48098,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ActiveVolumeChangePersistence_100D",
+   "expr": "TS_CORR(CTOP(\"$volume\",0.2,\"MEAN\",\"$amp\",100),DELAY(CTOP(\"$volume\",0.2,\"MEAN\",\"$amp\",100),5),20)",
+   "style": "量价持续性/趋势/中期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "QuietTurnoverReturnCorr_40D",
+   "expr": "TS_CORR(CBOT(\"$amp\",0.2,\"MEAN\",\"$turnover\",40),$return,20)",
+   "style": "量价联动/吸筹/短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.17%, 多头=-15.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00168,
+   "long_total": -0.15685,
+   "monthly_pos_ratio": 0.5481,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023
+   ]
+  },
+  {
+   "name": "TopVolumeCloseLocation_120D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",120)-CBOT(\"$volume\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",120)),5)",
+   "style": "量价强度/资金主导/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.116, 年度越序峰值=6.7%",
+   "ic_mean": 0.02666,
+   "long_total": 0.38382,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietTurnoverAcceleration_80D",
+   "expr": "TS_MEAN(RANK(DELTA(CBOT(\"$amp\",0.2,\"MEAN\",\"$turnover\",80),5)/(TS_STD($turnover,80)+1e-8)),5)",
+   "style": "量能加速/吸筹/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.033, 年度越序峰值=13.0%, 负年=[2024, 2025]",
+   "ic_mean": 0.01635,
+   "long_total": 0.01627,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeVolumeAmpSkew_150D",
+   "expr": "TS_MEAN(RANK(-CTOP(\"$volume\",0.2,\"SKEW\",\"$amp\",150)),5)",
+   "style": "波动率结构/资金行为/长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.047, 年度越序峰值=14.8%, 负年=[2020, 2024]",
+   "ic_mean": 0.02007,
+   "long_total": 0.14783,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2024
+   ]
+  },
+  {
+   "name": "LowTurnoverQuietDrift_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MEAN\",\"$amp\",60)/(CTOP(\"$turnover\",0.2,\"MEAN\",\"$amp\",60)+1e-8)),5)",
+   "style": "波动率压缩/蓄势/中期",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03806,
+   "long_total": 0.73302,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

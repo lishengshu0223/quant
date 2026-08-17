@@ -15,7 +15,7 @@ import re
 import numpy as np
 import pandas as pd
 
-ALLOWED_VARS = {"$open", "$close", "$high", "$low", "$volume", "$amount", "$return"}
+ALLOWED_VARS = {"$open", "$close", "$high", "$low", "$volume", "$amount", "$return", "$turnover"}
 
 # 函数注册表: 名称 -> (最少参数, 最多参数, 窗口参数位置列表(0基), 浮点参数位置列表)
 FUNC_SPEC = {
@@ -65,7 +65,8 @@ WINDOW_DEFAULTS = {
     "COUNT": 20, "PROD": 5,
 }
 
-INVALID_CHAR_RE = re.compile(r"[^A-Za-z0-9_$+\-*/><=&|?:.,() \t\r\n]")
+# 允许字符集含引号('"): 切割模式公式的 CTOP/CBOT 参数用引号包裹字符串常量(Str token 已支持)
+INVALID_CHAR_RE = re.compile(r"[^A-Za-z0-9_$+\-*/><=&|?:.,() \t\r\n'\"]")
 
 TOKEN_RE = re.compile(
     r"""
@@ -696,8 +697,12 @@ def compute_factor(expr: str, data, cfg) -> pd.DataFrame:
     """
     校验并计算因子, 返回宽表 DataFrame(行=日期, 列=股票代码)。
     非法公式抛出 ExprError(在运行前被拦截)。
+    cfg.mining_theme == "cut" 时走因子切割论引擎(CTOP/CBOT 强制挖掘日频/分钟切割因子);
     cfg.data_frequency == "minute" 时走分钟引擎(分钟算子聚合出日频特征)。
     """
+    if getattr(cfg, "mining_theme", "") == "cut":
+        from .cut_engine import compute_factor_cut
+        return compute_factor_cut(expr, data, cfg)
     if getattr(cfg, "data_frequency", "daily") == "minute":
         from .minute_engine import compute_factor_minute
         return compute_factor_minute(expr, data, cfg)

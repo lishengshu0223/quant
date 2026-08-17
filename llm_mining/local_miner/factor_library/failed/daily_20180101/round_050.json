@@ -1,0 +1,153 @@
+{
+ "round": 50,
+ "hypothesis": "上轮反思：COUNT式状态因子虽然IC高但因子值分布过于离散、截面区分度低导致分组单调性长期在C级；改进方向是以“截面排序+RANK平滑”替代二元计数，把极端日聚合特征转化为均匀、连续、时序稳定的截面排序信号。新的市场假设：极端日的资金行为信号（风险调整收益、收盘位置、收益偏度、量能集中度等）经截面排序和时间平滑后，能与未来5日收益形成更单调的排序关系。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ActiveVolumeRiskAdjustedReturnRank_40D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"$return/($amp+1e-8)\",40)),10)",
+   "style": "量价背离/短期动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.123, 年度越序峰值=16.2%, 负年=[2020, 2025]",
+   "ic_mean": 0.0345,
+   "long_total": 0.46827,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "QuietTurnoverClosePositionRank_40D",
+   "expr": "DECAYLINEAR(RANK(CBOT(\"$turnover\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",40)),10)",
+   "style": "流动性/吸筹",
+   "reason": "方向无效",
+   "detail": "IC=+0.78%, 多头=-7.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00781,
+   "long_total": -0.0726,
+   "monthly_pos_ratio": 0.6058,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpReturnSkewnessRank_60D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$amp\",0.2,\"SKEW\",\"$return\",60)),10)",
+   "style": "波动率/尾部行为",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.054, 年度越序峰值=8.8%, 负年=[2025]",
+   "ic_mean": 0.01509,
+   "long_total": 0.13972,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "PanicVolumeConcentrationRank_60D",
+   "expr": "DECAYLINEAR(RANK(CBOT(\"$bret\",0.2,\"KURT\",\"$volume\",60)),10)",
+   "style": "短期反转/恐慌释放",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.003, 年度越序峰值=11.4%, 负年=[2018, 2019, 2020, 2024, 2025]",
+   "ic_mean": 0.00391,
+   "long_total": 0.13346,
+   "monthly_pos_ratio": 0.5673,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "AmountRegimeDispersionAsymRank_40D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$amount\",0.2,\"STD\",\"$return\",40)/(CBOT(\"$amount\",0.2,\"STD\",\"$return\",40)+1e-8)),10)",
+   "style": "流动性/波动率结构",
+   "reason": "方向无效",
+   "detail": "IC=+0.84%, 多头=-4.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0084,
+   "long_total": -0.04544,
+   "monthly_pos_ratio": 0.6154,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  },
+  {
+   "name": "ExtremeMoveRangeToCloseRank_40D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$bret\",0.2,\"MEAN\",\"($high-$low)/($close+1e-8)\",40)),10)",
+   "style": "趋势/极端行情质量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.065, 年度越序峰值=27.0%, 负年=[2025]",
+   "ic_mean": 0.0658,
+   "long_total": 0.01108,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "QuietAmpTurnoverIntensityRank_40D",
+   "expr": "DECAYLINEAR(RANK(CBOT(\"$amp\",0.2,\"MEAN\",\"$turnover\",40)/(CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover\",40)+1e-8)),10)",
+   "style": "波动率/蓄势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.170, 年度越序峰值=11.5%",
+   "ic_mean": 0.03897,
+   "long_total": 0.48726,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmountOpenDriftRank_40D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$amount\",0.3,\"MEDIAN\",\"($close-$open)/($open+1e-8)\",40)),10)",
+   "style": "量价配合/日内动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.129, 年度越序峰值=7.4%",
+   "ic_mean": 0.05029,
+   "long_total": 0.61688,
+   "monthly_pos_ratio": 0.875,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeUpVolumeIntensityRank_40D",
+   "expr": "DECAYLINEAR(RANK(CTOP(\"$bret\",0.2,\"MEAN\",\"$amount/($turnover+1e-8)\",40)),10)",
+   "style": "资金强度/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.139, 年度越序峰值=18.3%, 负年=[2020]",
+   "ic_mean": 0.01876,
+   "long_total": 0.87614,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "PanicDownCloseRecoveryRank_60D",
+   "expr": "DECAYLINEAR(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"($close-$open)/($open+1e-8)\",60)),10)",
+   "style": "短期反转/超跌修复",
+   "reason": "方向无效",
+   "detail": "IC=+2.99%, 多头=-45.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02985,
+   "long_total": -0.45129,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2025
+   ]
+  }
+ ]
+}

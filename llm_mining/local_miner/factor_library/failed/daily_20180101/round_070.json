@@ -1,0 +1,150 @@
+{
+ "round": 70,
+ "hypothesis": "极端下跌日若伴随异常放大/集中的成交额与窄幅承接，往往意味着恐慌筹码释放充分并存在超跌修复；而极端放量日的收益分布峰度则刻画散户情绪过度集中后的反转压力。本轮用KURT偏度/量能缩放/方向对称差等新聚合构造高区分度信号。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "PanicVolKurtosisReversal_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$bret\",0.2,\"KURT\",\"$amount\",60),10)",
+   "style": "短期反转/恐慌过度反应",
+   "reason": "单调性C级",
+   "detail": "秩相关=-0.001, 年度越序峰值=11.6%, 负年=[2019, 2020, 2025]",
+   "ic_mean": 0.00895,
+   "long_total": 0.22032,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "DownAmpVolDrainAsym_60D",
+   "expr": "CBOT(\"$bret\",0.2,\"SUM\",\"$amp\",60)/(CTOP(\"$bret\",0.2,\"SUM\",\"$amp\",60)+1e-8)",
+   "style": "极端行为非对称/反转",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2020']",
+   "ic_mean": 0.05325,
+   "long_total": 0.56298,
+   "monthly_pos_ratio": 0.9231,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "QuietDayRangeTurnoverConcentration_60D",
+   "expr": "DECAYLINEAR(CBOT(\"$amp\",0.2,\"MEAN\",\"$amount/($high-$low+1e-8)\",60),10)",
+   "style": "低波动/流动性积累",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.148, 年度越序峰值=15.6%, 负年=[2024]",
+   "ic_mean": 0.02158,
+   "long_total": 0.23204,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "BearBarRangeExpansionPanic_40D",
+   "expr": "TS_MEAN(CBOT(\"($close-$open)/($open+1e-8)\",0.2,\"MEAN\",\"($high-$low)/($open+1e-8)\",40),10)",
+   "style": "恐慌/日内风险",
+   "reason": "方向无效",
+   "detail": "IC=+4.29%, 多头=-28.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.04293,
+   "long_total": -0.28175,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpSkewAsymRegime_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"SKEW\",\"$return\",60)-CBOT(\"$amp\",0.2,\"SKEW\",\"$return\",60),10)",
+   "style": "波动率态不对称/趋势质量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.046, 年度越序峰值=8.2%, 负年=[2025]",
+   "ic_mean": 0.01394,
+   "long_total": 0.08155,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeFlowReturnResonance_60D",
+   "expr": "TS_MEAN(TS_CORR(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",20),CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover\",20),60),10)",
+   "style": "量价共振/趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.075, 年度越序峰值=10.0%, 负年=[2021]",
+   "ic_mean": 0.01582,
+   "long_total": 0.2537,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "LiquidityDryUpAmplitudeHazard_120D",
+   "expr": "TS_RANK(DECAYLINEAR(CBOT(\"$turnover\",0.2,\"MEAN\",\"$amp\",60),10),120)",
+   "style": "流动性枯竭/波动率",
+   "reason": "方向无效",
+   "detail": "IC=+1.50%, 多头=-13.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01501,
+   "long_total": -0.13004,
+   "monthly_pos_ratio": 0.6442,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "VolSpikeCloseEfficiencyGamma_20D",
+   "expr": "CTOP(\"$volume\",0.2,\"MEAN\",\"ABS($bret)/($volume+1e-8)\",20)/(TS_STD($return,20)+1e-8)",
+   "style": "短期量价冲击/反转",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.05595,
+   "long_total": 0.56393,
+   "monthly_pos_ratio": 0.8942,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeUpDownAmountSymmetry_60D",
+   "expr": "CBOT(\"$bret\",0.2,\"SUM\",\"$amount\",60)/(CTOP(\"$bret\",0.2,\"SUM\",\"$amount\",60)+1e-8)",
+   "style": "量能非对称/多空力量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.096, 年度越序峰值=15.8%, 负年=[2020, 2025]",
+   "ic_mean": 0.03066,
+   "long_total": 0.13424,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmtIntradayMedBias_60D",
+   "expr": "DECAYLINEAR(CTOP(\"$amount\",0.2,\"MEDIAN\",\"($close-$open)/($high-$low+1e-8)\",60),10)",
+   "style": "资金主动性/趋势惯性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.115, 年度越序峰值=9.4%, 负年=[2020]",
+   "ic_mean": 0.02809,
+   "long_total": 0.36744,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  }
+ ]
+}

@@ -1,0 +1,147 @@
+{
+ "round": 34,
+ "hypothesis": "低换手/高换手极端状态下的波动结构差异具有持续性：低换手日振幅的离散度、下限水平与右偏特征反映了主力资金的耐心吸筹或锁仓行为，而高换手日的上涨/下跌价格冲击效率不对称则揭示了知情交易者的方向偏好；通过RANK时序平滑将这些尾部行为转为稳健的排序信号，预期能改善分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LowTurnoverRangeVolatilityPersistence_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"STD\",\"$amp\",60)/(TS_STD($amp,60)+1e-8)),10)",
+   "style": "波动率/流动性/长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.118, 年度越序峰值=9.0%",
+   "ic_mean": 0.01742,
+   "long_total": 0.2565,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LowTurnoverRangeFloorPersistence_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MIN\",\"$amp\",60)/(TS_MIN($amp,60)+1e-8)),10)",
+   "style": "振幅/流动性/长期",
+   "reason": "方向无效",
+   "detail": "IC=-0.08%, 多头=+10.7%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00079,
+   "long_total": 0.10674,
+   "monthly_pos_ratio": 0.5673,
+   "grade": "C",
+   "neg_years": [
+    2018
+   ]
+  },
+  {
+   "name": "LowTurnoverRangeSkewAccumulation_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"SKEW\",\"$amp\",60)),10)",
+   "style": "振幅/流动性/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.038, 年度越序峰值=9.8%",
+   "ic_mean": 0.00295,
+   "long_total": 0.09579,
+   "monthly_pos_ratio": 0.6058,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LowTurnoverRangePerVolumeDispersion_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"STD\",\"$amp/($volume+1e-8)\",60)/(TS_STD($amp/($volume+1e-8),60)+1e-8)),10)",
+   "style": "量价背离/流动性/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.125, 年度越序峰值=14.3%, 负年=[2024]",
+   "ic_mean": 0.01333,
+   "long_total": 0.34077,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "LowTurnoverClosePositionStabilityPremium_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"STD\",\"($close-$low)/($high-$low+1e-8)\",60)/(TS_STD(($close-$low)/($high-$low+1e-8),60)+1e-8)),10)",
+   "style": "量价背离/控盘度/长期",
+   "reason": "方向无效",
+   "detail": "IC=-0.10%, 多头=+1.9%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00102,
+   "long_total": 0.01927,
+   "monthly_pos_ratio": 0.4712,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2022
+   ]
+  },
+  {
+   "name": "HighTurnoverUpDownRangeEfficiencyGap_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"($return>0?$return/($high-$low+1e-8):0)\",60)-CTOP(\"$turnover\",0.2,\"MEAN\",\"($return<0?ABS($return)/($high-$low+1e-8):0)\",60)),10)",
+   "style": "量价关系/资金效率/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.015, 年度越序峰值=16.4%, 负年=[2020, 2022, 2025]",
+   "ic_mean": 0.01722,
+   "long_total": 0.35933,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2022,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeUpDownTurnoverEfficiencyRatio_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$bret\",0.2,\"MEAN\",\"($return>0?$return/($turnover+1e-8):0)\",60)/(CBOT(\"$bret\",0.2,\"MEAN\",\"($return<0?ABS($return)/($turnover+1e-8):0)\",60)+1e-8)),10)",
+   "style": "动量/换手效率/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=-0.001, 年度越序峰值=23.5%, 负年=[2020, 2023]",
+   "ic_mean": 0.01091,
+   "long_total": 0.00434,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023
+   ]
+  },
+  {
+   "name": "HighAmpUpVolumeShareStability_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"SUM\",\"($return>0?$volume:0)\",60)/(CTOP(\"$amp\",0.2,\"SUM\",\"$volume\",60)+1e-8)),10)",
+   "style": "振幅/资金方向/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.110, 年度越序峰值=8.5%",
+   "ic_mean": 0.03674,
+   "long_total": 0.42641,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveAmplitudeReturnCorrTrend_40D",
+   "expr": "TS_CORR(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",20),CTOP(\"$turnover\",0.2,\"MEAN\",\"$return\",20),10)",
+   "style": "趋势/量价共振/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.02%, 多头=-8.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00016,
+   "long_total": -0.08871,
+   "monthly_pos_ratio": 0.4808,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2022,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "QuietTurnoverRangeExtremeGap_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$turnover\",0.2,\"MAX\",\"$amp\",60)/(TS_MAX($amp,60)+1e-8)),10)",
+   "style": "振幅/流动性/长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.131, 年度越序峰值=12.3%",
+   "ic_mean": 0.01559,
+   "long_total": 0.31942,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

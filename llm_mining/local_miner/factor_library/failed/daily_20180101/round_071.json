@@ -1,0 +1,127 @@
+{
+ "round": 71,
+ "hypothesis": "极端bar的‘方向决断’与‘活跃度』信息往往比普通bar更能暴露主力的真实意图；不采用均值/最值等传统聚合，改用LAST聚合捕获最极端单日的行为结果，并用方向不对称、时间衰减与相对位置做修正，以提升截面排序的单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "AmpExtremeDayResolutionDir_20D",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"LAST\",\"$return\",20)/(TS_STD($return,20)+1e-8),10)",
+   "style": "波动率/极值方向",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "PanicDayVolumeSurge_60D",
+   "expr": "DECAYLINEAR(CBOT(\"$bret\",0.2,\"LAST\",\"$volume\",60)/(TS_MEAN($volume,60)+1e-8),10)",
+   "style": "恐慌反转/流动性",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HottestTurnoverClosePosition_40D",
+   "expr": "DECAYLINEAR(CTOP(\"$turnover\",0.2,\"LAST\",\"($close-$low)/($high-$low+1e-8)\",40),10)",
+   "style": "量价配合/资金承接",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "BearBarUpperWickFailedBounce_40D",
+   "expr": "TS_MEAN(CBOT(\"($close-$open)/($open+1e-8)\",0.2,\"LAST\",\"($high-$close)/($high-$low+1e-8)\",40),10)",
+   "style": "影线/反转",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveRealBodyConviction_20D",
+   "expr": "DECAYLINEAR(CTOP(\"ABS($bret)\",0.2,\"LAST\",\"($close-$open)/($high-$low+1e-8)\",20)/(TS_STD($return,20)+1e-8),10)",
+   "style": "极值动量/实体质量",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "MaxAmountDayReturnScale_20D",
+   "expr": "DECAYLINEAR(CTOP(\"$amount\",0.2,\"LAST\",\"$return\",20)/(TS_MEAN($amount,60)+1e-8),10)",
+   "style": "大单行为/动量",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "QuietDollarDayVolatilityDryUp_40D",
+   "expr": "DECAYLINEAR(CBOT(\"$amount\",0.2,\"LAST\",\"$amp\",40),10)",
+   "style": "流动性风险",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "WideRangeDayDirectionBreak_20D",
+   "expr": "DECAYLINEAR(CTOP(\"($high-$low)/($open+1e-8)\",0.2,\"LAST\",\"SIGN($bret)\",20),10)",
+   "style": "突破/振幅方向",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "IdleTurnoverDayDrift_60D",
+   "expr": "DECAYLINEAR(CBOT(\"$turnover\",0.2,\"LAST\",\"$return\",60),10)",
+   "style": "低关注漂移/慢变量",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "StrongestUpDayPriceLevelBreakout_20D",
+   "expr": "TS_MEAN(CTOP(\"$bret\",0.2,\"LAST\",\"$amount/($volume+1e-8)\",20)/(TS_MEAN($amount/($volume+1e-8),60)+1e-8),10)",
+   "style": "动量/价格突破",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  }
+ ]
+}

@@ -1,0 +1,144 @@
+{
+ "round": 24,
+ "hypothesis": "连续多轮反馈显示，仅用极端bar平均水平难以稳定刻画排序；本轮转向‘方向切分’与‘分布一致性’：用SIGN($bret)把窗口切成涨/跌两类bar分别聚合，或在活跃bar内统计离散度/极值尾差，以条件分布的非对称性和离散度提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "UpDownReturnMagnitudeAsymmetry_40D",
+   "expr": "CTOP(\"SIGN($bret)\",0.5,\"MEAN\",\"$return\",40)/(ABS(CBOT(\"SIGN($bret)\",0.5,\"MEAN\",\"$return\",40))+1e-8)",
+   "style": "短期动量/收益不对称",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.089, 年度越序峰值=10.2%, 负年=[2020]",
+   "ic_mean": 0.0529,
+   "long_total": 0.52589,
+   "monthly_pos_ratio": 0.7596,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "UpDayAmountIntensityShare_45D",
+   "expr": "CTOP(\"SIGN($bret)\",0.5,\"SUM\",\"$amount/($high-$low+1e-8)\",45)/(CTOP(\"SIGN($bret)\",0.5,\"SUM\",\"$amount/($high-$low+1e-8)\",45)+CBOT(\"SIGN($bret)\",0.5,\"SUM\",\"$amount/($high-$low+1e-8)\",45)+1e-8)",
+   "style": "量价背离/资金流",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ActiveTurnoverClosePositionDispersion_40D",
+   "expr": "CTOP(\"$turnover\",0.2,\"STD\",\"($close-$low)/($high-$low+1e-8)\",40)",
+   "style": "活跃度/分歧度",
+   "reason": "方向无效",
+   "detail": "IC=+0.17%, 多头=-11.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00166,
+   "long_total": -0.11645,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "ExtremeMoveVolumeTailRatio_50D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"$volume\",50)/(CBOT(\"ABS($bret)\",0.2,\"MEAN\",\"$volume\",50)+1e-8)",
+   "style": "趋势/量价确认",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.150, 年度越序峰值=10.5%",
+   "ic_mean": 0.02878,
+   "long_total": 0.25847,
+   "monthly_pos_ratio": 0.8654,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietTurnoverRangeEfficiencyTrend_55D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEAN\",\"$high-$low\",55)/(TS_MEAN($high-$low,55)+1e-8)",
+   "style": "流动性/区间压缩",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2024']",
+   "ic_mean": 0.04699,
+   "long_total": 0.43856,
+   "monthly_pos_ratio": 0.875,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpMaxMinReturnSpreadZ_60D",
+   "expr": "(CTOP(\"$amp\",0.2,\"MAX\",\"$return\",60)-CTOP(\"$amp\",0.2,\"MIN\",\"$return\",60))/(TS_STD($return,60)+1e-8)",
+   "style": "波动率/反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.049, 年度越序峰值=14.6%, 负年=[2020]",
+   "ic_mean": 0.01947,
+   "long_total": 0.0145,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HighVolumeUpDownRangeAsymmetry_30D",
+   "expr": "CTOP(\"$volume\",0.2,\"MEAN\",\"$amp\",30)/(CBOT(\"$volume\",0.2,\"MEAN\",\"$amp\",30)+1e-8)",
+   "style": "波动率/量价扩张",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.0402,
+   "long_total": 0.48433,
+   "monthly_pos_ratio": 0.8654,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "LowAmountIntradayBodyPersist_45D",
+   "expr": "TS_ZSCORE(CBOT(\"$amount\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",45),45)",
+   "style": "流动性/吸筹",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.027, 年度越序峰值=11.0%, 负年=[2020, 2021, 2024]",
+   "ic_mean": 0.00394,
+   "long_total": 0.10544,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2024
+   ]
+  },
+  {
+   "name": "PanicUpDayVolumePersistence_35D",
+   "expr": "EMA(CTOP(\"SIGN($bret)\",0.5,\"MEDIAN\",\"$volume\",35)/(CBOT(\"SIGN($bret)\",0.5,\"MEDIAN\",\"$volume\",35)+1e-8),10)",
+   "style": "量价关系/资金流",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.083, 年度越序峰值=12.0%, 负年=[2025]",
+   "ic_mean": 0.02201,
+   "long_total": 0.00745,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "HighTurnoverReturnTailSkew_50D",
+   "expr": "CTOP(\"$turnover\",0.2,\"SKEW\",\"$return\",50)",
+   "style": "活跃度/尾部风险",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.043, 年度越序峰值=9.2%, 负年=[2021, 2023]",
+   "ic_mean": 0.00514,
+   "long_total": 0.19006,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023
+   ]
+  }
+ ]
+}

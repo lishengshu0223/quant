@@ -84,9 +84,11 @@ def _node_tex(node) -> str:
     if isinstance(node, expr_engine.Num):
         return _num_tex(node)
     if isinstance(node, expr_engine.Str):
-        return r"\mathrm{" + node.value + "}"
+        # 切割工具等字符串参数可能含 $ 前缀变量名, 需转义防止 mathtext 解析崩溃
+        return r"\mathrm{" + node.value.replace("$", r"\$") + "}"
     if isinstance(node, expr_engine.Var):
-        return VAR_TEX.get(node.name, r"\mathrm{" + node.name.replace("_", r"\_") + "}")
+        return VAR_TEX.get(node.name,
+                           r"\mathrm{" + node.name.replace("$", r"\$").replace("_", r"\_") + "}")
     if isinstance(node, expr_engine.Call):
         return _call_tex(node)
     if isinstance(node, expr_engine.Bin):
@@ -117,7 +119,7 @@ def to_tex(expr: str) -> str:
     try:
         ast = expr_engine.Parser(expr_engine.tokenize(expr)).parse()
     except Exception:
-        return r"\mathrm{" + expr.replace("_", r"\_") + "}"
+        return r"\mathrm{" + expr.replace("$", r"\$").replace("_", r"\_") + "}"
     return _node_tex(ast)
 
 

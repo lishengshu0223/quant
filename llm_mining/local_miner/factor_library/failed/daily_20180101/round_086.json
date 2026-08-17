@@ -1,0 +1,137 @@
+{
+ "round": 86,
+ "hypothesis": "A股中机构与知情资金常选择低波动/低关注度的‘平静日’完成吸筹，并在高活跃日派发；低振幅日的净资金流向、流动性下限、换手稳定性等结构特征，比简单平均收益更能刻画主力行为，且这类状态特征具有自相关性，用时间序列分位能增强单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietDaySignedFlowShare_90D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"SUM\",\"$amount*SIGN($return)\",90)/(TS_SUM($amount,90)+1e-8),90)",
+   "style": "短期反转/量价背离/低波吸筹",
+   "reason": "方向无效",
+   "detail": "IC=+0.19%, 多头=-1.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00186,
+   "long_total": -0.0102,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "QuietLiquidityFloorToActivePeak_90D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"MIN\",\"$amount\",90)/(CTOP(\"$amp\",0.2,\"MAX\",\"$amount\",90)+1e-8),90)",
+   "style": "流动性/低波稳定",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.178, 年度越序峰值=10.8%",
+   "ic_mean": 0.02979,
+   "long_total": 0.42527,
+   "monthly_pos_ratio": 0.875,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ActiveUpVsQuietDownIntensity_90D",
+   "expr": "TS_RANK(CTOP(\"$turnover\",0.2,\"SUM\",\"($return>0?$return:0)\",90)/(ABS(CBOT(\"$turnover\",0.2,\"SUM\",\"($return<0?$return:0)\",90))+1e-8),90)",
+   "style": "量价背离/主力行为",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.131, 年度越序峰值=8.5%",
+   "ic_mean": 0.02556,
+   "long_total": 0.25226,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ActiveLiquidityImpact_90D",
+   "expr": "TS_RANK(-CTOP(\"$amount\",0.2,\"MEAN\",\"ABS($return)/($amount+1e-8)\",90),90)",
+   "style": "流动性/价格冲击",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.101, 年度越序峰值=9.6%",
+   "ic_mean": 0.03015,
+   "long_total": 0.14101,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietTurnoverStabilityRank_90D",
+   "expr": "TS_RANK(-CBOT(\"$amp\",0.2,\"STD\",\"$turnover\",90),90)",
+   "style": "低波吸筹/换手稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.078, 年度越序峰值=11.8%",
+   "ic_mean": 0.01771,
+   "long_total": 0.13404,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighEnergyDayCloseConviction_90D",
+   "expr": "TS_RANK(CTOP(\"$turnover*$amp\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",90),90)",
+   "style": "量价配合/收盘动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.129, 年度越序峰值=8.1%",
+   "ic_mean": 0.02273,
+   "long_total": 0.26108,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietTurnoverToRangeAccumulation_90D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"MEAN\",\"$turnover/($amp+1e-8)\",90),90)",
+   "style": "低波吸筹/量能效率",
+   "reason": "方向无效",
+   "detail": "IC=+1.37%, 多头=-7.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01368,
+   "long_total": -0.07586,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2019
+   ]
+  },
+  {
+   "name": "VolumeUpDownAsymRank_90D",
+   "expr": "TS_RANK(CTOP(\"$volume*SIGN($return)\",0.2,\"SUM\",\"$amount\",90)/(ABS(CBOT(\"$volume*SIGN($return)\",0.2,\"SUM\",\"$amount\",90))+1e-8),90)",
+   "style": "量价背离/资金流向",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=14.5%",
+   "ic_mean": 0.02235,
+   "long_total": 0.0322,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "LowVolDayRangeClarityRank_90D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"SKEW\",\"$return\",90),90)",
+   "style": "低波/收益分布偏度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.035, 年度越序峰值=9.2%, 负年=[2022, 2025]",
+   "ic_mean": 0.00296,
+   "long_total": 0.02946,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2025
+   ]
+  },
+  {
+   "name": "ActiveDayAmountTrendAcceleration_90D",
+   "expr": "TS_RANK(DELTA(CTOP(\"$amount\",0.2,\"MEAN\",\"$amount\",90),3)/(TS_STD($amount,90)+1e-8),90)",
+   "style": "量能趋势/资金延续",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.128, 年度越序峰值=9.2%",
+   "ic_mean": 0.03619,
+   "long_total": 0.31081,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

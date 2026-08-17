@@ -1,0 +1,140 @@
+{
+ "round": 85,
+ "hypothesis": "上轮普遍失败原因是外层截面RANK+5日均值使因子分布过于平滑且丢弃了时间序列状态信息；本轮改用‘时间序列分位数比较’核心结构，将极端bar特征放入自身历史分布中衡量，并引入夜间跳空、极端bar收盘位置、量能集中度等新切割角度，以提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "RangeReturnAsymHistoryRank_80D",
+   "expr": "TS_RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",60)/(CBOT(\"$amp\",0.2,\"MEAN\",\"$return\",60)+1e-8),80)",
+   "style": "振幅/量价背离-中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.31%, 多头=-15.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00305,
+   "long_total": -0.15049,
+   "monthly_pos_ratio": 0.5385,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2022,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "GapVolumeAsymSeqRank_70D",
+   "expr": "TS_RANK(CTOP(\"$open*(1+$return)/$close-1\",0.2,\"MEAN\",\"$volume\",70)/(CBOT(\"$open*(1+$return)/$close-1\",0.2,\"MEAN\",\"$volume\",70)+1e-8),70)",
+   "style": "跳空/流动性-中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.36%, 多头=-6.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00357,
+   "long_total": -0.06791,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "MaxAmpDayClosePositionRank_90D",
+   "expr": "TS_RANK(CTOP(\"$amp\",0.1,\"LAST\",\"($close-$low)/($high-$low+1e-8)\",90),90)",
+   "style": "振幅/收盘位置-中期",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "TopAmountDayVWAPExcessRank_50D",
+   "expr": "TS_RANK(CTOP(\"$amount\",0.1,\"LAST\",\"$close/($amount/($volume+1e-8)+1e-8)-1\",50),50)",
+   "style": "成交额/量价关系-中短期",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighEnergyDayCloseLocSpreadRank_60D",
+   "expr": "TS_RANK(CTOP(\"$turnover*$amp\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60)-CBOT(\"$turnover*$amp\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60),60)",
+   "style": "换手/振幅/资金行为-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.075, 年度越序峰值=7.6%, 负年=[2022, 2023]",
+   "ic_mean": 0.01224,
+   "long_total": 0.12639,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023
+   ]
+  },
+  {
+   "name": "ExtremeDownDayVolumeClimaxRank_80D",
+   "expr": "TS_RANK(CBOT(\"$bret\",0.1,\"LAST\",\"$volume\",80)/(TS_MEAN($volume,80)+1e-8),80)",
+   "style": "恐慌/反转-中长期",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverReturnFatTailRank_60D",
+   "expr": "TS_RANK(CTOP(\"$turnover\",0.2,\"KURT\",\"$return\",60),60)",
+   "style": "换手/波动率/情绪-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.038, 年度越序峰值=11.6%, 负年=[2023, 2024]",
+   "ic_mean": 0.00461,
+   "long_total": 0.02117,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "MaxAbsMoveDayBodyConvictionRank_55D",
+   "expr": "TS_RANK(CTOP(\"ABS($bret)\",0.1,\"LAST\",\"($close-$open)/($high-$low+1e-8)\",55),55)",
+   "style": "极端行情/动量-中短期",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "LowAmpDayMoneyFlowConcentration_90D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"MEDIAN\",\"$amount\",90)/(CTOP(\"$amp\",0.2,\"MEAN\",\"$amount\",90)+1e-8),90)",
+   "style": "低波/资金集中-中期",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03694,
+   "long_total": 0.49964,
+   "monthly_pos_ratio": 0.875,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "LargeRangeLossDayTurnoverRatioRank_65D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"MEAN\",\"($bret<0?$turnover:0)\",65)/(CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover\",65)+1e-8),65)",
+   "style": "振幅/换手/恐慌-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.139, 年度越序峰值=10.7%",
+   "ic_mean": 0.01994,
+   "long_total": 0.13133,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

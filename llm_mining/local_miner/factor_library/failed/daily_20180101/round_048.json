@@ -1,0 +1,150 @@
+{
+ "round": 48,
+ "hypothesis": "极端交易日的资金行为不应只看收益率或量能大小，而应考察极端方向上量能/价格的相对结构：大跌日放量程度、涨跌极值日的平均成交价差、强活跃日的开盘动量等，这些结构信号通过时序平滑后可预测未来5日收益。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "PanicDayVolumeShare_60D",
+   "expr": "TS_MEAN(CBOT(\"$bret\",0.2,\"SUM\",\"$volume\",60)/(TS_SUM($volume,60)+1e-8),10)",
+   "style": "反转/流动性",
+   "reason": "方向无效",
+   "detail": "IC=+0.76%, 多头=-17.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00755,
+   "long_total": -0.172,
+   "monthly_pos_ratio": 0.5673,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeDayAvgPriceSpread_40D",
+   "expr": "TS_MEAN(TS_RANK(CTOP(\"$bret\",0.2,\"MEAN\",\"$amount/($volume+1e-8)\",40)/(CBOT(\"$bret\",0.2,\"MEAN\",\"$amount/($volume+1e-8)\",40)+1e-8),60),10)",
+   "style": "量价背离/微观结构",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.050, 年度越序峰值=10.1%, 负年=[2023, 2025]",
+   "ic_mean": 0.00988,
+   "long_total": 0.18769,
+   "monthly_pos_ratio": 0.6442,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmountOpenMomentum_50D",
+   "expr": "TS_MEAN(TS_RANK(CTOP(\"$amount\",0.2,\"MEAN\",\"($close-$open)/($open+1e-8)\",50),80),5)",
+   "style": "动量/流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.098, 年度越序峰值=8.2%",
+   "ic_mean": 0.02817,
+   "long_total": 0.26112,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "PanicIntensityPerUnitLoss_40D",
+   "expr": "DECAYLINEAR(CBOT(\"$bret\",0.2,\"MEAN\",\"$turnover/(ABS($bret)+1e-8)\",40),10)",
+   "style": "恐慌/反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.048, 年度越序峰值=12.7%, 负年=[2019, 2025]",
+   "ic_mean": 0.0369,
+   "long_total": 0.0709,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeReturnDirectionGap_40D",
+   "expr": "DECAYLINEAR((CTOP(\"$bret\",0.2,\"MEAN\",\"$return\",40)-CBOT(\"$bret\",0.2,\"MEAN\",\"$return\",40))/(TS_STD($return,40)+1e-8),5)",
+   "style": "动量/极端收益",
+   "reason": "方向无效",
+   "detail": "IC=+0.13%, 多头=-20.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00128,
+   "long_total": -0.20303,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  },
+  {
+   "name": "ActiveVolumeAmpDispersion_60D",
+   "expr": "TS_MEAN(TS_ZSCORE(CTOP(\"$volume\",0.2,\"STD\",\"$amp\",60),90),10)",
+   "style": "波动率/稳定性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.111, 年度越序峰值=12.1%, 负年=[2022, 2025]",
+   "ic_mean": 0.01864,
+   "long_total": 0.36226,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2025
+   ]
+  },
+  {
+   "name": "QuietTurnoverOpenStrength_40D",
+   "expr": "DECAYLINEAR(CBOT(\"$turnover\",0.2,\"MEAN\",\"($close-$open)/($open+1e-8)\",40),5)",
+   "style": "趋势/低流动性",
+   "reason": "方向无效",
+   "detail": "IC=+0.31%, 多头=-22.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0031,
+   "long_total": -0.22503,
+   "monthly_pos_ratio": 0.5,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2022,
+    2025
+   ]
+  },
+  {
+   "name": "SurgeDayVolumePerReturn_50D",
+   "expr": "TS_MEAN(TS_RANK(CTOP(\"$bret\",0.2,\"MEAN\",\"$volume/(ABS($return)+1e-8)\",50)/(CBOT(\"$bret\",0.2,\"MEAN\",\"$volume/(ABS($return)+1e-8)\",50)+1e-8),80),5)",
+   "style": "量价配合/动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.051, 年度越序峰值=7.6%",
+   "ic_mean": 0.01611,
+   "long_total": 0.15165,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpDownCloseRecovery_60D",
+   "expr": "TS_MEAN(CTOP(\"$amp\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60)/(CTOP(\"$amp\",0.5,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60)+1e-8),10)",
+   "style": "振幅/支撑强度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.130, 年度越序峰值=8.7%",
+   "ic_mean": 0.02806,
+   "long_total": 0.39751,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveTurnoverShareAsym_40D",
+   "expr": "TS_MEAN(TS_RANK(CTOP(\"$bret\",0.2,\"SUM\",\"$turnover\",40)/(CBOT(\"$bret\",0.2,\"SUM\",\"$turnover\",40)+1e-8),60),10)",
+   "style": "资金强度/极端动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.055, 年度越序峰值=11.4%, 负年=[2020, 2025]",
+   "ic_mean": 0.01463,
+   "long_total": 0.18176,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  }
+ ]
+}

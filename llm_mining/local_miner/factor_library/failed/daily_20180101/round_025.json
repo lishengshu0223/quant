@@ -1,0 +1,148 @@
+{
+ "round": 25,
+ "hypothesis": "连续多轮反馈显示，尾部极端bar的‘水平类’信号单调性不足，而基于尾部占比、方向计数、条件分布差等鲁棒结构在B级因子中表现更好；本轮进一步用极端bar的条件方向占比、量价强度差和尾部集中度等非线性结构来提升组间排序质量，并尽量避免与黑名单结构重复。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LargeMoveUpHitRateSpread_40D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"($return>0?1:0)\",40)-CBOT(\"ABS($bret)\",0.2,\"MEAN\",\"($return>0?1:0)\",40)",
+   "style": "动量/趋势·中期",
+   "reason": "方向无效",
+   "detail": "IC=-1.61%, 多头=+0.1%(IC与多头矛盾或为负)",
+   "ic_mean": -0.01605,
+   "long_total": 0.00078,
+   "monthly_pos_ratio": 0.2981,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "QuietDayTurnoverAccumulationShare_50D",
+   "expr": "CBOT(\"$amp\",0.2,\"SUM\",\"$turnover\",50)/(TS_SUM($turnover,50)+1e-8)",
+   "style": "流动性/吸筹·中期",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2018', '2021']",
+   "ic_mean": 0.04553,
+   "long_total": 0.46261,
+   "monthly_pos_ratio": 0.8942,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "MoneyIntensityClosePositionSpread_45D",
+   "expr": "CTOP(\"$amount/($high-$low+1e-8)\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",45)-CBOT(\"$amount/($high-$low+1e-8)\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",45)",
+   "style": "量价背离/资金行为·中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.019, 年度越序峰值=9.5%, 负年=[2020, 2021, 2022]",
+   "ic_mean": 0.01054,
+   "long_total": 0.00839,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2022
+   ]
+  },
+  {
+   "name": "IntradayBodyMoneyConfirm_40D",
+   "expr": "CTOP(\"($close-$open)/$open\",0.2,\"MEDIAN\",\"$amount/($high-$low+1e-8)\",40)/(TS_MEDIAN(\"$amount/($high-$low+1e-8)\",40)+1e-8)",
+   "style": "动量/趋势确认·中期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "DownDayUpperShadowReboundFade_50D",
+   "expr": "-CBOT(\"$bret\",0.2,\"MEDIAN\",\"($high-$close)/($high-$low+1e-8)\",50)",
+   "style": "尾部反转/形态·中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.035, 年度越序峰值=15.9%, 负年=[2020, 2024, 2025]",
+   "ic_mean": 0.00068,
+   "long_total": 0.05233,
+   "monthly_pos_ratio": 0.4615,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpTurnoverRangeRatio_60D",
+   "expr": "CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover/($high-$low+1e-8)\",60)/(CBOT(\"$amp\",0.2,\"MEAN\",\"$turnover/($high-$low+1e-8)\",60)+1e-8)",
+   "style": "波动率/流动性背离·中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.45%, 多头=-60.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01449,
+   "long_total": -0.60618,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "TurnoverSpikeRangeNormalizedIntensity_45D",
+   "expr": "-CTOP(\"$turnover\",0.2,\"MEAN\",\"$amount/($high-$low+1e-8)\",45)/(TS_MAX(\"$amount/($high-$low+1e-8)\",45)+1e-8)",
+   "style": "情绪过热/反转·中期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeVolumeRangeCompactness_30D",
+   "expr": "CBOT(\"$volume\",0.2,\"MEAN\",\"$high-$low\",30)/(TS_MEDIAN(\"$high-$low\",30)+1e-8)",
+   "style": "量价关系/吸筹·短期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "AmpDownTailReturnSkewPersist_55D",
+   "expr": "CTOP(\"$amp\",0.2,\"SKEW\",\"$return\",55)/(TS_STD($return,55)+1e-8)",
+   "style": "波动率/分布形态·中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.015, 年度越序峰值=15.2%, 负年=[2018, 2025]",
+   "ic_mean": 0.00959,
+   "long_total": 0.06752,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2025
+   ]
+  },
+  {
+   "name": "LowTurnoverQuietRangePremium_50D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEDIAN\",\"$high-$low\",50)/(CTOP(\"$turnover\",0.2,\"MEDIAN\",\"$high-$low\",50)+1e-8)",
+   "style": "缩量蓄势/波动率压缩·中期",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2024']",
+   "ic_mean": 0.04587,
+   "long_total": 0.4662,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

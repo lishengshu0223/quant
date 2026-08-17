@@ -1,0 +1,154 @@
+{
+ "round": 15,
+ "hypothesis": "上轮因子普遍在极值占比的5日变化量上失效，说明边际变化信号噪声过大且与收益非线性；本轮改用极端bar的稳健中枢（中位数）、尾部不对称、极端上下行量能比和时序持续性计数等更平稳的结构，以提升分组单调性与跨年份稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietAmpMedianDrift_40D",
+   "expr": "CBOT(\"$amp\",0.2,\"MEDIAN\",\"$return\",40)/(TS_STD($return,40)+1e-8)",
+   "style": "低波动/趋势稳定",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.065, 年度越序峰值=16.8%, 负年=[2019]",
+   "ic_mean": 0.01182,
+   "long_total": 0.19919,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2019
+   ]
+  },
+  {
+   "name": "VolatileGainLossSkewPenalty_40D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MEAN\",\"($return+ABS($return))/2\",40)/(ABS(CBOT(\"$amp\",0.2,\"MEAN\",\"($return-ABS($return))/2\",40))+1e-8)",
+   "style": "彩票偏好/偏度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.087, 年度越序峰值=14.1%, 负年=[2023]",
+   "ic_mean": 0.02357,
+   "long_total": 0.37953,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "TailMoveDispersionPremium_30D",
+   "expr": "-CTOP(\"ABS($bret)\",0.15,\"STD\",\"$return\",30)/(CBOT(\"ABS($bret)\",0.15,\"STD\",\"$return\",30)+1e-8)",
+   "style": "尾部风险/波动率",
+   "reason": "方向无效",
+   "detail": "IC=+0.07%, 多头=-19.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00069,
+   "long_total": -0.19161,
+   "monthly_pos_ratio": 0.4519,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "UpDownExtremeAmountBalance_30D",
+   "expr": "CTOP(\"$bret\",0.2,\"MEAN\",\"$amount\",30)/(CBOT(\"$bret\",0.2,\"MEAN\",\"$amount\",30)+1e-8)",
+   "style": "量价关系/资金流",
+   "reason": "方向无效",
+   "detail": "IC=+3.41%, 多头=-0.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03407,
+   "long_total": -0.0092,
+   "monthly_pos_ratio": 0.8942,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "PanicDayPriceLevelSupport_20D",
+   "expr": "CBOT(\"$bret\",0.2,\"MEAN\",\"$amount/($volume+1e-8)\",20)/(TS_MEAN($amount/($volume+1e-8),20)+1e-8)",
+   "style": "恐慌反转/筹码支撑",
+   "reason": "方向无效",
+   "detail": "IC=+1.59%, 多头=-13.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01589,
+   "long_total": -0.12984,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmpMoneyConcentrationFade_50D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MEDIAN\",\"$amount\",50)/(TS_MEDIAN($amount,50)+1e-8)",
+   "style": "波动率/成交额集中度",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03891,
+   "long_total": 0.65982,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeReturnVolumeTrendPersistence_30D",
+   "expr": "-COUNT(CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"$amount\",20)>TS_MEAN($amount,60),15)/(TS_STD($return,20)+1e-8)",
+   "style": "情绪持续/反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.062, 年度越序峰值=28.0%, 负年=[2021]",
+   "ic_mean": 0.02432,
+   "long_total": 0.07492,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "LowTurnoverQuietBodySpread_25D",
+   "expr": "CBOT(\"$turnover\",0.25,\"MEDIAN\",\"($close-$open)/($high-$low+1e-8)\",25)/(TS_STD($return,25)+1e-8)",
+   "style": "缩量/吸筹",
+   "reason": "方向无效",
+   "detail": "IC=-0.78%, 多头=+17.1%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00784,
+   "long_total": 0.17092,
+   "monthly_pos_ratio": 0.3462,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "AmpClimaxReturnSkewCrash_60D",
+   "expr": "-CTOP(\"$amp\",0.1,\"SKEW\",\"$return\",60)*CTOP(\"$amp\",0.1,\"KURT\",\"$return\",60)/(CTOP(\"$amount\",0.1,\"MEAN\",\"$amount\",60)+1e-8)",
+   "style": "彩票/极端收益",
+   "reason": "方向无效",
+   "detail": "IC=-0.35%, 多头=+53.8%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00353,
+   "long_total": 0.5382,
+   "monthly_pos_ratio": 0.3462,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2024
+   ]
+  },
+  {
+   "name": "StrongUpDayQuietFollowThrough_20D",
+   "expr": "CBOT(\"$amp\",0.2,\"MEDIAN\",\"$return\",20)*SIGN(CTOP(\"$return\",0.2,\"MEAN\",\"$return\",20))",
+   "style": "动量确认/量价配合",
+   "reason": "方向无效",
+   "detail": "IC=+1.32%, 多头=-38.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01325,
+   "long_total": -0.38045,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020
+   ]
+  }
+ ]
+}

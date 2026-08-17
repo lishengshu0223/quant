@@ -1,0 +1,158 @@
+{
+ "round": 45,
+ "hypothesis": "上轮反思：多轮失败集中在两类结构：一是 TS_CORR 类时序相关性对极端日状态过于敏感，换手/成交额的扰动使秩相关长期在 0.1 以下；二是直接对极端日原始收益做均值/中位数，IC 虽不弱但分组单调性被个别年份的脉冲行情破坏。本轮不再主推“双序列相关”或“VWAP 偏离”，改为把极端日行为先压缩成具有经济含义的比率/胜率/波动结构，再通过 TS_ZSCORE、TS_RANK、DECAYLINEA",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ActiveVolumeReturnTrendZ_60D",
+   "expr": "TS_MEAN(TS_ZSCORE(CTOP(\"$volume\",0.2,\"MEAN\",\"$return\",30),60),10)",
+   "style": "动量/流动性-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.069, 年度越序峰值=8.8%, 负年=[2024, 2025]",
+   "ic_mean": 0.02557,
+   "long_total": 0.15448,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "QuietAmpReturnRecoveryZ_80D",
+   "expr": "TS_MEAN(TS_ZSCORE(CBOT(\"$amp\",0.2,\"MEDIAN\",\"$return\",40),80),10)",
+   "style": "低波动/吸筹-中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.05%, 多头=-8.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00046,
+   "long_total": -0.08311,
+   "monthly_pos_ratio": 0.5096,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2022
+   ]
+  },
+  {
+   "name": "TurnoverActiveWinRateBreadth_50D",
+   "expr": "TS_MEAN(CTOP(\"$turnover\",0.2,\"COUNT\",\"$return>0\",50)/(CTOP(\"$turnover\",0.2,\"COUNT\",\"$close>-1e8\",50)+1e-8),10)",
+   "style": "流动性/市场情绪-中期",
+   "reason": "计算失败",
+   "detail": "AttributeError: 'RangeIndex' object has no attribute 'year'",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "PanicDayAbsorptionShadow_60D",
+   "expr": "TS_MEAN(CBOT(\"$bret\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60),10)",
+   "style": "恐慌反转/承接力-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.027, 年度越序峰值=16.3%, 负年=[2020, 2025]",
+   "ic_mean": 2e-05,
+   "long_total": 0.02535,
+   "monthly_pos_ratio": 0.4615,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "AmpVolatilityRegimeDispersionRatio_40D",
+   "expr": "TS_MEAN(CTOP(\"$amp\",0.2,\"STD\",\"$amp\",40)/(CBOT(\"$amp\",0.2,\"STD\",\"$amp\",40)+1e-8),10)",
+   "style": "波动率结构-中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.63%, 多头=-10.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00628,
+   "long_total": -0.10401,
+   "monthly_pos_ratio": 0.5481,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeAmountReturnTailKurtosis_50D",
+   "expr": "TS_MEAN(TS_RANK(CTOP(\"$amount\",0.2,\"KURT\",\"$return\",50),100),10)",
+   "style": "尾部风险/成交额-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.025, 年度越序峰值=11.1%, 负年=[2021, 2023, 2024]",
+   "ic_mean": 0.00351,
+   "long_total": 0.16446,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "TurnoverExtremeRangeSpreadZ_60D",
+   "expr": "TS_MEAN(TS_ZSCORE(CTOP(\"$turnover\",0.2,\"MAX\",\"$return\",30)-CTOP(\"$turnover\",0.2,\"MIN\",\"$return\",30),60),10)",
+   "style": "情绪反转/换手率-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.087, 年度越序峰值=10.5%, 负年=[2020, 2022]",
+   "ic_mean": 0.01787,
+   "long_total": 0.16563,
+   "monthly_pos_ratio": 0.7596,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2022
+   ]
+  },
+  {
+   "name": "PanicDayReturnPerAmpZ_70D",
+   "expr": "TS_MEAN(TS_ZSCORE(CBOT(\"$bret\",0.2,\"MEDIAN\",\"$return/($amp+1e-8)\",60),90),10)",
+   "style": "恐慌衰竭/振幅-中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.18%, 多头=-19.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00181,
+   "long_total": -0.19784,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "ActiveVolumeBodyConvictionDecay_50D",
+   "expr": "DECAYLINEAR(CTOP(\"$volume\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",50),10)",
+   "style": "量价确认/实体-短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.139, 年度越序峰值=10.1%, 负年=[2020]",
+   "ic_mean": 0.0382,
+   "long_total": 0.478,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "QuietTurnoverAmpStabilityRatio_80D",
+   "expr": "TS_MEAN(TS_RANK(CBOT(\"$turnover\",0.2,\"STD\",\"$amp\",80)/(CTOP(\"$turnover\",0.2,\"STD\",\"$amp\",80)+1e-8),90),10)",
+   "style": "流动性分层/波动率-中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.083, 年度越序峰值=15.9%, 负年=[2022]",
+   "ic_mean": 0.00725,
+   "long_total": 0.14735,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  }
+ ]
+}

@@ -1,0 +1,144 @@
+{
+ "round": 90,
+ "hypothesis": "A股极端量价状态中，资金在低波动静默日的沉淀、高波动日内价格位置差异、以及买卖方向不均衡所留下的微观结构痕迹，会在未来5日形成可预测的收益补偿；本轮强调用同一种极端切割框架下的相对比较（而非绝对水平）来提升跨市场风格的单调稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "CalmTurnoverConcentration_120D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"SUM\",\"$turnover\",120)/(TS_SUM($turnover,120)+1e-8),120)",
+   "style": "低波动/资金沉淀/长期",
+   "reason": "其他未达标",
+   "detail": "IC=+3.04%, 月度占比=84%, 多头累计=+22.8%",
+   "ic_mean": 0.03038,
+   "long_total": 0.22758,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "CalmAmountPeakRatio_120D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"MAX\",\"$amount\",90)/(TS_MAX($amount,90)+1e-8),120)",
+   "style": "低波动/机构承接/长期",
+   "reason": "其他未达标",
+   "detail": "IC=+2.41%, 月度占比=85%, 多头累计=+41.1%",
+   "ic_mean": 0.02407,
+   "long_total": 0.41139,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "VWAPCloseSupplyDemand_60D",
+   "expr": "TS_RANK(CTOP(\"$amount/($volume*$close+1e-8)\",0.2,\"MEAN\",\"$return\",60)/(CBOT(\"$amount/($volume*$close+1e-8)\",0.2,\"MEAN\",\"$return\",60)+1e-8),90)",
+   "style": "量价背离/日内供需/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.096, 年度越序峰值=10.3%, 负年=[2022]",
+   "ic_mean": 0.02959,
+   "long_total": 0.10661,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  },
+  {
+   "name": "BodyReturnMoneyAsym_60D",
+   "expr": "TS_RANK(CTOP(\"($close-$open)/$open\",0.2,\"MEAN\",\"$amount\",60)/(CBOT(\"($close-$open)/$open\",0.2,\"MEAN\",\"$amount\",60)+1e-8),120)",
+   "style": "资金流向/实体强度/中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.71%, 多头=-9.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01711,
+   "long_total": -0.08952,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverEfficiencyReturnAsym_60D",
+   "expr": "TS_RANK(CTOP(\"$turnover/($amp+1e-8)\",0.2,\"MEAN\",\"$return\",60)/(CBOT(\"$turnover/($amp+1e-8)\",0.2,\"MEAN\",\"$return\",60)+1e-8),120)",
+   "style": "交易效率/拥挤度/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.30%, 多头=-15.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00297,
+   "long_total": -0.15755,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2022
+   ]
+  },
+  {
+   "name": "RangeEfficiencyTrendAsym_60D",
+   "expr": "TS_RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"ABS($bret)/($high-$low+1e-8)\",60)/(CBOT(\"$amp\",0.2,\"MEAN\",\"ABS($bret)/($high-$low+1e-8)\",60)+1e-8),120)",
+   "style": "波动率/趋势效率/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.088, 年度越序峰值=9.7%, 负年=[2025]",
+   "ic_mean": 0.01253,
+   "long_total": 0.19198,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "QuietLiquidityHazard_90D",
+   "expr": "TS_RANK(-CBOT(\"$amount\",0.2,\"MEAN\",\"ABS($return)/($amount+1e-8)\",90),120)",
+   "style": "流动性风险/脆弱性/中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.08%, 多头=-8.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01082,
+   "long_total": -0.0811,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2023
+   ]
+  },
+  {
+   "name": "DownUpTurnoverExhaustion_60D",
+   "expr": "TS_RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"$turnover\",60)/(CTOP(\"$bret\",0.2,\"MEAN\",\"$turnover\",60)+1e-8),120)",
+   "style": "恐慌反转/换手不对称/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.93%, 多头=-22.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0193,
+   "long_total": -0.22812,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "VolumeClosePositionSpread_60D",
+   "expr": "TS_RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60)-CBOT(\"$volume\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",60),120)",
+   "style": "量价协同/收盘位置/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.073, 年度越序峰值=6.5%, 负年=[2023]",
+   "ic_mean": 0.01155,
+   "long_total": 0.10473,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "CalmAmountSkewPersistence_90D",
+   "expr": "TS_RANK(CBOT(\"$amp\",0.2,\"SKEW\",\"$amount\",90),120)",
+   "style": "低波动/异常资金/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.063, 年度越序峰值=7.1%, 负年=[2025]",
+   "ic_mean": 0.00625,
+   "long_total": 0.16583,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  }
+ ]
+}

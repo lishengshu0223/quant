@@ -1,0 +1,161 @@
+{
+ "round": 91,
+ "hypothesis": "A股中极端bar的价格位置特征（影线/实体/收盘位置）、跳空反转行为、以及极端日资金吸收与状态切换趋势，比简单均值更能揭示主力筹码行为；这些微观结构痕迹具有5日惯性，且连续值构造可避免强离散化造成的数据覆盖断档。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ActiveDayUpperShadowPressure_60D",
+   "expr": "-CTOP(\"$amount\",0.2,\"MEAN\",\"($high-($close>$open?$close:$open))/($high-$low+1e-8)\",60)",
+   "style": "量价背离/派发压力/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.09%, 多头=-26.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01095,
+   "long_total": -0.26601,
+   "monthly_pos_ratio": 0.6635,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "ActiveDayShadowImbalance_60D",
+   "expr": "CTOP(\"$amount\",0.2,\"MEAN\",\"((($close<$open?$close:$open)-$low)-($high-($close>$open?$close:$open)))/($high-$low+1e-8)\",60)",
+   "style": "量价背离/资金承接/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.60%, 多头=-14.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01601,
+   "long_total": -0.14151,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "HeavyVolumeGapReversalBias_60D",
+   "expr": "-CTOP(\"$volume\",0.2,\"MEAN\",\"(($open*(1+$return)/$close-1>0 && $close<$open)?1:0)-(($open*(1+$return)/$close-1<0 && $close>$open)?1:0)\",60)",
+   "style": "跳空反转/聪明钱行为/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.178, 年度越序峰值=11.7%",
+   "ic_mean": 0.02991,
+   "long_total": 0.00043,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "CrashAbsorptionTrend_60D",
+   "expr": "CBOT(\"$bret\",0.2,\"MEDIAN\",\"$amount\",60)/(DELAY(CBOT(\"$bret\",0.2,\"MEDIAN\",\"$amount\",60),20)+1e-8)",
+   "style": "极端反转/资金吸筹/中期",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "QuietDayAmpDryingTrend_60D",
+   "expr": "-DELTA(CBOT(\"$turnover\",0.2,\"MEAN\",\"$amp\",60),20)/(TS_MEAN($amp,60)+1e-8)",
+   "style": "低波蓄势/状态收敛/中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.10%, 多头=-14.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01097,
+   "long_total": -0.14685,
+   "monthly_pos_ratio": 0.6058,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2024
+   ]
+  },
+  {
+   "name": "HighEfficiencyDayConviction_40D",
+   "expr": "CTOP(\"ABS($bret)/($high-$low+1e-8)\",0.2,\"MEAN\",\"$return\",40)/(TS_STD($return,40)+1e-8)",
+   "style": "趋势效率/动量/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.049, 年度越序峰值=17.8%, 负年=[2020, 2025]",
+   "ic_mean": 0.02621,
+   "long_total": 0.1968,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeUpDayCloseStrength_50D",
+   "expr": "CTOP(\"$bret\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",50)",
+   "style": "强势收盘/动量/短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.26%, 多头=-71.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00255,
+   "long_total": -0.71913,
+   "monthly_pos_ratio": 0.5288,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeDaySignShift_60D",
+   "expr": "DELTA(CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"SIGN($bret)\",60),20)",
+   "style": "极端情绪切换/动量/中期",
+   "reason": "方向无效",
+   "detail": "IC=-2.17%, 多头=+0.3%(IC与多头矛盾或为负)",
+   "ic_mean": -0.02165,
+   "long_total": 0.00282,
+   "monthly_pos_ratio": 0.2596,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "ActiveTurnoverAmpCompression_70D",
+   "expr": "-CTOP(\"$turnover\",0.2,\"MEAN\",\"$amp\",70)/(TS_MEAN($amp,70)+1e-8)",
+   "style": "量价压缩/吸筹/中期",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.02893,
+   "long_total": 0.58682,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeUpAmountDemandRatio_90D",
+   "expr": "CTOP(\"$bret\",0.2,\"MEAN\",\"$amount\",90)/(TS_MEAN($amount,90)+1e-8)",
+   "style": "放量突破/资金流入/中期",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2018']",
+   "ic_mean": 0.04423,
+   "long_total": 0.41681,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

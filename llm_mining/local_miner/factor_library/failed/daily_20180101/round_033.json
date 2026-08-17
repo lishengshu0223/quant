@@ -1,0 +1,146 @@
+{
+ "round": 33,
+ "hypothesis": "连续多轮失败表明，尾部均值与RANK平滑结构的分组单调性普遍偏弱；本轮转向‘极端状态下的极值信息’：用切割算子直接提取高振幅/高换手/极端涨跌日的MAX/MIN/偏度等极值特征，并以负号或方向翻转表达过度反应与反转预期，构造更贴近A股短期博弈的单调结构。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LotteryMaxHighAmpReversal_60D",
+   "expr": "-TS_MEAN(CTOP(\"$amp\",0.2,\"MAX\",\"$return\",60),5)",
+   "style": "短期反转/情绪",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.093, 年度越序峰值=23.7%",
+   "ic_mean": 0.05572,
+   "long_total": 0.23013,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "PanicVolumeMinReversal_60D",
+   "expr": "-TS_MEAN(CTOP(\"($return<0?$turnover:0)\",0.2,\"MIN\",\"$return\",60),5)",
+   "style": "短期反转/量价",
+   "reason": "方向无效",
+   "detail": "IC=+3.05%, 多头=-15.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03053,
+   "long_total": -0.15924,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeUpDayReversal_5D",
+   "expr": "-CTOP(\"$bret\",0.2,\"MEAN\",\"$return\",5)",
+   "style": "短期反转/动量",
+   "reason": "方向无效",
+   "detail": "IC=+5.89%, 多头=-19.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0589,
+   "long_total": -0.19178,
+   "monthly_pos_ratio": 0.8173,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverSkewSpeculativeReversal_60D",
+   "expr": "-TS_MEAN(CTOP(\"$turnover\",0.2,\"SKEW\",\"$return\",60),5)",
+   "style": "情绪/投机",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.058, 年度越序峰值=11.4%, 负年=[2021, 2023]",
+   "ic_mean": 0.00746,
+   "long_total": 0.28321,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "CrashDayMinReversal_60D",
+   "expr": "-TS_MEAN(CBOT(\"$bret\",0.2,\"MIN\",\"$return\",60),5)",
+   "style": "短期反转/极端风险",
+   "reason": "方向无效",
+   "detail": "IC=+3.00%, 多头=-30.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02996,
+   "long_total": -0.30031,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "HighVolumeRangeMaxReversal_60D",
+   "expr": "-TS_MEAN(CTOP(\"$volume\",0.2,\"MAX\",\"$amp\",60),5)",
+   "style": "量价背离/情绪",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.090, 年度越序峰值=27.4%, 负年=[2025]",
+   "ic_mean": 0.0528,
+   "long_total": 0.11698,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "QuietTurnoverKurtosisPremium_60D",
+   "expr": "TS_MEAN(CBOT(\"$turnover\",0.2,\"KURT\",\"$return\",60)/(TS_KURT($return,60)+1e-8),5)",
+   "style": "波动率/低活跃",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 函数 TS_KURT 未实现",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "ActiveAmountDownsideEfficiency_50D",
+   "expr": "-TS_MEAN(CTOP(\"$amount\",0.2,\"MEAN\",\"($return<0?$return/($high-$low+1e-8):0)\",50),5)",
+   "style": "量价背离/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.096, 年度越序峰值=32.8%, 负年=[2019, 2020]",
+   "ic_mean": 0.02723,
+   "long_total": 0.28747,
+   "monthly_pos_ratio": 0.6442,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020
+   ]
+  },
+  {
+   "name": "AmplitudeTailReturnSpanContrarian_60D",
+   "expr": "-TS_MEAN(CTOP(\"$amp\",0.2,\"MAX\",\"$return\",60)-CBOT(\"$amp\",0.2,\"MIN\",\"$return\",60),5)",
+   "style": "波动率/反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.086, 年度越序峰值=22.2%, 负年=[2025]",
+   "ic_mean": 0.0565,
+   "long_total": 0.19013,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "LiquidityClimaxTurnoverLevel_20D",
+   "expr": "-TS_MEAN(CTOP(\"$turnover\",0.2,\"MEAN\",\"$turnover\",20),5)",
+   "style": "流动性/情绪",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.067, 年度越序峰值=26.9%, 负年=[2025]",
+   "ic_mean": 0.06048,
+   "long_total": 0.00767,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  }
+ ]
+}

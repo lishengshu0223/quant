@@ -1,0 +1,162 @@
+{
+ "round": 44,
+ "hypothesis": "极端交易日的资金行为不应只看涨跌幅或量能大小，更要看价格相对日内成交均价(VWAP)的位置、极端量日的方向效率以及极端振幅日的收盘决心；这些行为在40-60日窗口内形成的持续偏离，能更稳健地预示未来5日超额收益。",
+ "reflection": "上轮10个因子几乎全部因分组单调性C级被拒，核心问题是秩相关普遍低于0.1、且多存在秩相关为负的年份。IC为正但多头收益常为负，说明信号虽有方向性但分层能力弱。失败因子多集中于‘极端日平均收益’与量的TS_CORR类结构，时序相关对排序稳定性贡献不足。改进方向：放弃继续在TS_CORR上做字段替换，改用更直接、更贴近资金行为的价格-量能关系，引入‘收盘价相对VWAP偏移’‘LAST极值日特征’‘极",
+ "factors": [
+  {
+   "name": "HighTurnoverVWAPPremium_40D",
+   "expr": "TS_MEAN(CTOP(\"$turnover\",0.2,\"MEAN\",\"$close/($amount/($volume+1e-8)+1e-8)-1\",40),10)",
+   "style": "量价背离/流动性/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.74%, 多头=-34.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00744,
+   "long_total": -0.34883,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "PanicDayVWAPAbsorption_30D",
+   "expr": "TS_MEAN(CBOT(\"$bret\",0.2,\"MEAN\",\"$close/($amount/($volume+1e-8)+1e-8)-1\",30),10)",
+   "style": "反转/承接力/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.36%, 多头=-33.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01364,
+   "long_total": -0.33916,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighVolumeReturnPerAmount_40D",
+   "expr": "TS_MEAN(CTOP(\"$volume\",0.2,\"MEDIAN\",\"$return/($amount+1e-8)\",40),10)",
+   "style": "量价效率/流动性/中期",
+   "reason": "方向无效",
+   "detail": "IC=-0.85%, 多头=+75.7%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00849,
+   "long_total": 0.7566,
+   "monthly_pos_ratio": 0.4135,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2024
+   ]
+  },
+  {
+   "name": "HighAmpVWAPDirectionalConviction_45D",
+   "expr": "TS_MEAN(CTOP(\"$amp\",0.2,\"MEAN\",\"($close-$amount/($volume+1e-8))/($amp+1e-8)\",45),10)",
+   "style": "振幅/方向确认/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.56%, 多头=-46.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00564,
+   "long_total": -0.46656,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "AmountClimaxReturnReversal_20D",
+   "expr": "-1*TS_MEAN(CTOP(\"$amount\",1,\"LAST\",\"$return\",20),5)",
+   "style": "短期反转/流动性/短期",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "LowVolumeQuietVWAPDispersion_60D",
+   "expr": "TS_MEAN(CBOT(\"$volume\",0.2,\"STD\",\"ABS($close/($amount/($volume+1e-8)+1e-8)-1)\",60),10)",
+   "style": "缩量/分歧度/长期",
+   "reason": "方向无效",
+   "detail": "IC=+1.83%, 多头=-14.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01831,
+   "long_total": -0.14592,
+   "monthly_pos_ratio": 0.6538,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeDownDayRangeEfficiency_60D",
+   "expr": "TS_MEAN(CBOT(\"$bret\",0.2,\"MEAN\",\"ABS($bret)/($amp+1e-8)\",60),10)",
+   "style": "趋势效率/恐慌/长期",
+   "reason": "方向无效",
+   "detail": "IC=+1.41%, 多头=-8.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0141,
+   "long_total": -0.08902,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "LowTurnoverUpperShadowSupply_60D",
+   "expr": "TS_MEAN(CBOT(\"$turnover\",0.2,\"MEAN\",\"((($high-$open)>2*($open-$low+1e-8))&&(($close-$open)<0))?1:0\",60),10)",
+   "style": "缩量/供给压力/中期",
+   "reason": "方向无效",
+   "detail": "IC=-0.30%, 多头=+0.9%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00302,
+   "long_total": 0.00888,
+   "monthly_pos_ratio": 0.4712,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumeExtremeCloseBodyLast_20D",
+   "expr": "TS_MEAN(CTOP(\"$volume\",1,\"LAST\",\"($close-$open)/($high-$low+1e-8)\",20),5)",
+   "style": "量价确认/短期",
+   "reason": "计算失败",
+   "detail": "AxisError: axis 1 is out of bounds for array of dimension 1",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverWinRateEfficiency_40D",
+   "expr": "TS_MEAN(CTOP(\"$turnover\",0.2,\"MEAN\",\"(($return>0)?1:0)*$return/($amount+1e-8)\",40),10)",
+   "style": "流动性/胜率/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.193, 年度越序峰值=11.2%",
+   "ic_mean": 0.03006,
+   "long_total": 1.01836,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

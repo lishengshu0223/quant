@@ -1,0 +1,156 @@
+{
+ "round": 76,
+ "hypothesis": "跳空、极量、高换手等极端bar的日内结构往往包含过度反应或资金痕迹，切割极端bar并对日内VWAP位置、跳空份额、上下影线等结构化特征做截面秩化与时序平滑，可提升分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "ExtremeGapIntradayReversal_40D",
+   "expr": "TS_MEAN(RANK(-CTOP(\"ABS($open*(1+$return)/$close-1)\",0.2,\"MEAN\",\"$close/$open-1\",40)),5)",
+   "style": "短期反转/跳空",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.121, 年度越序峰值=5.3%, 负年=[2020]",
+   "ic_mean": 0.02551,
+   "long_total": 0.41572,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HeavyAmountCloseVWAPBias_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"MEAN\",\"$close/($amount/($volume+1e-8)+1e-8)\",60)),5)",
+   "style": "流动性/资金行为",
+   "reason": "方向无效",
+   "detail": "IC=+0.80%, 多头=-35.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.008,
+   "long_total": -0.35096,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighTurnoverOvernightShare_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$turnover\",0.2,\"MEAN\",\"ABS($open*(1+$return)/$close-1)/(ABS($return)+1e-8)\",60)),5)",
+   "style": "情绪/跳空",
+   "reason": "方向无效",
+   "detail": "IC=-0.74%, 多头=+2.7%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00741,
+   "long_total": 0.02717,
+   "monthly_pos_ratio": 0.3462,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "WideRangeDayClosePower_40D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amp\",0.2,\"MEAN\",\"$close/($amount/($volume+1e-8)+1e-8)-$open/($amount/($volume+1e-8)+1e-8)\",40)),5)",
+   "style": "振幅/动量",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.06022,
+   "long_total": 0.71668,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "QuietDayStealthVWAPDrift_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$amp\",0.2,\"MEAN\",\"$close/($amount/($volume+1e-8)+1e-8)-1\",60)),5)",
+   "style": "低波动/吸筹",
+   "reason": "方向无效",
+   "detail": "IC=+1.15%, 多头=-34.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01153,
+   "long_total": -0.3427,
+   "monthly_pos_ratio": 0.5385,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeDownDayLowerWickVolumeRatio_40D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)*$volume\",40)),5)",
+   "style": "恐慌反转/量价",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.04034,
+   "long_total": 0.6006,
+   "monthly_pos_ratio": 0.8462,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "TopAmountDayAmplitudeConcentration_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",5,\"SUM\",\"$amp\",60)/(TS_SUM($amp,60)+1e-8)),5)",
+   "style": "流动性/分歧度",
+   "reason": "年度为负",
+   "detail": "历史完整年份多头为负: ['2021']",
+   "ic_mean": 0.01905,
+   "long_total": 0.64346,
+   "monthly_pos_ratio": 0.7596,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeUpDayOvernightContinuation_40D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$volume\",0.2,\"MEAN\",\"($open*(1+$return)/$close-1)*($close/$open-1)\",40)),5)",
+   "style": "量价动量",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=12.0%",
+   "ic_mean": 0.01877,
+   "long_total": 0.11445,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "PanicTurnoverCloseLocationStd_60D",
+   "expr": "TS_MEAN(RANK(CBOT(\"$bret\",0.2,\"MEAN\",\"$turnover*(($close-$low)/($high-$low+1e-8)-0.5)\",60)),5)",
+   "style": "恐慌/流动性",
+   "reason": "方向无效",
+   "detail": "IC=+3.95%, 多头=-17.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03945,
+   "long_total": -0.17579,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeAmtDaySignedVWAPWick_60D",
+   "expr": "TS_MEAN(RANK(CTOP(\"$amount\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)*($close/($amount/($volume+1e-8)+1e-8)-1)\",60)),5)",
+   "style": "量价/资金抢筹",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.148, 年度越序峰值=14.0%",
+   "ic_mean": 0.03203,
+   "long_total": 0.31972,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "C",
+   "neg_years": []
+  }
+ ]
+}

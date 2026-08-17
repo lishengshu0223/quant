@@ -94,7 +94,10 @@ def archive_success_series(series: dict, factor_wide: pd.DataFrame, data, cfg,
     try:
         entry = {"name": name, "desc": best.get("desc", ""),
                  "expr": best.get("expr", ""), "style": best.get("style", ""),
-                 "eval": best.get("eval") or {}}
+                 "eval": dict(best.get("eval") or {})}
+        # 注意: 传入的 factor_wide 已是按评价方向翻转后的最终宽表(调用方 recompute_series 处理),
+        # 出图时不能再依 eval.flipped 重复翻转, 否则双重取反导致图上方向错误。
+        entry["eval"].pop("flipped", None)
         factor_plot.plot_round_factor(entry, factor_wide, data, cfg, png_path,
                                       round_no=round_no or 0, idx=1)
     except Exception:

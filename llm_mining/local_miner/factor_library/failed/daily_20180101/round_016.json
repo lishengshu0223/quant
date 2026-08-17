@@ -1,0 +1,149 @@
+{
+ "round": 16,
+ "hypothesis": "上轮唯一通过的高振幅日成交额中位数占比因子表明，极端bar的中位数量能构造更稳健的单调信号。本轮将“极端状态下的稳健中位数量比”推广到更细的价格行为维度：高波动日的下行深度、低波动日的单位区间资金聚集、极端收益日的成本效率、放量日的尾部成交位置等，用中位数和自身中枢归一降低噪声，并尽量避开已失败的纯均值/价差结构。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "PanicDepthMedianRebound_40D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MEDIAN\",\"($return-ABS($return))/2\",40)/(TS_MEDIAN(($return-ABS($return))/2,40)+1e-8)",
+   "style": "短期反转/恐慌修复",
+   "reason": "方向无效",
+   "detail": "IC=+0.76%, 多头=-0.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00762,
+   "long_total": -0.00622,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "QuietDayRangeVolumeAccumulation_40D",
+   "expr": "CBOT(\"$amp\",0.2,\"MEDIAN\",\"$volume/($high-$low+1e-8)\",40)/(TS_MEDIAN($volume/($high-$low+1e-8),40)+1e-8)",
+   "style": "量价背离/资金吸筹",
+   "reason": "方向无效",
+   "detail": "IC=+2.03%, 多头=-6.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0203,
+   "long_total": -0.06908,
+   "monthly_pos_ratio": 0.8077,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveCostEfficiencyPremium_30D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEDIAN\",\"ABS($bret)/($amount+1e-8)\",30)/(TS_MEDIAN(ABS($bret)/($amount+1e-8),30)+1e-8)",
+   "style": "流动性/冲击成本",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.225, 年度越序峰值=20.4%",
+   "ic_mean": 0.04757,
+   "long_total": 1.37452,
+   "monthly_pos_ratio": 0.75,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumeClimaxClosePositionFade_30D",
+   "expr": "-CTOP(\"$volume\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",30)/(TS_MEDIAN(($close-$low)/($high-$low+1e-8),30)+1e-8)",
+   "style": "量价背离/情绪透支",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.076, 年度越序峰值=11.0%, 负年=[2019, 2025]",
+   "ic_mean": 0.01478,
+   "long_total": 0.30777,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "VolatilityClimaxLossShareStability_50D",
+   "expr": "-CTOP(\"$amp\",0.25,\"MEDIAN\",\"($return-ABS($return))/($amp+1e-8)\",50)/(TS_MEDIAN(($return-ABS($return))/($amp+1e-8),50)+1e-8)",
+   "style": "短期反转/波动率",
+   "reason": "方向无效",
+   "detail": "IC=+0.80%, 多头=-0.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00803,
+   "long_total": -0.00445,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  },
+  {
+   "name": "UpSpikeMoneyPerRangeExhaustion_35D",
+   "expr": "-CTOP(\"$bret\",0.2,\"MEDIAN\",\"$amount/($high-$low+1e-8)\",35)/(TS_MEDIAN($amount/($high-$low+1e-8),35)+1e-8)",
+   "style": "动量/情绪透支",
+   "reason": "方向无效",
+   "detail": "IC=+0.76%, 多头=-21.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00761,
+   "long_total": -0.21,
+   "monthly_pos_ratio": 0.7019,
+   "grade": "C",
+   "neg_years": [
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpRevenueEfficiencyReversal_45D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MEDIAN\",\"$return/($turnover+1e-8)\",45)/(TS_MEDIAN($return/($turnover+1e-8),45)+1e-8)",
+   "style": "短期反转/换手效率",
+   "reason": "方向无效",
+   "detail": "IC=+0.42%, 多头=-14.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00415,
+   "long_total": -0.14082,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "LowAmpHighPricePositionAnticipation_40D",
+   "expr": "CBOT(\"$amp\",0.2,\"MEDIAN\",\"($close-$low)*$amount/($high-$low+1e-8)\",40)/(TS_MEDIAN(($close-$low)*$amount/($high-$low+1e-8),40)+1e-8)",
+   "style": "量价背离/吸筹",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03667,
+   "long_total": 0.57938,
+   "monthly_pos_ratio": 0.875,
+   "grade": "B",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeVolumeTurnoverImpactPersistence_60D",
+   "expr": "-CTOP(\"$volume\",0.2,\"MEDIAN\",\"$turnover\",60)/(TS_MEDIAN($turnover,60)+1e-8)",
+   "style": "流动性/筹码锁定",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.115, 年度越序峰值=17.5%, 负年=[2021, 2022]",
+   "ic_mean": 0.03223,
+   "long_total": 0.29633,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022
+   ]
+  },
+  {
+   "name": "DownShockRecoveryWickSignal_30D",
+   "expr": "CBOT(\"$bret\",0.2,\"MEDIAN\",\"($close-$low)/($high-$low+1e-8)\",30)/(TS_MEDIAN(($close-$low)/($high-$low+1e-8),30)+1e-8)",
+   "style": "短期反转/支撑",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.022, 年度越序峰值=13.2%, 负年=[2019, 2025]",
+   "ic_mean": 0.00024,
+   "long_total": 0.01056,
+   "monthly_pos_ratio": 0.5,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2025
+   ]
+  }
+ ]
+}

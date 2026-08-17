@@ -1,0 +1,148 @@
+{
+ "round": 4,
+ "hypothesis": "A股市场中，极端量价bar不仅包含绝对值信息，其方向一致性、波动率非对称、成交均价与现价的偏离、高低换手下的效率差异等结构特征，更能刻画主力资金的情绪状态与成本分布；通过切割算子提取这些'极端状态的结构比例'，有望改善分组单调性与年度稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "HighAmpUpDayRatio_20D",
+   "expr": "CTOP(\"$amp\",0.2,\"MEAN\",\"(($return>0)?1:0)\",20)",
+   "style": "情绪/短期波动",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.050, 年度越序峰值=12.0%, 负年=[2023]",
+   "ic_mean": 0.04556,
+   "long_total": 0.00598,
+   "monthly_pos_ratio": 0.8942,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "ExtremeMoveDirectionPersistence_20D",
+   "expr": "-CTOP(\"ABS($bret)\",0.2,\"STD\",\"SIGN($bret)\",20)",
+   "style": "动量/趋势",
+   "reason": "方向无效",
+   "detail": "IC=-0.85%, 多头=+0.0%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00851,
+   "long_total": 0.00045,
+   "monthly_pos_ratio": 0.3173,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighAmountVWAPDeviation_20D",
+   "expr": "(CTOP(\"$amount\",0.2,\"SUM\",\"$close*$volume\",20)/(CTOP(\"$amount\",0.2,\"SUM\",\"$volume\",20)+1e-8)-$close)/($close+1e-8)",
+   "style": "成本/量价背离",
+   "reason": "方向无效",
+   "detail": "IC=+1.21%, 多头=-16.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01213,
+   "long_total": -0.16034,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "UpDownVolatilityAsymmetry_20D",
+   "expr": "(CTOP(\"$return\",0.2,\"STD\",\"$return\",20)-CBOT(\"$return\",0.2,\"STD\",\"$return\",20))/(CTOP(\"$return\",0.2,\"STD\",\"$return\",20)+CBOT(\"$return\",0.2,\"STD\",\"$return\",20)+1e-8)",
+   "style": "波动率/情绪",
+   "reason": "计算失败",
+   "detail": "公式校验失败: 字符串常量不能直接参与日频求值",
+   "ic_mean": null,
+   "long_total": null,
+   "monthly_pos_ratio": null,
+   "grade": null,
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverEfficiency_60D",
+   "expr": "CTOP(\"$turnover\",0.1,\"MEAN\",\"ABS($bret)/($amp+1e-8)\",60)",
+   "style": "流动性/定价效率",
+   "reason": "方向无效",
+   "detail": "IC=+0.27%, 多头=-13.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00272,
+   "long_total": -0.13653,
+   "monthly_pos_ratio": 0.5481,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2024
+   ]
+  },
+  {
+   "name": "UpDownAmpBias_20D",
+   "expr": "CTOP(\"$bret\",0.1,\"MEAN\",\"$amp\",20)-CBOT(\"$bret\",0.1,\"MEAN\",\"$amp\",20)",
+   "style": "动量不对称",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.153, 年度越序峰值=17.0%",
+   "ic_mean": 0.05006,
+   "long_total": 0.03949,
+   "monthly_pos_ratio": 0.9327,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverClimaxMaxReturn_20D",
+   "expr": "CTOP(\"$turnover\",0.1,\"MAX\",\"$return\",20)",
+   "style": "事件驱动/量能爆发",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.120, 年度越序峰值=12.0%",
+   "ic_mean": 0.05266,
+   "long_total": 0.2616,
+   "monthly_pos_ratio": 0.8558,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverQuietMinReturn_20D",
+   "expr": "CBOT(\"$turnover\",0.1,\"MIN\",\"$return\",20)",
+   "style": "风险/流动性枯竭",
+   "reason": "方向无效",
+   "detail": "IC=+1.10%, 多头=-33.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01102,
+   "long_total": -0.33172,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpTurnoverSkew_30D",
+   "expr": "CTOP(\"$amp\",0.2,\"SKEW\",\"$turnover\",30)",
+   "style": "分布形态/主力行为",
+   "reason": "方向无效",
+   "detail": "IC=+0.87%, 多头=-12.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0087,
+   "long_total": -0.12886,
+   "monthly_pos_ratio": 0.7308,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020
+   ]
+  },
+  {
+   "name": "LowPriceDayReturnMean_60D",
+   "expr": "CBOT(\"$close\",0.1,\"MEAN\",\"$return\",60)",
+   "style": "支撑/反转",
+   "reason": "方向无效",
+   "detail": "IC=+0.40%, 多头=-47.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00395,
+   "long_total": -0.47271,
+   "monthly_pos_ratio": 0.4904,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2024,
+    2025
+   ]
+  }
+ ]
+}

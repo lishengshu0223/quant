@@ -1,0 +1,162 @@
+{
+ "round": 99,
+ "hypothesis": "A股极端bar上的资金行为痕迹（下跌承接、上涨抛压、多空实体不对称、地量状态等）会通过微观结构惯性在未来5日延续；本轮用下跌/上涨bar的影线结构、放量bar的效率、低活跃bar的状态等新角度构造结构更简洁、方向更持续的切割因子，以改善分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "DownDayTailSupport_60D",
+   "expr": "CBOT(\"$bret\",0.2,\"MEAN\",\"(($open<$close?$open:$close)-$low)/($high-$low+1e-8)\",60)",
+   "style": "短期反转/支撑结构",
+   "reason": "方向无效",
+   "detail": "IC=+0.01%, 多头=-37.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00015,
+   "long_total": -0.3755,
+   "monthly_pos_ratio": 0.5385,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2022,
+    2023
+   ]
+  },
+  {
+   "name": "UpDayUpperShadowPressure_60D",
+   "expr": "CTOP(\"$bret\",0.2,\"MEAN\",\"($high-($close>$open?$close:$open))/($high-$low+1e-8)\",60)",
+   "style": "流动性/压力反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.052, 年度越序峰值=16.4%, 负年=[2022, 2023]",
+   "ic_mean": 0.0048,
+   "long_total": 0.18613,
+   "monthly_pos_ratio": 0.5288,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023
+   ]
+  },
+  {
+   "name": "ExtremeDayBodyAsymmetry_60D",
+   "expr": "CTOP(\"SIGN($bret)\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",60)-CBOT(\"SIGN($bret)\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",60)",
+   "style": "动量/实体纯度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.023, 年度越序峰值=9.1%, 负年=[2019, 2020, 2021, 2025]",
+   "ic_mean": 0.00487,
+   "long_total": 0.01815,
+   "monthly_pos_ratio": 0.5481,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "QuietBarDriftStrength_60D",
+   "expr": "CBOT(\"$amp\",0.2,\"MEAN\",\"($close-$open)/($open+1e-8)\",60)",
+   "style": "波动率压缩/吸筹",
+   "reason": "方向无效",
+   "detail": "IC=+0.74%, 多头=-22.8%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00737,
+   "long_total": -0.22768,
+   "monthly_pos_ratio": 0.6442,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2025
+   ]
+  },
+  {
+   "name": "AmpExtremeSwingRange_90D",
+   "expr": "CTOP(\"$amp\",0.2,\"MAX\",\"$return\",90)-CTOP(\"$amp\",0.2,\"MIN\",\"$return\",90)",
+   "style": "波动率/情绪跨度",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.058, 年度越序峰值=34.4%, 负年=[2025]",
+   "ic_mean": 0.04457,
+   "long_total": 0.0822,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "ActiveVolumeEfficiency_90D",
+   "expr": "CTOP(\"$volume\",0.2,\"MEAN\",\"ABS($bret)/($high-$low+1e-8)\",90)",
+   "style": "量价配合/趋势",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.075, 年度越序峰值=27.1%, 负年=[2019, 2020]",
+   "ic_mean": 0.01659,
+   "long_total": 0.07004,
+   "monthly_pos_ratio": 0.5673,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020
+   ]
+  },
+  {
+   "name": "CrashDayIntradayAbsorption_90D",
+   "expr": "CBOT(\"$bret\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",90)",
+   "style": "短期反转/极端吸收",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.086, 年度越序峰值=14.3%, 负年=[2020]",
+   "ic_mean": 0.01929,
+   "long_total": 0.23654,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HighAmpUpwardClosingRatio_60D",
+   "expr": "CTOP(\"$amp\",0.2,\"MEAN\",\"(($close>(($high+$low)/2))?1:0)\",60)",
+   "style": "振幅/多头控盘",
+   "reason": "方向无效",
+   "detail": "IC=+3.67%, 多头=-0.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.03673,
+   "long_total": -0.00236,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "LowTurnoverVWAPDeviation_90D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEAN\",\"($amount/($volume+1e-8)-$close)/($high-$low+1e-8)\",90)",
+   "style": "流动性/量价背离",
+   "reason": "方向无效",
+   "detail": "IC=-0.95%, 多头=+24.7%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00947,
+   "long_total": 0.24653,
+   "monthly_pos_ratio": 0.4904,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2024
+   ]
+  },
+  {
+   "name": "ExtremeMoveConsecutiveGap_50D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"($open*(1+$return)/$close-1)\",50)",
+   "style": "缺口动量/极端行为",
+   "reason": "方向无效",
+   "detail": "IC=+0.07%, 多头=-59.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00073,
+   "long_total": -0.59288,
+   "monthly_pos_ratio": 0.4904,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2023,
+    2025
+   ]
+  }
+ ]
+}

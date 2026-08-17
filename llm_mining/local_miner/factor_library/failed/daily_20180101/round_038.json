@@ -1,0 +1,157 @@
+{
+ "round": 38,
+ "hypothesis": "极端日（高/低振幅、极端涨跌、放/缩量）内部的收益方向、实体决定度与量能效率，反映了资金行为在极端状态下的非对称预期；通过切割算子提取这些尾部状态信息并用ZSCORE做日频截面标准化、再时序平滑，可提升因子的分组单调性与跨年稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietDayUpDominance_60D",
+   "expr": "TS_MEAN(ZSCORE(CBOT(\"$amp\",0.2,\"MEAN\",\"($return>0?1:0)\",60)),15)",
+   "style": "低波/量价背离/中短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.079, 年度越序峰值=17.0%, 负年=[2022]",
+   "ic_mean": 0.00788,
+   "long_total": 0.04924,
+   "monthly_pos_ratio": 0.6154,
+   "grade": "C",
+   "neg_years": [
+    2022
+   ]
+  },
+  {
+   "name": "DryPanicVolumeRebound_75D",
+   "expr": "TS_MEAN(ZSCORE(1/(CBOT(\"$bret\",0.1,\"MEAN\",\"$volume\",75)/(TS_MEAN($volume,75)+1e-8)+1e-8)),10)",
+   "style": "流动性/恐慌反转/中期",
+   "reason": "方向无效",
+   "detail": "IC=-0.41%, 多头=+6.3%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00413,
+   "long_total": 0.06288,
+   "monthly_pos_ratio": 0.4519,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "ExtremeCandleConvictionGap_60D",
+   "expr": "TS_MEAN(ZSCORE(CTOP(\"$bret\",0.15,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",60)-CBOT(\"$bret\",0.15,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",60)),10)",
+   "style": "动量/实体决心/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.51%, 多头=-10.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00514,
+   "long_total": -0.10159,
+   "monthly_pos_ratio": 0.5962,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "VolumeIntradayTrendAsymmetry_60D",
+   "expr": "TS_MEAN(ZSCORE((CTOP(\"$volume\",0.2,\"MEAN\",\"($close-$open)/($open+1e-8)\",60)-CBOT(\"$volume\",0.2,\"MEAN\",\"($close-$open)/($open+1e-8)\",60))/(TS_STD($return,60)+1e-8)),10)",
+   "style": "量价背离/趋势/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.128, 年度越序峰值=8.3%",
+   "ic_mean": 0.03787,
+   "long_total": 0.36997,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietAmountRangeEfficiencyPremium_90D",
+   "expr": "TS_MEAN(ZSCORE(CBOT(\"$amount\",0.2,\"MEAN\",\"$amp/($turnover+1e-8)\",90)/(CTOP(\"$amount\",0.2,\"MEAN\",\"$amp/($turnover+1e-8)\",90)+1e-8)),10)",
+   "style": "流动性/振幅效率/中长期",
+   "reason": "方向无效",
+   "detail": "IC=+1.38%, 多头=-4.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01379,
+   "long_total": -0.04649,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2021,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "LowAmpTailHeavinessPremium_120D",
+   "expr": "TS_MEAN(ZSCORE(-1*CTOP(\"$amp\",0.1,\"MEAN\",\"$amp\",120)/(TS_MEDIAN($amp,120)+1e-8)),10)",
+   "style": "波动率/振幅尾部/中长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.086, 年度越序峰值=12.1%, 负年=[2023, 2024]",
+   "ic_mean": 0.01106,
+   "long_total": 0.15866,
+   "monthly_pos_ratio": 0.6058,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "QuietActiveRangeKurtosisGap_80D",
+   "expr": "TS_MEAN(ZSCORE(CBOT(\"$turnover\",0.2,\"KURT\",\"$amp\",80)-CTOP(\"$turnover\",0.2,\"KURT\",\"$amp\",80)),10)",
+   "style": "波动率/换手结构/中长期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.011, 年度越序峰值=12.4%, 负年=[2018, 2019, 2024, 2025]",
+   "ic_mean": 0.00911,
+   "long_total": 0.06357,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "AmountSurgeCloseLocationGap_70D",
+   "expr": "TS_MEAN(ZSCORE(CTOP(\"$amount\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",70)-CBOT(\"$amount\",0.2,\"MEAN\",\"($close-$low)/($high-$low+1e-8)\",70)),10)",
+   "style": "量价关系/主力行为/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.094, 年度越序峰值=7.3%",
+   "ic_mean": 0.02255,
+   "long_total": 0.22673,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "PanicDayRangeWidth_60D",
+   "expr": "TS_MEAN(ZSCORE(CBOT(\"$bret\",0.15,\"MEAN\",\"$amp\",60)/(TS_MEDIAN($amp,60)+1e-8)),10)",
+   "style": "波动率/恐慌反转/中期",
+   "reason": "方向无效",
+   "detail": "IC=+2.32%, 多头=-1.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02323,
+   "long_total": -0.01661,
+   "monthly_pos_ratio": 0.6827,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "ExtremeDayMomentumDrift_120D",
+   "expr": "TS_MEAN(ZSCORE(CTOP(\"$bret\",0.1,\"MEAN\",\"$return\",120)),20)",
+   "style": "动量/极端收益/中长期",
+   "reason": "方向无效",
+   "detail": "IC=+5.00%, 多头=-7.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.05005,
+   "long_total": -0.0736,
+   "monthly_pos_ratio": 0.7115,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2025
+   ]
+  }
+ ]
+}

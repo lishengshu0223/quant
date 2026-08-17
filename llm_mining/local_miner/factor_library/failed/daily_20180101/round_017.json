@@ -1,0 +1,152 @@
+{
+ "round": 17,
+ "hypothesis": "本轮从“极端bar状态相对自身中枢的比值”这一已验证的稳健结构中进一步抽象：不再只关注价格位置或资金量，而是关注极端bar的“价格形态”与“资金效率”之间的耦合。低换手日的带量阳实体、高振幅日的影线/实体比、极端涨跌日的成交额效率等，均以极端bar中位数相对全窗中位数的比值刻画，期望得到比简单均值更平滑的截面排序。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LowTurnoverBodyMoneyAccum_40D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEDIAN\",\"($close-$open)*$amount/($high-$low+1e-8)\",40)/(TS_MEDIAN(($close-$open)*$amount/($high-$low+1e-8),40)+1e-8)",
+   "style": "量价背离/低流动性吸筹/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.060, 年度越序峰值=12.5%",
+   "ic_mean": 0.00789,
+   "long_total": 0.10036,
+   "monthly_pos_ratio": 0.7596,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverBodyMoneyExhaustion_40D",
+   "expr": "-CTOP(\"$turnover\",0.2,\"MEDIAN\",\"($close-$open)*$amount/($high-$low+1e-8)\",40)/(TS_MEDIAN(($close-$open)*$amount/($high-$low+1e-8),40)+1e-8)",
+   "style": "流动性/情绪过热反转/中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.23%, 多头=-13.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01232,
+   "long_total": -0.1311,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HighAmpWickDominanceFade_45D",
+   "expr": "-CTOP(\"$amp\",0.2,\"MEDIAN\",\"($high-$low)/(ABS($close-$open)+1e-8)\",45)/(TS_MEDIAN(($high-$low)/(ABS($close-$open)+1e-8),45)+1e-8)",
+   "style": "振幅/不确定性与后市反转/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.065, 年度越序峰值=9.7%, 负年=[2023, 2024, 2025]",
+   "ic_mean": 0.00634,
+   "long_total": 0.0584,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "LowAmpReturnEfficiencyPremium_40D",
+   "expr": "CBOT(\"$amp\",0.2,\"MEDIAN\",\"$return/($turnover+1e-8)\",40)/(TS_MEDIAN($return/($turnover+1e-8),40)+1e-8)",
+   "style": "低波动/筹码锁定/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.04%, 多头=-27.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00041,
+   "long_total": -0.27454,
+   "monthly_pos_ratio": 0.4904,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeUpAmplitudePerVolumeClimax_30D",
+   "expr": "CTOP(\"$bret\",0.2,\"MEDIAN\",\"$amp/($volume+1e-8)\",30)/(TS_MEDIAN($amp/($volume+1e-8),30)+1e-8)",
+   "style": "量价攻击动量/短中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.192, 年度越序峰值=10.3%",
+   "ic_mean": 0.02946,
+   "long_total": 0.54948,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietVolumeHighLowMoneyPosition_50D",
+   "expr": "CBOT(\"$amount\",0.2,\"MEDIAN\",\"($close-$low)*$turnover/($high-$low+1e-8)\",50)/(TS_MEDIAN(($close-$low)*$turnover/($high-$low+1e-8),50)+1e-8)",
+   "style": "量能枯竭/价格位置/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.120, 年度越序峰值=8.0%",
+   "ic_mean": 0.0267,
+   "long_total": 0.3622,
+   "monthly_pos_ratio": 0.7692,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "AmpClimaxDirectionalBreadth_30D",
+   "expr": "CTOP(\"$amp\",0.2,\"MEAN\",\"SIGN($return)\",30)",
+   "style": "波动率/方向广度/短中期",
+   "reason": "方向无效",
+   "detail": "IC=+4.87%, 多头=-0.1%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0487,
+   "long_total": -0.00104,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "TurnoverLullVolumePerRangeAccum_55D",
+   "expr": "CBOT(\"$turnover\",0.2,\"MEDIAN\",\"$volume/($high-$low+1e-8)\",55)/(TS_MEDIAN($volume/($high-$low+1e-8),55)+1e-8)",
+   "style": "低换手积累/量价关系/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.26%, 多头=-26.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00258,
+   "long_total": -0.25999,
+   "monthly_pos_ratio": 0.5,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "HighVolumeReturnPerTurnoverFade_35D",
+   "expr": "-CTOP(\"$volume\",0.2,\"MEDIAN\",\"$return/($turnover+1e-8)\",35)/(TS_MEDIAN($return/($turnover+1e-8),35)+1e-8)",
+   "style": "放量透支/反转/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.01%, 多头=-10.7%(IC与多头矛盾或为负)",
+   "ic_mean": 5e-05,
+   "long_total": -0.10741,
+   "monthly_pos_ratio": 0.5288,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2023,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeMoveBodyRangeEfficiency_40D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEDIAN\",\"ABS($close-$open)/($high-$low+1e-8)\",40)/(TS_MEDIAN(ABS($close-$open)/($high-$low+1e-8),40)+1e-8)",
+   "style": "极端行情/实体效率/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.051, 年度越序峰值=15.2%, 负年=[2021, 2022, 2023, 2024]",
+   "ic_mean": 0.00546,
+   "long_total": 0.00596,
+   "monthly_pos_ratio": 0.5577,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2022,
+    2023,
+    2024
+   ]
+  }
+ ]
+}

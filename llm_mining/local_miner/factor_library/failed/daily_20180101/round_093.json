@@ -1,0 +1,154 @@
+{
+ "round": 93,
+ "hypothesis": "A股市场在极端bar上留下主力资金的行为痕迹：低换手跳空的“空心”状态、极端涨跌日的换手方向不对称、高换手日成交均价与收盘价的背离、高波幅收益与整体趋势的共振程度等，均会通过5日微观结构惯性延续；本轮放弃强离散化的TS_RANK/TS_QUANTILE末端处理，改用连续比值、滚动相关与差分结构，以改善分组排序单调性和截面连续覆盖。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "QuietTurnoverGapHollow_60D",
+   "expr": "-CBOT(\"$turnover\",0.2,\"MEAN\",\"ABS($open*(1+$return)/$close-1)\",60)/(TS_MEAN(ABS($open*(1+$return)/$close-1),60)+1e-8)",
+   "style": "量价背离/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.142, 年度越序峰值=13.1%",
+   "ic_mean": 0.0237,
+   "long_total": 0.16149,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeMoveTurnoverUpsideDominance_60D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"SUM\",\"$turnover*($bret>0?1:0)\",60)/(CTOP(\"ABS($bret)\",0.2,\"SUM\",\"$turnover*($bret<0?1:0)\",60)+1e-8)",
+   "style": "动量/量价关系",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.108, 年度越序峰值=9.9%, 负年=[2020, 2025]",
+   "ic_mean": 0.04089,
+   "long_total": 0.57779,
+   "monthly_pos_ratio": 0.7981,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2025
+   ]
+  },
+  {
+   "name": "ActiveTurnoverVWAPCloseDiscount_60D",
+   "expr": "-CTOP(\"$turnover\",0.2,\"MEAN\",\"($amount/($volume+1e-8)-$close)/$close\",60)/(TS_STD($return,60)+1e-8)",
+   "style": "流动性/量价背离",
+   "reason": "方向无效",
+   "detail": "IC=+2.18%, 多头=-20.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02179,
+   "long_total": -0.20524,
+   "monthly_pos_ratio": 0.5865,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmpReturnTrendCoherence_60D",
+   "expr": "TS_CORR(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",40), TS_MEAN($return,40), 60)",
+   "style": "动量/波动率",
+   "reason": "方向无效",
+   "detail": "IC=-0.18%, 多头=+4.2%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00178,
+   "long_total": 0.04163,
+   "monthly_pos_ratio": 0.4712,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "LowVolumeNoiseRangeReversal_60D",
+   "expr": "-CBOT(\"$volume\",0.2,\"MEAN\",\"($high-$low)/(ABS($bret)+1e-8)\",60)/(TS_MEAN(($high-$low)/(ABS($bret)+1e-8),60)+1e-8)",
+   "style": "波动率/流动性",
+   "reason": "方向无效",
+   "detail": "IC=-0.21%, 多头=+9.3%(IC与多头矛盾或为负)",
+   "ic_mean": -0.00209,
+   "long_total": 0.09333,
+   "monthly_pos_ratio": 0.4327,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2020,
+    2022,
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "ExtremeBodyTurnoverEmotionReversal_50D",
+   "expr": "-CTOP(\"ABS(($close-$open)/$open)\",0.2,\"MEDIAN\",\"$turnover\",50)/(TS_MEDIAN($turnover,50)+1e-8)",
+   "style": "短期反转/情绪",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.177, 年度越序峰值=10.6%",
+   "ic_mean": 0.03192,
+   "long_total": 0.42308,
+   "monthly_pos_ratio": 0.8846,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "ExtremeUpDayVWAPCloseReversal_60D",
+   "expr": "-CTOP(\"$bret\",0.2,\"MEAN\",\"($amount/($volume+1e-8)-$close)/$close\",60)/(TS_STD($return,60)+1e-8)",
+   "style": "短期反转/量价背离",
+   "reason": "方向无效",
+   "detail": "IC=+2.33%, 多头=-19.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02326,
+   "long_total": -0.19861,
+   "monthly_pos_ratio": 0.6058,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2020,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "ActiveAmountEfficiencyMomentum_70D",
+   "expr": "TS_COV(CTOP(\"$amount\",0.2,\"MEAN\",\"$return\",70), TS_MEAN($return,70), 60)/(TS_STD($amount,70)+1e-8)",
+   "style": "动量/资金行为",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.139, 年度越序峰值=15.0%",
+   "ic_mean": 0.01802,
+   "long_total": 1.09609,
+   "monthly_pos_ratio": 0.6346,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "GapFillIntensityOnHighVolume_50D",
+   "expr": "-CTOP(\"$volume\",0.2,\"MEAN\",\"ABS($open*(1+$return)/$close-1)\",50)/(TS_MEAN(ABS($open*(1+$return)/$close-1),50)+1e-8)",
+   "style": "量价背离/短期反转",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.143, 年度越序峰值=7.7%",
+   "ic_mean": 0.01801,
+   "long_total": 0.4226,
+   "monthly_pos_ratio": 0.7596,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "WideRangeTurnoverDryTrend_80D",
+   "expr": "EMA(-CTOP(\"$amp\",0.2,\"MEAN\",\"$turnover\",80)/(TS_MEAN($turnover,80)+1e-8), 10)",
+   "style": "波动率/流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.142, 年度越序峰值=10.1%, 负年=[2023]",
+   "ic_mean": 0.03093,
+   "long_total": 0.47644,
+   "monthly_pos_ratio": 0.8365,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  }
+ ]
+}

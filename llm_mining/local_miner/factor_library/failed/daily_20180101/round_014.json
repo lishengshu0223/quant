@@ -1,0 +1,160 @@
+{
+ "round": 14,
+ "hypothesis": "上轮反馈显示，单调性最好的结构是“极端bar成交额占比的时序变化”以及“极端强度相对中枢的比值”，而非极端组间价差；本轮围绕资金在低波动日/高换手日/极端涨跌日之间的边际流向构建因子，用5日变化量刻画资金行为从聚集到退潮的转变，以提升分组单调性和年份稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "LowAmplitudeMoneyShareQuietAccum_50D",
+   "expr": "DELTA(CBOT(\"$amp\",0.2,\"SUM\",\"$amount\",50)/(TS_SUM($amount,50)+1e-8),5)*SIGN(CBOT(\"$amp\",0.2,\"MEAN\",\"$return\",50))",
+   "style": "流动性/缩量吸筹/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.03%, 多头=-49.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00026,
+   "long_total": -0.49451,
+   "monthly_pos_ratio": 0.5385,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "TurnoverClimaxVolumeIntensityDecay_30D",
+   "expr": "-DELTA(CTOP(\"$turnover\",0.2,\"MEAN\",\"$volume\",30)/(TS_MEAN($volume,30)+1e-8),5)",
+   "style": "流动性/换手高潮退潮/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.22%, 多头=-33.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01224,
+   "long_total": -0.32971,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighVolumeReturnDirectionShareTrend_40D",
+   "expr": "DELTA(CTOP(\"$volume\",0.2,\"SUM\",\"$return\",40)/(TS_SUM(ABS($return),40)+1e-8),5)",
+   "style": "量价配合/趋势/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.90%, 多头=-14.3%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00902,
+   "long_total": -0.14279,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "ExtremeMoveUpBreadthAsymmetry_40D",
+   "expr": "CTOP(\"ABS($bret)\",0.2,\"MEAN\",\"($return>0?1:0)\",40)-CBOT(\"$amp\",0.2,\"MEAN\",\"($return>0?1:0)\",40)",
+   "style": "极端事件方向/多空博弈/中期",
+   "reason": "方向无效",
+   "detail": "IC=-3.15%, 多头=+0.1%(IC与多头矛盾或为负)",
+   "ic_mean": -0.03147,
+   "long_total": 0.0007,
+   "monthly_pos_ratio": 0.2212,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "AmplitudeClimaxMoneyShareFade_50D",
+   "expr": "-DELTA(CTOP(\"$amp\",0.2,\"SUM\",\"$amount\",50)/(TS_SUM($amount,50)+1e-8),5)",
+   "style": "波动率/资金退潮/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.98%, 多头=-14.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00975,
+   "long_total": -0.14599,
+   "monthly_pos_ratio": 0.6442,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "HighTurnoverAmpRatioMomentum_30D",
+   "expr": "-DELTA(CTOP(\"$turnover\",0.2,\"MEAN\",\"$amp\",30)/(TS_MEAN($amp,30)+1e-8),5)",
+   "style": "情绪反转/波动聚集/短期",
+   "reason": "方向无效",
+   "detail": "IC=+1.03%, 多头=-12.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01027,
+   "long_total": -0.12459,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "QuietMoneyShareReturnConfirm_60D",
+   "expr": "DELTA(CBOT(\"$amp\",0.2,\"SUM\",\"$amount\",60)/(TS_SUM($amount,60)+1e-8),5)*SIGN(TS_MEAN(CBOT(\"$amp\",0.2,\"MEAN\",\"$return\",60),10))",
+   "style": "流动性/缩量建仓/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.05%, 多头=-59.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00052,
+   "long_total": -0.59882,
+   "monthly_pos_ratio": 0.4327,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2022,
+    2025
+   ]
+  },
+  {
+   "name": "ExtremeDownVolumeSurgeDecay_20D",
+   "expr": "-DELTA(CBOT(\"$return\",0.2,\"MEAN\",\"$volume\",20)/(TS_MEAN($volume,20)+1e-8),5)",
+   "style": "恐慌反转/量能衰竭/短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.01%, 多头=-56.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00012,
+   "long_total": -0.56605,
+   "monthly_pos_ratio": 0.4904,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2023,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "HighAmountReturnEfficiencyClimax_45D",
+   "expr": "-DELTA(CTOP(\"$amount\",0.2,\"MEAN\",\"$return/($amp+1e-8)\",45)/(TS_MEAN($return/($amp+1e-8),45)+1e-8),5)",
+   "style": "量价效率/资金疲劳/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.65%, 多头=-33.2%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00652,
+   "long_total": -0.33238,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2024,
+    2025
+   ]
+  },
+  {
+   "name": "LowTurnoverPriceDriftPersistence_50D",
+   "expr": "DELTA(CBOT(\"$turnover\",0.2,\"SUM\",\"$return\",50),5)",
+   "style": "缩量趋势/慢牛/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.007, 年度越序峰值=17.0%, 负年=[2024, 2025]",
+   "ic_mean": 0.00167,
+   "long_total": 0.00906,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2024,
+    2025
+   ]
+  }
+ ]
+}

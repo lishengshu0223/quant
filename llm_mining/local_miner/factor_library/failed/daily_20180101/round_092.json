@@ -1,0 +1,147 @@
+{
+ "round": 92,
+ "hypothesis": "上轮频率类/状态占比因子虽然IC尚可，但二分压缩丢失了截面排序信息，分组单调性普遍为C级。本轮放弃二值状态计数，转向连续型低风险状态类因子：从隔夜/日内的信息冲击稳定性、下行日振幅稳定性、滞后市场贝塔、收盘位置稳定性、量价同步性、近期振幅收缩、日内中轴稳定性、隔夜缺口自相关、成交量与市场情绪同步性、量能对振幅的依赖度等维度刻画风险的连续变化，力图在保持正IC的同时修复分组单调性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "OvernightIntradayVolatilityRatio_20D",
+   "expr": "-TS_STD($open / (DELAY($close, 1) + 1e-8) - 1, 20) / (TS_STD($close / ($open + 1e-8) - 1, 20) + 1e-8)",
+   "style": "波动率/隔夜风险",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.108, 年度越序峰值=9.5%, 负年=[2023]",
+   "ic_mean": 0.0123,
+   "long_total": 0.02452,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "DownsideRangeStability_20D",
+   "expr": "-TS_STD(($return < 0 ? ($high - $low) : 0), 20) / (TS_MEAN($high - $low, 20) + 1e-8)",
+   "style": "波动率/下行风险",
+   "reason": "方向无效",
+   "detail": "IC=+3.21%, 多头=-32.7%(IC与多头矛盾或为负)",
+   "ic_mean": 0.0321,
+   "long_total": -0.32661,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "LaggedMarketBetaPenalty_20D",
+   "expr": "-TS_CORR($return, DELAY(MEAN($return), 1), 20)",
+   "style": "动量/市场传染",
+   "reason": "方向无效",
+   "detail": "IC=+0.92%, 多头=-9.6%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00922,
+   "long_total": -0.09566,
+   "monthly_pos_ratio": 0.5288,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "CloseLocationStability_20D",
+   "expr": "-TS_STD(($close - $low) / ($high - $low + 1e-8), 20)",
+   "style": "波动率/微观结构",
+   "reason": "方向无效",
+   "detail": "IC=+0.63%, 多头=-6.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00629,
+   "long_total": -0.06495,
+   "monthly_pos_ratio": 0.5769,
+   "grade": "C",
+   "neg_years": [
+    2023,
+    2024
+   ]
+  },
+  {
+   "name": "VolumeVolatilitySyncPenalty_20D",
+   "expr": "-TS_CORR(ABS($return), $volume, 20)",
+   "style": "量价背离/流动性风险",
+   "reason": "方向无效",
+   "detail": "IC=+0.07%, 多头=-22.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00071,
+   "long_total": -0.2243,
+   "monthly_pos_ratio": 0.5192,
+   "grade": "C",
+   "neg_years": [
+    2024
+   ]
+  },
+  {
+   "name": "RecentRangeContractionPremium_20D",
+   "expr": "-TS_MAX(($high - $low) / ($close + 1e-8), 5) / (TS_MEAN(($high - $low) / ($close + 1e-8), 20) + 1e-8)",
+   "style": "波动率/短期振幅",
+   "reason": "方向无效",
+   "detail": "IC=+2.98%, 多头=-10.0%(IC与多头矛盾或为负)",
+   "ic_mean": 0.02985,
+   "long_total": -0.09998,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "C",
+   "neg_years": [
+    2021
+   ]
+  },
+  {
+   "name": "IntradayMidpointStability_20D",
+   "expr": "-TS_STD(($high + $low - 2 * $open) / ($open + 1e-8), 20)",
+   "style": "振幅/日内失衡",
+   "reason": "方向无效",
+   "detail": "IC=+6.98%, 多头=-8.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.06977,
+   "long_total": -0.08428,
+   "monthly_pos_ratio": 0.7885,
+   "grade": "C",
+   "neg_years": [
+    2025
+   ]
+  },
+  {
+   "name": "OvernightGapAutocorrelationPenalty_20D",
+   "expr": "-TS_CORR($open / (DELAY($close, 1) + 1e-8) - 1, DELAY($open / (DELAY($close, 1) + 1e-8) - 1, 1), 20)",
+   "style": "隔夜风险/信息效率",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.096, 年度越序峰值=11.9%, 负年=[2020, 2022]",
+   "ic_mean": 0.00926,
+   "long_total": 0.03811,
+   "monthly_pos_ratio": 0.7212,
+   "grade": "C",
+   "neg_years": [
+    2020,
+    2022
+   ]
+  },
+  {
+   "name": "VolumeMarketReturnSyncPenalty_20D",
+   "expr": "-TS_CORR($volume, MEAN($return), 20)",
+   "style": "市场情绪/流动性",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.089, 年度越序峰值=8.0%, 负年=[2023]",
+   "ic_mean": 0.00892,
+   "long_total": 0.47153,
+   "monthly_pos_ratio": 0.5673,
+   "grade": "C",
+   "neg_years": [
+    2023
+   ]
+  },
+  {
+   "name": "RangeVolumeDependencePenalty_20D",
+   "expr": "-TS_CORR($high - $low, $volume, 20)",
+   "style": "量价关系/波动结构",
+   "reason": "合格",
+   "detail": "",
+   "ic_mean": 0.03056,
+   "long_total": 0.43899,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "B",
+   "neg_years": []
+  }
+ ]
+}

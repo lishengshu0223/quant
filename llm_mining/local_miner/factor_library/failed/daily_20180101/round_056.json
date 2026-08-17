@@ -1,0 +1,153 @@
+{
+ "round": 56,
+ "hypothesis": "上轮全部因子单调性C级暴露了单一极端日均值统计的排序缺陷，本轮放弃对高波日收益方向的单点测量，改为构造涨跌日波动不对称、量能确认收益差、极端日净贡献、上下影线压力等非对称结构信号，以期在保持IC为正的同时提升分组秩相关与年际稳定性。",
+ "reflection": "",
+ "factors": [
+  {
+   "name": "DownDayVolAsymmetryFactor",
+   "expr": "DECAYLINEAR(CBOT(\"SIGN($bret)\",0.5,\"STD\",\"$return\",60)/(CTOP(\"SIGN($bret)\",0.5,\"STD\",\"$return\",60)+1e-8),10)",
+   "style": "波动率/恐慌修复/短期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.105, 年度越序峰值=11.4%",
+   "ic_mean": 0.02201,
+   "long_total": 0.23721,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": []
+  },
+  {
+   "name": "VolumeConfirmedReturnSpread",
+   "expr": "DECAYLINEAR(CTOP(\"$volume\",0.2,\"MEAN\",\"$return\",60)-CBOT(\"$volume\",0.2,\"MEAN\",\"$return\",60),10)",
+   "style": "量价配合/流动性/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.112, 年度越序峰值=10.0%, 负年=[2020]",
+   "ic_mean": 0.05113,
+   "long_total": 0.39004,
+   "monthly_pos_ratio": 0.8269,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "HighAmpVsLowAmpReturnRatio",
+   "expr": "DECAYLINEAR(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",60)/(CBOT(\"$amp\",0.2,\"MEAN\",\"$return\",60)+1e-8),10)",
+   "style": "波动率/风险偏好/中期",
+   "reason": "方向无效",
+   "detail": "IC=+0.87%, 多头=-0.4%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00872,
+   "long_total": -0.00393,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2019
+   ]
+  },
+  {
+   "name": "ExtremeMoveNetContribution",
+   "expr": "CTOP(\"ABS($bret)\",0.3,\"SUM\",\"$bret\",60)/(TS_SUM(ABS($return),60)+1e-8)",
+   "style": "动量/极端日聚集/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.106, 年度越序峰值=12.9%, 负年=[2020]",
+   "ic_mean": 0.05132,
+   "long_total": 0.54794,
+   "monthly_pos_ratio": 0.7788,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "PanicDayLowerShadowRebound",
+   "expr": "DECAYLINEAR(-CBOT(\"$bret\",0.2,\"MEAN\",\"($close-$open)/($high-$low+1e-8)\",60),10)",
+   "style": "恐慌反转/影线结构/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.091, 年度越序峰值=16.0%, 负年=[2020]",
+   "ic_mean": 0.02114,
+   "long_total": 0.28036,
+   "monthly_pos_ratio": 0.6731,
+   "grade": "C",
+   "neg_years": [
+    2020
+   ]
+  },
+  {
+   "name": "SurgeDayUpperShadowPressure",
+   "expr": "DECAYLINEAR(-CTOP(\"$bret\",0.2,\"MEAN\",\"($high-$close)/($high-$low+1e-8)\",60),10)",
+   "style": "动量受阻/影线结构/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.045, 年度越序峰值=15.7%, 负年=[2022, 2023]",
+   "ic_mean": 0.00554,
+   "long_total": 0.17215,
+   "monthly_pos_ratio": 0.5673,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2023
+   ]
+  },
+  {
+   "name": "ExtremeHighAmpMomentumShortVsLong",
+   "expr": "CTOP(\"$amp\",0.1,\"MEAN\",\"$return\",20)-CTOP(\"$amp\",0.1,\"MEAN\",\"$return\",60)",
+   "style": "波动率动量/短期/中期差",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.084, 年度越序峰值=13.8%, 负年=[2021, 2023]",
+   "ic_mean": 0.02172,
+   "long_total": 0.18569,
+   "monthly_pos_ratio": 0.7404,
+   "grade": "C",
+   "neg_years": [
+    2021,
+    2023
+   ]
+  },
+  {
+   "name": "LowVolumeQuietLowerShadowAccumulation",
+   "expr": "DECAYLINEAR(CBOT(\"$volume\",0.2,\"MEAN\",\"((($close>$open)?$open:$close)-$low)/($high-$low+1e-8)\",60),10)",
+   "style": "流动性/底部承接/中期",
+   "reason": "方向无效",
+   "detail": "IC=+1.55%, 多头=-0.5%(IC与多头矛盾或为负)",
+   "ic_mean": 0.01551,
+   "long_total": -0.00507,
+   "monthly_pos_ratio": 0.6923,
+   "grade": "C",
+   "neg_years": [
+    2019,
+    2021,
+    2025
+   ]
+  },
+  {
+   "name": "TurnoverLiteAmplitudeAnomaly",
+   "expr": "DECAYLINEAR(CBOT(\"$turnover\",0.2,\"STD\",\"($high-$low)/($close+1e-8)\",60)/(CTOP(\"$turnover\",0.2,\"STD\",\"($high-$low)/($close+1e-8)\",60)+1e-8),10)",
+   "style": "换手率/振幅异常/中期",
+   "reason": "单调性C级",
+   "detail": "秩相关=0.073, 年度越序峰值=15.7%, 负年=[2022, 2024]",
+   "ic_mean": 0.00346,
+   "long_total": 0.06646,
+   "monthly_pos_ratio": 0.625,
+   "grade": "C",
+   "neg_years": [
+    2022,
+    2024
+   ]
+  },
+  {
+   "name": "AmpRegimeReturnCorrelation",
+   "expr": "TS_CORR(CTOP(\"$amp\",0.2,\"MEAN\",\"$return\",60), CBOT(\"$amp\",0.2,\"MEAN\",\"$return\",60), 20)",
+   "style": "波动率/趋势协同/短期",
+   "reason": "方向无效",
+   "detail": "IC=+0.04%, 多头=-11.9%(IC与多头矛盾或为负)",
+   "ic_mean": 0.00041,
+   "long_total": -0.11877,
+   "monthly_pos_ratio": 0.4423,
+   "grade": "C",
+   "neg_years": [
+    2018,
+    2019,
+    2021,
+    2023
+   ]
+  }
+ ]
+}

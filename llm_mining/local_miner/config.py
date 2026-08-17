@@ -29,11 +29,16 @@ REPORT_PNG_PATH = os.path.join(WORKSPACE_DIR, "factor_report.png")
 
 def checkpoint_path(mode: str, series_id: str = "", freq: str = "daily") -> str:
     """按模式隔离的检查点路径, 保证 new/optimize 两个进程可并行互不覆盖;
-    数据频率也参与隔离: 分钟挖掘与日频挖掘共用 mode=new 但检查点不同, 互不覆盖"""
+    数据频率也参与隔离: 分钟挖掘与日频挖掘共用 mode=new 但检查点不同, 互不覆盖;
+    切割模式(因子切割论)同样独立检查点, 与常规日频/分钟挖掘互不影响"""
     if mode == "optimize" and series_id:
         return os.path.join(WORKSPACE_DIR, f"checkpoint_optimize_{series_id}.json")
     if freq == "minute":
         return os.path.join(WORKSPACE_DIR, "checkpoint_new_minute.json")
+    if freq == "cut":
+        return os.path.join(WORKSPACE_DIR, "checkpoint_new_cut_daily.json")
+    if freq == "cut_minute":
+        return os.path.join(WORKSPACE_DIR, "checkpoint_new_cut_minute.json")
     return os.path.join(WORKSPACE_DIR, "checkpoint_new.json")
 
 
@@ -43,6 +48,10 @@ def mining_log_path(mode: str, series_id: str = "", freq: str = "daily") -> str:
         return os.path.join(WORKSPACE_DIR, f"mining_optimize_{series_id}.log")
     if freq == "minute":
         return os.path.join(WORKSPACE_DIR, "mining_new_minute.log")
+    if freq == "cut":
+        return os.path.join(WORKSPACE_DIR, "mining_new_cut_daily.log")
+    if freq == "cut_minute":
+        return os.path.join(WORKSPACE_DIR, "mining_new_cut_minute.log")
     return os.path.join(WORKSPACE_DIR, "mining_new.log")
 
 
@@ -50,14 +59,14 @@ def report_png_path(series_id: str) -> str:
     """按因子系列隔离的报告图片路径"""
     return os.path.join(WORKSPACE_DIR, f"factor_report_{series_id}.png")
 
-# LLM 配置（参考 research/holding_increase 的阿里 token plan 用法）
+# LLM 配置（阿里百炼 DashScope 已恢复, 主模型: deepseek-v4-flash-0731）
 DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY", "")
 DASHSCOPE_BASE_URL = os.environ.get(
     "DASHSCOPE_BASE_URL",
     "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
 )
 
-# DeepSeek 配置（挖掘主模型, 固定 deepseek-v4-flash）
+# DeepSeek 直连配置（保留, 默认路由不强制使用; 详见 llm_client 路由)
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 
@@ -74,24 +83,27 @@ DEFAULT_DIRECTION = (
 @dataclass
 class MiningConfig:
     # ---------- LLM ----------
-    model_primary: str = "qwen3.8-max-preview"  # 主模型: 阿里云百炼 qwen3.8-max-preview
-    model_fallback: str = "qwen3.6-flash"      # 备用模型(仅主模型完全不可用时兜底)
-    llm_provider: str = "auto"                  # LLM 路由: auto=按模型名前缀(deepseek*/qwen*);
-                                                # opencode=主模型走 OpenCode Go 网关(含 deepseek-v4-flash);
+    # 2026-08-15 阿里百炼流量恢复: 主模型改走百炼 deepseek-v4-flash-0731; 备用走 Opencode deepseek-v4-flash
+    # 两通道均统一为 DeepSeek v4-flash 系列, 不再使用 qwen
+    model_primary: str = "deepseek-v4-flash-0731"  # 主模型: 阿里百炼 DeepSeek v4-flash(2026-07-31 版)
+    model_fallback: str = "deepseek-v4-flash"      # 备用模型(仅主模型完全不可用时兜底): Opencode 网关 DeepSeek v4-flash
+    llm_provider: str = "auto"                  # LLM 路由: auto=按模型名路由(deepseek-v4-flash-0731→百炼;
+                                                # deepseek-v4-flash→Opencode 网关; 其余 deepseek*→直连; qwen*→百炼);
+                                                # opencode=主模型走 OpenCode Go 网关;
                                                 # deepseek/dashscope=固定走对应端点
     enable_thinking: bool = True                 # 开启深度思考
-    thinking_budget: int = 4096                  # 思考token预算(适当调深)
-    max_tokens: int = 12000                      # 最大输出token(含思考)
+    thinking_budget: int = 8192                  # 思考token预算(曾为4096, 用户要求增加思考深度调至8192)
+    max_tokens: int = 30000                      # 最大输出token(含思考); 曾为12000, 但deepseek-v4-flash思考超长会吃光配额导致content为空, 故调大
     temperature: float = 0.8                     # 挖掘任务需要一定创造性
     llm_timeout: int = 600                       # 单次请求超时(秒)
     llm_max_retry: int = 6                       # 每个模型的重试次数(长请求偶发空内容, 提高韧性)
     n_eval_workers: int = 2                      # 因子评价并行进程数(1=串行; 每进程一份全市场数据副本)
 
     # ---------- 公式约束 ----------
-    max_depth: int = 7                # 语法树最大嵌套深度(暴露为最外层接口)
-    max_symbol_length: int = 120      # 公式最大字符长度
-    max_base_features: int = 6        # 最大基础变量个数
-    max_window: int = 120             # 时间窗口 n 的上限
+    max_depth: int = 14               # 语法树最大嵌套深度(用户允许复杂度翻倍: 7->14)
+    max_symbol_length: int = 240      # 公式最大字符长度(用户允许复杂度翻倍: 120->240)
+    max_base_features: int = 12       # 最大基础变量个数(用户允许复杂度翻倍: 6->12)
+    max_window: int = 240             # 时间窗口 n 的上限(用户允许复杂度翻倍: 120->240)
 
     # ---------- 数据频率 ----------
     # daily=日频挖掘(原逻辑, 行为完全不变); minute=分钟频率挖掘(分钟算子聚合出日频因子)
@@ -106,14 +118,48 @@ class MiningConfig:
     minute_max_symbol_length: int = 240  # 分钟模式公式最大字符长度(相对日频翻倍: 120×2)
     minute_max_base_features: int = 12   # 分钟模式允许的基础变量个数(相对日频翻倍: 6×2)
 
+    # ---------- 挖掘主题 ----------
+    # ""=常规挖掘(日频/分钟, 原逻辑不变); "cut"=因子切割论模式: 强制模型用切割算子 CTOP/CBOT
+    # 构造"先按切割工具排序 -> 取前/后N% bar -> 聚合 -> 再与日频算子组合"的高阶因子。
+    # 切割模式放宽公式复杂度上限(切割算子本身占深度/长度, 且模型需表达"工具+比例+聚合+目标+窗口"5要素)。
+    mining_theme: str = ""
+    cut_max_depth: int = 20            # 切割模式公式嵌套深度上限(常规14 -> 放宽至20)
+    cut_max_symbol_length: int = 480   # 切割模式公式最大字符长度(常规240 -> 480)
+    cut_max_base_features: int = 16    # 切割模式允许的基础变量个数(常规12 -> 16)
+    cut_max_window: int = 480          # 切割模式·日频滚动窗口上限(常规240 -> 480个交易日)
+    minute_cut_max_window: int = 4800  # 切割模式·分钟滚动窗口上限(bar数; 240=日内1天, 20交易日×240=4800)
+
+    @property
+    def is_cut(self) -> bool:
+        """是否因子切割论模式"""
+        return self.mining_theme == "cut"
+
     @property
     def formula_max_depth(self) -> int:
-        """分钟模式允许更高复杂度, 深度上限随频率切换"""
+        """按 挖掘主题/数据频率 切换深度上限: 切割模式 > 分钟模式 > 日频"""
+        if self.is_cut:
+            return self.cut_max_depth
         return self.minute_max_depth if self.data_frequency == "minute" else self.max_depth
 
     @property
     def formula_max_symbol_length(self) -> int:
+        if self.is_cut:
+            return self.cut_max_symbol_length
         return self.minute_max_symbol_length if self.data_frequency == "minute" else self.max_symbol_length
+
+    @property
+    def formula_max_base_features(self) -> int:
+        """基础变量个数上限(切割模式放宽; 提示词/校验共用)"""
+        if self.is_cut:
+            return self.cut_max_base_features
+        return self.minute_max_base_features if self.data_frequency == "minute" else self.max_base_features
+
+    @property
+    def formula_max_window(self) -> int:
+        """切割窗口上限: 分钟切割按bar数(240=日内, 2400=10日滚动), 日频按交易日"""
+        if self.is_cut:
+            return self.minute_cut_max_window if self.data_frequency == "minute" else self.cut_max_window
+        return self.max_window
 
     # ---------- 数据 ----------
     data_start_date: str = "2016-01-01"   # 量价数据加载起始日(含rolling预热)
@@ -163,7 +209,8 @@ class MiningConfig:
     # ---------- 挖掘循环 ----------
     max_rounds: int = 12               # 最大迭代轮数
     min_library_target: int = 0        # new模式: 库中对应前缀系列数达到该值即提前结束挖掘(0=不启用)
-    factors_per_round: int = 2         # 每轮要求模型输出的因子个数
+    factors_per_round: int = 10        # 每轮要求模型输出的因子个数(候选备选数)
+    history_rounds: int = 5            # 迭代提示词注入的最近历史轮次摘要数(控制请求体积)
     direction: str = DEFAULT_DIRECTION # 初始挖掘方向
 
     def to_dict(self) -> dict:
