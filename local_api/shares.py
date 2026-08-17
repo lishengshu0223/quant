@@ -1,0 +1,77 @@
+import os
+import pandas as pd
+import pyarrow.dataset as ds
+from .config import get_data_path, SHARES_DIR
+from ._utils import normalize_date, normalize_codes, get_existing_date_files, filter_dates_by_range
+
+
+def get_shares(order_book_ids=None, start_date=None, end_date=None, fields=None,
+               market="cn", expect_df=True):
+    """
+    获取 A 股每日股本结构（仿 rqdatac.get_shares）
+
+    数据来源：本地 F:\\Trade_data\\shares\\YYYYMMDD.parquet，
+    由 rqdatac.get_shares 生成，字段与米筐一致。
+
+    Parameters
+    ----------
+    order_book_ids : str or list[str], optional
+        合约代码或代码列表，如 "000001.XSHE" 或 "000001"
+    start_date : str or pd.Timestamp, optional
+        开始日期
+    end_date : str or pd.Timestamp, optional
+        结束日期
+    fields : str or list[str], optional
+        需要的字段，默认全部。可选：total（总股本）、circulation_a（A 股流通股本）、
+        non_circulation_a（非流通 A 股）、total_a（A 股总股本）、
+        preferred_shares（优先股）、free_circulation（自由流通股本）
+    market : str, default "cn"
+        市场
+    expect_df : bool, default True
+        是否返回 DataFrame
+
+    Returns
+    -------
+    pd.DataFrame
+        MultiIndex (date, code)，列为股本字段（单位：股）
+    """
+    base_dir = get_data_path(SHARES_DIR)
+    if not os.path.exists(base_dir):
+        return pd.DataFrame()
+
+    start_dt = normalize_date(start_date)
+    end_dt = normalize_date(end_date)
+
+    date_files = get_existing_date_files(base_dir)
+    date_files = filter_dates_by_range(date_files, start_dt, end_dt)
+
+    if not date_files:
+        return pd.DataFrame()
+
+    codes = normalize_codes(order_book_ids)
+
+    # 只读取日期范围内的文件，避免读取全量数据
+    filepaths = [f for _, f in date_files]
+    dataset = ds.dataset(filepaths, format="parquet")
+    table = dataset.to_table()
+    df = table.to_pandas()
+
+    if not df.empty:
+        df = df.reset_index()
+
+        if codes:
+            df = df[df["code"].isin(codes)]
+
+        df["code"] = df["code"].astype(str)
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.set_index(["date", "code"]).sort_index()
+
+        if fields is not None:
+            field_list = fields if isinstance(fields, list) else [fields]
+            cols = [f for f in field_list if f in df.columns]
+            if cols:
+                df = df[cols]
+
+    if expect_df:
+        return df
+    return df.unstack("code")

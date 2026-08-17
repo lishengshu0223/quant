@@ -143,15 +143,17 @@ def create_returns_tear_sheet(
             from .data import get_benchmark_returns
             date_min = str(clean_data.index.get_level_values(0).min().date())
             date_max = str(clean_data.index.get_level_values(0).max().date())
+            # 基准周期须与组合收益周期一致, 否则 normalize 时基准贡献被缩小
+            bench_days = _period_days(period)
             for code, name in _DEFAULT_BENCHMARKS.items():
                 try:
                     bench = get_benchmark_returns(
                         benchmark=code,
                         start_date=date_min,
                         end_date=date_max,
-                        periods=[1],
+                        periods=[bench_days],
                     )
-                    benchmark_dict[name] = bench["period_1"]
+                    benchmark_dict[name] = bench[f"period_{bench_days}"]
                 except Exception:
                     pass
         except Exception:

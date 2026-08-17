@@ -21,8 +21,15 @@ from .future_price import get_future_price
 from .fund_price import get_fund_price
 from .corporate_action import get_dividend, get_ex_cum_factor, get_split_factor
 from .stock_status import is_st_stock, is_suspended, get_tradable_matrix
+from .turnover import get_turnover_rate
+from .shares import get_shares
 from .yield_curve import get_yield_curve
 from .future_info import get_future_info
+from .announcements import (
+    get_announcements,
+    get_announcement_categories,
+    refresh_announcement_cache,
+)
 
 __all__ = [
     "init",
@@ -53,6 +60,11 @@ __all__ = [
     "is_st_stock",
     "is_suspended",
     "get_tradable_matrix",
+    "get_turnover_rate",
+    "get_shares",
     "get_yield_curve",
     "get_future_info",
+    "get_announcements",
+    "get_announcement_categories",
+    "refresh_announcement_cache",
 ]
